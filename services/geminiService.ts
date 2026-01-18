@@ -2,11 +2,9 @@
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { AtsAnalysis, InterviewEvaluation, LearningRoadmap, InterviewRound } from "../types";
 
-const SYSTEM_PERSONALITY = `You are a Principal Engineer and Elite Technical Recruiter at a Tier-1 tech firm like Google or Stripe. 
-Your tone is high-stakes, professional, and discerning. You focus on deep architectural understanding, algorithmic efficiency, and professional leadership.
-STRICT RULE: DO NOT USE EMOJIS.
-You ask sharp, multi-layered questions that probe the boundaries of a candidate's knowledge.
-In Coding rounds, you provide clear, challenging problems and guide the candidate through edge cases and complexity analysis (Big O).`;
+const SYSTEM_PERSONALITY = `You are an Elite Executive Technical Recruiter. 
+Your tone is professional, critical, and result-oriented. DO NOT USE EMOJIS.
+Focus on hard-hitting metrics and professional clarity.`;
 
 export class GeminiService {
   private async safeCall<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
@@ -31,7 +29,38 @@ export class GeminiService {
   async analyzeResume(jobRole: string, experienceLevel: string, resumeText: string): Promise<AtsAnalysis> {
     return this.safeCall(async () => {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `Review this candidate's resume for a ${jobRole} position at a ${experienceLevel} level. \nResume Content: ${resumeText}\nProvide a comprehensive evaluation in JSON: ats_score (out of 100), missing_keywords[], formatting_issues[], project_feedback[], improvement_suggestions[], rewritten_bullets[].`;
+      
+      const prompt = `Perform a high-level strategic audit for a ${jobRole} (${experienceLevel}).
+      Resume Text: ${resumeText}
+
+      You must evaluate 4 critical areas: 
+      1. Tone & Style: Language professional, active verbs, tone consistency.
+      2. Content & Impact: Quantifiable results, STAR method, depth of contribution.
+      3. Structure & Flow: Logical progression, scanability, header clarity.
+      4. Skills Alignment: Keyword density, technology stack relevance, domain expertise.
+
+      Return ONLY JSON with this EXACT structure:
+      {
+        "ats_score": number,
+        "categories": {
+          "tone_style": { "score": number, "strengths": string[], "weaknesses": string[] },
+          "content_impact": { "score": number, "strengths": string[], "weaknesses": string[] },
+          "structural_integrity": { "score": number, "strengths": string[], "weaknesses": string[] },
+          "skills_relevance": { "score": number, "strengths": string[], "weaknesses": string[] }
+        },
+        "industry_benchmark_comparison": string,
+        "missing_keywords": string[],
+        "formatting_issues": string[],
+        "detailed_improvements": [
+          { "issue": string, "suggestion": string, "example_before": string, "example_after": string, "rationale": string, "category": "Tone" | "Content" | "Structure" | "Skills" }
+        ],
+        "project_audit": [
+          { "name": string, "current_description": string, "improved_description": string, "impact_critique": string, "ats_relevance_score": number }
+        ],
+        "road_to_100": string[],
+        "pro_tips": string[]
+      }`;
+
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt,
@@ -44,13 +73,7 @@ export class GeminiService {
   async startInterview(role: string, stack: string, difficulty: string, round: InterviewRound = 'TECHNICAL'): Promise<string> {
     return this.safeCall(async () => {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const roundPrompt = round === 'CODING' 
-        ? "Present a complex algorithmic or system design coding challenge. Focus on efficiency and edge cases." 
-        : round === 'BEHAVIORAL' 
-        ? "Focus on leadership, high-stakes conflict resolution, and strategic decision making." 
-        : "Focus on deep systems internals, concurrency, and architecture.";
-      
-      const prompt = `Round: ${round}. Level: ${difficulty}. Start a professional interview for ${role} with focus on ${stack}. ${roundPrompt} Begin with a high-level introductory question. NO EMOJIS.`;
+      const prompt = `Start a professional interview for ${role}. Level: ${difficulty}. Round: ${round}. NO EMOJIS.`;
       const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: prompt,
@@ -63,7 +86,7 @@ export class GeminiService {
   async getFollowUpQuestion(history: string, lastAnswer: string, round: InterviewRound = 'TECHNICAL'): Promise<string> {
     return this.safeCall(async () => {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `Round: ${round}. Interview History: ${history}\nCandidate's last response: ${lastAnswer}\nAsk a challenging, high-level follow-up question. Probe deep into their logic. NO EMOJIS.`;
+      const prompt = `Interview History: ${history}\nAnswer: ${lastAnswer}\nAsk a challenging follow-up. NO EMOJIS.`;
       const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: prompt,
@@ -78,7 +101,7 @@ export class GeminiService {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Evaluate this interview transcript:\n${transcript}\nProvide professional performance metrics in JSON: technical_score, communication_score, problem_solving_score, confidence_score, overall_feedback, strengths[], weaknesses[], improvement_tips[]. Score strictly.`,
+        contents: `Evaluate transcript: ${transcript}`,
         config: { systemInstruction: SYSTEM_PERSONALITY, responseMimeType: 'application/json' }
       });
       return JSON.parse(response.text || '{}') as InterviewEvaluation;
@@ -88,10 +111,9 @@ export class GeminiService {
   async generateCustomRoadmap(field: string, goal: string): Promise<Partial<LearningRoadmap>> {
     return this.safeCall(async () => {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `Create a professional career roadmap for: ${field}. Goal: ${goal}.\nReturn JSON: estimated_days, milestones[], project_suggestions[], hiring_companies[].`;
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: prompt,
+        contents: `Roadmap for ${field}: ${goal}`,
         config: { systemInstruction: SYSTEM_PERSONALITY, responseMimeType: 'application/json' }
       });
       return JSON.parse(response.text || '{}') as Partial<LearningRoadmap>;

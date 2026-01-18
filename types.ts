@@ -1,17 +1,51 @@
 
+export interface CategoryFeedback {
+  strengths: string[];
+  weaknesses: string[];
+  score: number;
+}
+
+export interface ImprovementStep {
+  issue: string;
+  suggestion: string;
+  example_before: string;
+  example_after: string;
+  rationale: string;
+  category: 'Tone' | 'Content' | 'Structure' | 'Skills';
+}
+
+export interface ProjectAudit {
+  name: string;
+  current_description: string;
+  improved_description: string;
+  impact_critique: string;
+  ats_relevance_score: number;
+}
+
 export interface AtsAnalysis {
   ats_score: number;
+  categories: {
+    tone_style: CategoryFeedback;
+    content_impact: CategoryFeedback;
+    structural_integrity: CategoryFeedback;
+    skills_relevance: CategoryFeedback;
+  };
+  industry_benchmark_comparison: string;
   missing_keywords: string[];
   formatting_issues: string[];
-  project_feedback: string[];
-  improvement_suggestions: string[];
-  rewritten_bullets: string[];
+  detailed_improvements: ImprovementStep[];
+  project_audit: ProjectAudit[];
+  road_to_100: string[];
+  pro_tips: string[];
 }
 
 export interface SavedResumeAnalysis extends AtsAnalysis {
   id: string;
   timestamp: number;
   jobRole: string;
+  experienceLevel: string;
+  // Added version property to satisfy type requirements in App.tsx
+  version?: number;
 }
 
 export interface InterviewEvaluation {

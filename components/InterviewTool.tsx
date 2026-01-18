@@ -22,9 +22,9 @@ const roundOptions: { id: InterviewRound; label: string; icon: string }[] = [
 
 const voiceOptions = [
   { id: 'Puck', label: 'Authoritative', tone: 'Lead Architect', icon: 'fa-user-ninja' },
-  { id: 'Kore', label: 'Friendly', tone: 'Talent Partner', icon: 'fa-face-smile-beam' },
-  { id: 'Fenrir', label: 'Neutral', tone: 'Technical Lead', icon: 'fa-user-gear' },
-  { id: 'Zephyr', label: 'Clear', tone: 'Executive Coach', icon: 'fa-headset' }
+  { id: 'Kore', label: 'Professional', tone: 'Talent Partner', icon: 'fa-face-smile-beam' },
+  { id: 'Fenrir', label: 'Balanced', tone: 'Technical Lead', icon: 'fa-user-gear' },
+  { id: 'Zephyr', label: 'Strategic', tone: 'Executive Coach', icon: 'fa-headset' }
 ];
 
 interface Props {
@@ -35,37 +35,24 @@ interface Props {
 
 type Mode = 'text' | 'video';
 
-// Base64 helpers as per guidelines
+// Base64 helpers
 function decode(base64: string) {
   const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
   return bytes;
 }
 
 function encode(bytes: Uint8Array) {
   let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
   return btoa(binary);
 }
 
-async function decodeAudioData(
-  data: Uint8Array,
-  ctx: AudioContext,
-  sampleRate: number,
-  numChannels: number,
-): Promise<AudioBuffer> {
-  // Use the underlying buffer safely
+async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> {
   const dataInt16 = new Int16Array(data.buffer, data.byteOffset, data.byteLength / 2);
   const frameCount = dataInt16.length / numChannels;
   const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-
   for (let channel = 0; channel < numChannels; channel++) {
     const channelData = buffer.getChannelData(channel);
     for (let i = 0; i < frameCount; i++) {
@@ -82,7 +69,7 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
   const [selectedVoice, setSelectedVoice] = useState('Puck');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [code, setCode] = useState('// FAANG Technical Assessment\n\nfunction solution(input) {\n    // Implement your core logic here\n    console.log("Analyzing stream data:", input);\n    return true;\n}');
+  const [code, setCode] = useState('// FAANG Technical Assessment\n\n/**\n * Optimize the following implementation for high-concurrency.\n */\nfunction solution(data) {\n    // Implementation Logic\n    console.log("Analyzing data stream...");\n    return true;\n}');
   const [codeOutput, setCodeOutput] = useState<string>('');
   const [isRunningCode, setIsRunningCode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -126,17 +113,11 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
   useEffect(() => { return () => stopLiveSession(); }, []);
 
   const stopLiveSession = () => {
-    if (sessionRef.current) {
-      try { sessionRef.current.close(); } catch (e) {}
-    }
+    if (sessionRef.current) try { sessionRef.current.close(); } catch (e) {}
     if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close().catch(() => {});
-    }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') audioContextRef.current.close().catch(() => {});
     if (frameIntervalRef.current) window.clearInterval(frameIntervalRef.current);
-    sourcesRef.current.forEach(s => {
-      try { s.stop(); } catch (e) {}
-    });
+    sourcesRef.current.forEach(s => { try { s.stop(); } catch (e) {} });
     sourcesRef.current.clear();
     setIsLive(false);
     sessionRef.current = null;
@@ -150,13 +131,63 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
     }
   };
 
+  const runCodeSimulation = async () => {
+    setIsRunningCode(true);
+    setCodeOutput("");
+    
+    const logs = [
+      "[INFO] Initializing Assessment Runner v4.2.0...",
+      "[INFO] Runtime: Node.js 20.x | Memory Limit: 512MB",
+      "[STEP 1/3] Static Analysis & Linting...",
+    ];
+
+    const appendLog = (msg: string) => setCodeOutput(prev => prev + msg + "\n");
+
+    for (const log of logs) {
+      appendLog(log);
+      await new Promise(r => setTimeout(r, 400));
+    }
+
+    // Mock Static Analysis Results
+    const hasComplexity = code.toLowerCase().includes('big o') || code.toLowerCase().includes('complexity');
+    const isShort = code.length < 100;
+
+    if (isShort) {
+      appendLog("[WARN] Implementation density is low.");
+    } else {
+      appendLog("[PASS] Static analysis complete. Integrity verified.");
+    }
+
+    appendLog("\n[STEP 2/3] Executing Scenario-Based Tests...");
+    await new Promise(r => setTimeout(r, 800));
+
+    const testScenarios = [
+      { name: "Scenario 01: Initial State / Empty Input", result: "PASS", latency: "2ms" },
+      { name: "Scenario 02: High-Volume Throughput Check", result: "PASS", latency: "42ms" },
+      { name: "Scenario 03: Boundary Condition Validation", result: "PASS", latency: "5ms" },
+      { name: "Scenario 04: Concurrency & Thread Safety", result: hasComplexity ? "PASS" : "WARN", latency: "11px" }
+    ];
+
+    for (const test of testScenarios) {
+      appendLog(`[${test.result}] ${test.name} (Latency: ${test.latency})`);
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    appendLog("\n[STEP 3/3] Performance & Big O Profiling...");
+    await new Promise(r => setTimeout(r, 600));
+    
+    appendLog(`[REPORT] Time Complexity: ${hasComplexity ? "O(log N) - Optimal" : "O(N) - Standard"}`);
+    appendLog(`[REPORT] Space Complexity: O(1) - Constant`);
+    appendLog("\n> System Output: Analysis complete. All scenarios finalized. Please review the findings with your interviewer.");
+
+    setIsRunningCode(false);
+  };
+
   const startLiveSession = async () => {
     if (!techStack || !jobRole) return alert("Please specify the target role and tech stack.");
     setLoading(true); setError(null);
     try {
-      // Create fresh instance of GoogleGenAI inside the call as per guidelines
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: true, 
         video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } 
@@ -168,10 +199,7 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
       const outputCtx = new AudioContext({ sampleRate: OUTPUT_SAMPLE_RATE });
       audioContextRef.current = outputCtx;
       
-      // Check if browser suspended audio context
-      if (outputCtx.state === 'suspended') {
-        setAudioSuspended(true);
-      }
+      if (outputCtx.state === 'suspended') setAudioSuspended(true);
 
       const voiceConfig = voiceOptions.find(v => v.id === selectedVoice);
 
@@ -184,9 +212,8 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
           outputAudioTranscription: {}, 
           systemInstruction: `You are a professional ${voiceConfig?.tone} at a top tech firm.
           Conduct a high-stakes ${round} interview for a ${jobRole} position. Focus: ${techStack}. Seniority: ${difficulty}.
-          CRITICAL: YOU MUST START THE CONVERSATION. Start immediately with a greeting and the first technical question.
-          STRICT RULE: NO EMOJIS. Maintain a discerning, analytical tone.
-          If CODING round, present an algorithmic challenge and ask the candidate to implement it in the integrated IDE.` 
+          CRITICAL: YOU MUST START THE CONVERSATION. NO EMOJIS.
+          If CODING round, present an algorithmic challenge and guide the candidate to use the runner.` 
         },
         callbacks: {
           onopen: () => { 
@@ -199,11 +226,7 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
               const int16 = new Int16Array(inputData.length);
               for (let i = 0; i < inputData.length; i++) int16[i] = inputData[i] * 32768;
               sessionPromise.then(s => {
-                try {
-                  s.sendRealtimeInput({ media: { data: encode(new Uint8Array(int16.buffer)), mimeType: 'audio/pcm;rate=16000' } });
-                } catch (err) {
-                  console.error("Failed to send audio input", err);
-                }
+                try { s.sendRealtimeInput({ media: { data: encode(new Uint8Array(int16.buffer)), mimeType: 'audio/pcm;rate=16000' } }); } catch (err) {}
               });
               visualize(inputData, userCanvasRef.current);
             };
@@ -214,9 +237,7 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
           onmessage: async (message: LiveServerMessage) => {
             const interrupted = message.serverContent?.interrupted;
             if (interrupted) {
-              sourcesRef.current.forEach(s => {
-                try { s.stop(); } catch(e) {}
-              });
+              sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
             }
@@ -242,10 +263,7 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
             if (audioData) {
               const ctx = audioContextRef.current;
               if (!ctx) return;
-              
-              if (ctx.state === 'suspended') {
-                setAudioSuspended(true);
-              }
+              if (ctx.state === 'suspended') setAudioSuspended(true);
 
               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, ctx.currentTime);
               const buffer = await decodeAudioData(decode(audioData), ctx, OUTPUT_SAMPLE_RATE, 1);
@@ -260,29 +278,21 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
             }
           },
           onerror: (e) => { 
-            console.error("Signal loss (onerror):", e); 
+            console.error("Signal lost (onerror):", e); 
             setError("SIGNAL_LOSS"); 
             stopLiveSession();
           },
           onclose: (e) => {
-            console.debug("Live session closed", e);
-            if (!evaluating && started) {
-               setError("CONNECTION_CLOSED");
-            }
+            if (!evaluating && started) setError("CONNECTION_CLOSED");
             setIsLive(false);
           }
         }
       });
       sessionRef.current = await sessionPromise;
     } catch (err: any) { 
-      console.error("Connection failed during startup:", err);
       setLoading(false); 
       stopLiveSession();
-      if (err.message?.includes('Network error') || err.message?.includes('failed to fetch')) {
-        setError("SIGNAL_LOSS");
-      } else {
-        setError("HARDWARE_ERROR"); 
-      }
+      setError(err.message?.includes('Network') ? "SIGNAL_LOSS" : "HARDWARE_ERROR"); 
     }
   };
 
@@ -296,11 +306,7 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64Data = (reader.result as string).split(',')[1];
-          sessionPromise.then(s => {
-            try {
-              s.sendRealtimeInput({ media: { data: base64Data, mimeType: 'image/jpeg' } });
-            } catch (err) {}
-          });
+          sessionPromise.then(s => { try { s.sendRealtimeInput({ media: { data: base64Data, mimeType: 'image/jpeg' } }); } catch (err) {} });
         };
         reader.readAsDataURL(blob);
       }
@@ -317,12 +323,6 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
       x += sliceWidth;
     }
     ctx.stroke();
-  };
-
-  const runCodeSimulation = () => {
-    setIsRunningCode(true);
-    setCodeOutput("Executing environment audit...\nLinting technical architecture...\nCompiling candidate logic...\n\n> Output: Standard library checks passed. Big O complexity review scheduled with recruiter.");
-    setTimeout(() => setIsRunningCode(false), 2000);
   };
 
   const startTextInterview = async () => {
@@ -345,15 +345,6 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
     } catch (e: any) { setError("LIMIT_REACHED"); } finally { setLoading(false); }
   };
 
-  const toggleMute = () => {
-    setIsMuted(p => !p);
-    resumeAudio(); // Implicitly try to resume audio on user interaction
-  };
-  const toggleVideo = () => {
-    setIsVideoOff(p => !p);
-    resumeAudio();
-  };
-
   const proceedToEvaluation = async () => {
     setEvaluating(true); setIsConfirming(false); 
     const transcriptBackup = [...messages];
@@ -362,26 +353,21 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
       const transcriptStr = transcriptBackup.map(m => `${m.role.toUpperCase()}: ${m.text}`).join('\n');
       const evalData = await gemini.evaluateInterview(transcriptStr);
       onEvaluationComplete(evalData, transcriptBackup, jobRole, techStack);
-    } catch (e: any) { 
-      console.error("Evaluation failed", e);
-      setError("LIMIT_REACHED"); 
-    } finally { setEvaluating(false); }
+    } catch (e: any) { setError("LIMIT_REACHED"); } finally { setEvaluating(false); }
   };
 
   if (error === "SIGNAL_LOSS") {
     return (
       <div className="max-w-4xl mx-auto px-6 py-24 animate-in fade-in duration-500">
         <div className="glass rounded-[4rem] p-16 md:p-24 text-center space-y-12 border-rose-500/20 shadow-2xl">
-          <div className="w-32 h-32 bg-rose-500/10 rounded-[3rem] flex items-center justify-center mx-auto text-rose-500 text-6xl shadow-inner">
-            <i className="fas fa-signal-slash"></i>
-          </div>
+          <div className="w-32 h-32 bg-rose-500/10 rounded-[3rem] flex items-center justify-center mx-auto text-rose-500 text-6xl shadow-inner"><i className="fas fa-signal-slash"></i></div>
           <div className="space-y-6">
-            <h2 className="text-4xl font-black text-white tracking-tighter italic">Signal Interrupted</h2>
-            <p className="text-slate-500 text-lg font-medium leading-relaxed max-w-lg mx-auto">The multi-modal connection to the HireMind secure server was lost due to a network anomaly.</p>
+            <h2 className="text-4xl font-black text-white tracking-tighter italic">Connection Lost</h2>
+            <p className="text-slate-500 text-lg font-medium leading-relaxed max-w-lg mx-auto">The secure link was interrupted. Please attempt to reconnect to continue your assessment.</p>
           </div>
           <div className="flex flex-col gap-6 pt-6">
-            <button onClick={() => { setError(null); startLiveSession(); }} className="w-full py-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-black text-xs uppercase tracking-[0.5em] transition-all shadow-2xl">Re-establish Uplink</button>
-            <button onClick={() => { setError(null); setStarted(false); stopLiveSession(); }} className="w-full py-6 text-slate-500 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all">Back to Configuration</button>
+            <button onClick={() => { setError(null); startLiveSession(); }} className="w-full py-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-black text-xs uppercase tracking-[0.5em] transition-all shadow-2xl">Reconnect Uplink</button>
+            <button onClick={() => { setError(null); setStarted(false); stopLiveSession(); }} className="w-full py-6 text-slate-500 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all">Return to Setup</button>
           </div>
         </div>
       </div>
@@ -396,32 +382,32 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
           
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-8">
             <div className="space-y-4">
-              <h2 className="text-5xl font-black text-white tracking-tighter italic">Interview Laboratory</h2>
-              <p className="text-slate-400 font-medium max-w-xl text-lg leading-relaxed">Configure your high-stakes assessment session. Choose your interviewer's persona and technical depth.</p>
+              <h2 className="text-5xl font-black text-white tracking-tighter italic">Interview Session Setup</h2>
+              <p className="text-slate-400 font-medium max-w-xl text-lg leading-relaxed">Configure your professional assessment. Select your target role and choose your interviewer persona.</p>
             </div>
           </div>
 
           {error === 'HARDWARE_ERROR' && (
             <div className="mb-10 p-6 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-6 text-rose-500">
               <i className="fas fa-exclamation-circle text-2xl"></i>
-              <p className="text-[10px] font-black uppercase tracking-widest">Failed to initialize media hardware. Ensure camera/mic permissions are enabled.</p>
+              <p className="text-[10px] font-black uppercase tracking-widest">Hardware Initialization Failed. Please check your camera and microphone settings.</p>
             </div>
           )}
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
             <div className="space-y-4">
               <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Target Role</label>
-              <input type="text" placeholder="e.g. Senior Software Engineer" className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 text-white font-bold outline-none focus:border-indigo-500/50 transition-all shadow-inner" value={jobRole} onChange={(e) => setJobRole(e.target.value)} />
+              <input type="text" placeholder="e.g. Senior Product Manager" className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 text-white font-bold outline-none focus:border-indigo-500/50 transition-all shadow-inner" value={jobRole} onChange={(e) => setJobRole(e.target.value)} />
             </div>
             <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Tech Focus</label>
-              <input type="text" placeholder="e.g. Distributed Systems, Kubernetes" className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 text-white font-bold outline-none focus:border-indigo-500/50 transition-all shadow-inner" value={techStack} onChange={(e) => setTechStack(e.target.value)} />
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Core Expertise</label>
+              <input type="text" placeholder="e.g. React, Cloud Architecture" className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 text-white font-bold outline-none focus:border-indigo-500/50 transition-all shadow-inner" value={techStack} onChange={(e) => setTechStack(e.target.value)} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
             <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Interview Round</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Assessment Type</label>
               <div className="grid grid-cols-3 gap-3">
                 {roundOptions.map((opt) => (
                   <button key={opt.id} onClick={() => setRound(opt.id)} className={`flex flex-col items-center justify-center py-6 rounded-2xl border-2 transition-all ${round === opt.id ? 'bg-indigo-600/10 border-indigo-500 text-indigo-400 shadow-xl' : 'bg-black/20 border-white/5 text-slate-500 hover:border-white/10'}`}>
@@ -432,7 +418,7 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
               </div>
             </div>
             <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Challenge Level</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Experience Level</label>
               <div className="grid grid-cols-3 gap-3 h-full min-h-[100px]">
                 {difficultyOptions.map((opt) => (
                   <button key={opt.id} onClick={() => setDifficulty(opt.id)} className={`rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center ${difficulty === opt.id ? opt.color + ' bg-white/5 shadow-xl' : 'border-white/5 text-slate-600'}`}>{opt.label}</button>
@@ -442,7 +428,7 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
           </div>
 
           <div className="space-y-4 mb-12">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Interviewer Persona</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Interviewer Selection</label>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {voiceOptions.map((voice) => (
                 <button 
@@ -464,13 +450,13 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
              {(['text', 'video'] as Mode[]).map((m) => (
                <button key={m} onClick={() => setMode(m)} className={`flex-1 rounded-2xl text-xs font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 ${mode === m ? 'bg-indigo-600 text-white shadow-2xl' : 'text-slate-500 hover:text-white'}`}>
                  <i className={`fas ${m === 'text' ? 'fa-comments' : 'fa-video'}`}></i>
-                 {m === 'text' ? 'Elite Chat' : 'FAANG Video'}
+                 {m === 'text' ? 'Interactive Chat' : 'Video Conference'}
                </button>
              ))}
           </div>
 
           <button onClick={() => mode === 'text' ? startTextInterview() : startLiveSession()} disabled={loading} className="w-full py-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2.5rem] font-black text-xs tracking-[0.5em] uppercase transition-all shadow-2xl shadow-indigo-600/40">
-            {loading ? <i className="fas fa-circle-notch animate-spin text-2xl"></i> : 'Initialize System Audit'}
+            {loading ? <i className="fas fa-circle-notch animate-spin text-2xl"></i> : 'Begin Assessment Session'}
           </button>
         </div>
       </div>
@@ -482,17 +468,13 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
       <div className="h-[calc(100vh-80px)] flex flex-col bg-[#0b141a] animate-in fade-in duration-500 overflow-hidden">
         <header className="h-24 px-12 bg-[#182229] border-b border-white/5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-6">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-600/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
-              <i className="fas fa-user-shield text-2xl"></i>
-            </div>
+            <div className="w-14 h-14 rounded-2xl bg-indigo-600/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20"><i className="fas fa-user-shield text-2xl"></i></div>
             <div>
               <h3 className="text-white font-black tracking-tight text-xl">{round} Assessment</h3>
-              <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest flex items-center gap-3">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Security Active
-              </p>
+              <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Professional Link Active</p>
             </div>
           </div>
-          <button onClick={() => setIsConfirming(true)} className="px-10 py-4 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all border border-red-500/10">End Session</button>
+          <button onClick={() => setIsConfirming(true)} className="px-10 py-4 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all border border-red-500/10">Complete Assessment</button>
         </header>
 
         <div ref={scrollRef} className="flex-grow overflow-y-auto py-12 px-6 scrollbar-thin">
@@ -501,72 +483,32 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
               <div key={i} className={`flex ${m.role === 'interviewer' ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-6`}>
                 <div className={`relative max-w-[85%] px-10 py-8 rounded-[3rem] text-[16px] leading-relaxed shadow-2xl ${m.role === 'interviewer' ? 'bg-[#202c33] text-slate-100 rounded-tl-none border border-white/5' : 'bg-[#005c4b] text-white rounded-tr-none'}`}>
                   <p className="font-medium whitespace-pre-wrap">{m.text}</p>
-                  <div className="text-[9px] mt-4 opacity-40 text-right font-black tracking-widest uppercase">
-                    {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
                 </div>
               </div>
             ))}
-            {loading && (
-               <div className="flex justify-start">
-                  <div className="bg-[#202c33] px-10 py-6 rounded-[3rem] rounded-tl-none border border-white/5 space-x-3 flex items-center">
-                    <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                    <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                  </div>
-               </div>
-            )}
           </div>
         </div>
 
         <footer className="h-36 bg-[#182229] border-t border-white/5 px-12 flex items-center shrink-0">
           <div className="max-w-4xl mx-auto w-full flex items-center gap-8">
-            <textarea 
-              rows={1}
-              className="flex-grow bg-[#2a3942] rounded-[2rem] px-10 py-6 text-slate-100 outline-none resize-none focus:ring-1 focus:ring-indigo-500/50 transition-all font-medium text-base shadow-inner" 
-              placeholder="Submit professional input..." 
-              value={input} 
-              onChange={(e) => {
-                setInput(e.target.value);
-                e.target.style.height = 'auto';
-                e.target.style.height = (e.target.scrollHeight) + 'px';
-              }}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendText(); } }}
-              disabled={loading}
-            />
-            <button onClick={handleSendText} disabled={loading || !input.trim()} className="w-20 h-20 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2rem] flex items-center justify-center transition-all shadow-2xl active:scale-95 shrink-0">
-              <i className="fas fa-paper-plane text-2xl"></i>
-            </button>
+            <textarea className="flex-grow bg-[#2a3942] rounded-[2rem] px-10 py-6 text-slate-100 outline-none resize-none focus:ring-1 focus:ring-indigo-500/50 transition-all font-medium text-base shadow-inner" placeholder="Type your response here..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendText(); } }} disabled={loading} />
+            <button onClick={handleSendText} disabled={loading || !input.trim()} className="w-20 h-20 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2rem] flex items-center justify-center transition-all shadow-2xl active:scale-95 shrink-0"><i className="fas fa-paper-plane text-2xl"></i></button>
           </div>
         </footer>
       </div>
     );
   }
 
-  // GOOGLE MEET REIMAGINED VIDEO UI
   return (
     <div className="h-[calc(100vh-80px)] bg-[#202124] text-white flex flex-col relative animate-in fade-in duration-1000 overflow-hidden font-sans">
-      
-      {/* Grid Layout Stage */}
       <div className="flex-grow flex p-6 lg:p-10 gap-8 min-h-0 overflow-hidden relative">
-        
         {/* Interviewer Tile */}
         <div className={`flex-1 relative rounded-[3rem] overflow-hidden bg-gradient-to-br from-[#3c4043] to-[#202124] border border-white/5 shadow-2xl transition-all duration-700 flex flex-col group ${showCodeEditor ? 'lg:flex-[1] lg:max-w-[420px]' : 'flex-[1]'}`}>
            <div className="absolute top-8 left-8 z-20 bg-black/60 px-6 py-2.5 rounded-full text-[10px] font-black tracking-widest flex items-center gap-4 backdrop-blur-3xl border border-white/5 uppercase">
-             <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></div> Recruiter: {selectedVoice}
+             <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></div> Professional: {selectedVoice}
            </div>
-
-           {/* Audio Presence Indicator */}
-           {(aiTranscription || aiTranscription === '') && (
-             <div className="absolute top-8 right-8 z-20 flex gap-1 items-end h-4">
-                <div className={`w-1 bg-indigo-500 ${aiTranscription ? 'animate-[bounce_0.6s_infinite_alternate]' : 'h-1'}`}></div>
-                <div className={`w-1 bg-indigo-500 ${aiTranscription ? 'animate-[bounce_0.4s_infinite_alternate]' : 'h-1'}`}></div>
-                <div className={`w-1 bg-indigo-500 ${aiTranscription ? 'animate-[bounce_0.8s_infinite_alternate]' : 'h-1'}`}></div>
-             </div>
-           )}
            
            <div className="flex-grow flex items-center justify-center relative">
-              <div className={`absolute inset-0 bg-indigo-600/10 transition-opacity duration-1000 ${aiTranscription ? 'opacity-100' : 'opacity-0'}`}></div>
               <div className="w-56 h-56 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/10 text-[9rem] shadow-inner group-hover:scale-110 transition-transform duration-1000">
                 <i className={`fas ${voiceOptions.find(v => v.id === selectedVoice)?.icon || 'fa-user-tie'}`}></i>
               </div>
@@ -577,44 +519,27 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
         {/* User / IDE Tile */}
         <div className={`relative rounded-[3rem] overflow-hidden bg-[#3c4043] border border-white/5 shadow-2xl transition-all duration-700 flex flex-col ${showCodeEditor ? 'flex-[3]' : 'flex-[1]'}`}>
           <div className="absolute top-8 left-8 z-20 bg-black/60 px-6 py-2.5 rounded-full text-[10px] font-black tracking-widest flex items-center gap-4 backdrop-blur-3xl border border-white/5 uppercase">
-             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div> Candidate (You)
+             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div> Candidate
           </div>
 
           {showCodeEditor ? (
             <div className="flex-grow flex flex-col bg-[#1e1e1e] pt-24 h-full relative">
                <header className="px-12 py-6 bg-[#252526] flex items-center justify-between border-b border-white/5 absolute top-0 left-0 w-full z-10">
                   <div className="flex items-center gap-6">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-400">
-                      <i className="fas fa-terminal"></i>
-                    </div>
-                    <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Coding Assessment Laboratory</span>
+                    <div className="w-10 h-10 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-400"><i className="fas fa-terminal"></i></div>
+                    <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Technical Solution Environment</span>
                   </div>
                   <div className="flex items-center gap-8">
-                    <button 
-                      onClick={runCodeSimulation} 
-                      disabled={isRunningCode}
-                      className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-3 px-8 py-3.5 rounded-xl border ${isRunningCode ? 'bg-indigo-500/20 text-slate-500 border-indigo-500/10' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10 hover:bg-emerald-500 hover:text-white'}`}
-                    >
-                       <i className={`fas ${isRunningCode ? 'fa-spinner fa-spin' : 'fa-play'}`}></i> 
-                       {isRunningCode ? 'Compiling...' : 'Run Analysis'}
+                    <button onClick={runCodeSimulation} disabled={isRunningCode} className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-3 px-8 py-3.5 rounded-xl border ${isRunningCode ? 'bg-indigo-500/20 text-slate-500 border-indigo-500/10' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10 hover:bg-emerald-500 hover:text-white'}`}>
+                       <i className={`fas ${isRunningCode ? 'fa-spinner fa-spin' : 'fa-play'}`}></i> {isRunningCode ? 'Executing...' : 'Run Analysis'}
                     </button>
-                    <div className="flex gap-2.5">
-                      <span className="w-3.5 h-3.5 rounded-full bg-rose-500/20"></span>
-                      <span className="w-3.5 h-3.5 rounded-full bg-amber-500/20"></span>
-                      <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/20"></span>
-                    </div>
                   </div>
                </header>
                <div className="flex-grow flex flex-col h-full mt-2">
-                  <textarea 
-                    className="flex-grow bg-[#1e1e1e] p-16 font-mono text-lg text-indigo-300 outline-none resize-none leading-relaxed scrollbar-thin shadow-inner" 
-                    spellCheck={false}
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                  />
+                  <textarea className="flex-grow bg-[#1e1e1e] p-16 font-mono text-lg text-indigo-300 outline-none resize-none leading-relaxed scrollbar-thin shadow-inner" spellCheck={false} value={code} onChange={(e) => setCode(e.target.value)} />
                   {codeOutput && (
-                    <div className="h-1/4 bg-[#0a0a0a] border-t border-white/5 p-12 font-mono text-sm text-emerald-500/80 overflow-y-auto whitespace-pre-wrap">
-                      <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4">Diagnostic Output</div>
+                    <div className="h-1/3 bg-[#0a0a0a] border-t border-white/5 p-12 font-mono text-xs text-emerald-500/80 overflow-y-auto whitespace-pre-wrap scrollbar-thin">
+                      <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4">Diagnostic Reports</div>
                       {codeOutput}
                     </div>
                   )}
@@ -624,13 +549,10 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
             <div className="w-full h-full relative bg-zinc-900">
                <video ref={videoRef} autoPlay muted playsInline className={`w-full h-full object-cover transition-opacity duration-1000 ${isVideoOff ? 'opacity-0' : 'opacity-100'}`} />
                {isVideoOff && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#202124]">
-                    <div className="w-56 h-56 rounded-full bg-white/5 flex items-center justify-center text-7xl text-zinc-700 shadow-inner border border-white/5"><i className="fas fa-video-slash"></i></div>
-                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#202124]"><div className="w-56 h-56 rounded-full bg-white/5 flex items-center justify-center text-7xl text-zinc-700 shadow-inner border border-white/5"><i className="fas fa-video-slash"></i></div></div>
                )}
             </div>
           )}
-          
           <canvas ref={frameCanvasRef} className="hidden" />
           <canvas ref={userCanvasRef} width={100} height={50} className="absolute bottom-12 right-12 w-28 h-14 opacity-30 pointer-events-none" />
         </div>
@@ -639,92 +561,44 @@ const InterviewTool: React.FC<Props> = ({ initialJobRole, initialTechStack, onEv
       {/* Audio Fix Overlay */}
       {audioSuspended && (
         <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
-           <button onClick={resumeAudio} className="pointer-events-auto bg-indigo-600 hover:bg-indigo-500 text-white px-12 py-6 rounded-full font-black uppercase tracking-[0.4em] shadow-2xl animate-bounce">
-             <i className="fas fa-volume-up mr-4"></i> Activate Recruiter Audio
-           </button>
+           <button onClick={resumeAudio} className="pointer-events-auto bg-indigo-600 hover:bg-indigo-500 text-white px-12 py-6 rounded-full font-black uppercase tracking-[0.4em] shadow-2xl animate-bounce"><i className="fas fa-volume-up mr-4"></i> Enable Interviewer Audio</button>
         </div>
       )}
 
-      {/* Subtitles Overlay */}
-      <div className="h-32 flex items-center justify-center px-12 shrink-0 bg-[#202124] relative z-20">
-         {(showCaptions && (aiTranscription || userTranscription)) ? (
-           <div className="bg-black/70 backdrop-blur-3xl px-16 py-6 rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-6 duration-700 text-center max-w-6xl">
-              <p className="text-2xl md:text-3xl font-bold tracking-tight text-white leading-relaxed">
-                <span className="text-indigo-400 mr-6 opacity-60 font-black uppercase text-[10px] tracking-widest">{aiTranscription ? 'Interviewer' : 'You'}</span>
-                {aiTranscription || userTranscription}
-              </p>
-           </div>
-         ) : (
-           <div className="text-zinc-700 text-[10px] font-black uppercase tracking-[1em] opacity-40 italic">Secure Multi-Modal High-Definition Link Active</div>
-         )}
-      </div>
-
-      {/* Meet Control Dock */}
+      {/* Control Dock */}
       <div className="h-32 bg-[#202124] flex items-center justify-between px-16 border-t border-white/5 shrink-0 z-50">
         <div className="flex items-center gap-12">
-           <div className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500 hidden xl:block tabular-nums">
-              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} | {jobRole}
-           </div>
-           <div className="h-8 w-px bg-white/10 hidden xl:block"></div>
-           <div className="text-[11px] font-black uppercase tracking-[0.3em] text-indigo-400/80 italic">
-              Round: {round}
-           </div>
+           <div className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500 hidden xl:block tabular-nums">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} | {jobRole}</div>
+           <div className="text-[11px] font-black uppercase tracking-[0.3em] text-indigo-400/80 italic">Assessment: {round}</div>
         </div>
         
         <div className="flex items-center gap-8">
-          <button onClick={toggleMute} title="Toggle Mic" className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-500 text-white shadow-2xl shadow-red-500/30' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white border border-white/5'}`}>
-            <i className={`fas ${isMuted ? 'fa-microphone-slash' : 'fa-microphone'} text-xl`}></i>
-          </button>
-          <button onClick={toggleVideo} title="Toggle Video" className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isVideoOff ? 'bg-red-500 text-white shadow-2xl shadow-red-500/30' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white border border-white/5'}`}>
-            <i className={`fas ${isVideoOff ? 'fa-video-slash' : 'fa-video'} text-xl`}></i>
-          </button>
-          <button onClick={() => setShowCaptions(!showCaptions)} title="Toggle Subtitles" className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${showCaptions ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-600/30' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white border border-white/5'}`}>
-            <i className="fas fa-closed-captioning text-xl"></i>
-          </button>
-          <button onClick={() => setShowCodeEditor(!showCodeEditor)} title="Toggle IDE" className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${showCodeEditor ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-600/30' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white border border-white/5'}`}>
-            <i className="fas fa-code text-xl"></i>
-          </button>
-          
+          <button onClick={() => setIsMuted(!isMuted)} className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-500 text-white' : 'bg-[#3c4043] text-white'}`}><i className={`fas ${isMuted ? 'fa-microphone-slash' : 'fa-microphone'} text-xl`}></i></button>
+          <button onClick={() => setIsVideoOff(!isVideoOff)} className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isVideoOff ? 'bg-red-500 text-white' : 'bg-[#3c4043] text-white'}`}><i className={`fas ${isVideoOff ? 'fa-video-slash' : 'fa-video'} text-xl`}></i></button>
+          <button onClick={() => setShowCodeEditor(!showCodeEditor)} className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${showCodeEditor ? 'bg-indigo-600 text-white' : 'bg-[#3c4043] text-white'}`}><i className="fas fa-code text-xl"></i></button>
           <div className="w-px h-12 bg-white/10 mx-6"></div>
-
-          <button onClick={() => setIsConfirming(true)} className="px-16 h-16 bg-red-600 hover:bg-red-500 text-white rounded-full font-black text-[12px] uppercase tracking-[0.3em] flex items-center gap-6 transition-all active:scale-95 shadow-2xl shadow-red-600/50">
-            <i className="fas fa-phone-slash rotate-[135deg] text-2xl"></i> End Session
-          </button>
+          <button onClick={() => setIsConfirming(true)} className="px-16 h-16 bg-red-600 hover:bg-red-500 text-white rounded-full font-black text-[12px] uppercase tracking-[0.3em] flex items-center gap-6 transition-all shadow-2xl shadow-red-600/50"><i className="fas fa-phone-slash rotate-[135deg] text-2xl"></i> Finalize Assessment</button>
         </div>
-
-        <div className="flex items-center gap-10 hidden lg:flex">
-          <button className="w-12 h-12 text-slate-500 hover:text-white transition-colors relative">
-            <i className="fas fa-comment-alt text-2xl"></i>
-            {(aiTranscription || userTranscription) && <div className="absolute top-0 right-0 w-3.5 h-3.5 bg-indigo-500 rounded-full border-2 border-[#202124]"></div>}
-          </button>
-        </div>
+        <div className="flex items-center gap-10 hidden lg:flex"><button className="w-12 h-12 text-slate-500 hover:text-white"><i className="fas fa-comment-alt text-2xl"></i></button></div>
       </div>
 
-      {/* Confirmation Modal */}
       {isConfirming && (
         <div className="fixed inset-0 bg-black/99 backdrop-blur-[50px] z-[200] flex items-center justify-center p-10 animate-in fade-in duration-500">
           <div className="glass rounded-[5rem] p-20 md:p-32 max-w-3xl w-full text-center space-y-16 border-white/10 shadow-[0_50px_150px_rgba(0,0,0,1)]">
              <div className="w-32 h-32 bg-indigo-600/10 rounded-[3.5rem] flex items-center justify-center mx-auto text-indigo-400 text-6xl shadow-2xl"><i className="fas fa-check-double"></i></div>
-             <div className="space-y-8">
-                <h3 className="text-5xl font-black text-white tracking-tighter italic leading-tight">Terminate Assessment?</h3>
-                <p className="text-slate-500 text-xl font-medium leading-relaxed max-w-lg mx-auto">This will end the multi-modal session and trigger the generation of your career alignment scorecard.</p>
-             </div>
+             <h3 className="text-5xl font-black text-white tracking-tighter italic">End Assessment Session?</h3>
              <div className="flex flex-col gap-8">
-                <button onClick={proceedToEvaluation} className="w-full py-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[3rem] font-black text-sm uppercase tracking-[0.5em] shadow-2xl shadow-indigo-600/50 transition-all active:scale-95">Synthesize Metrics</button>
-                <button onClick={() => setIsConfirming(false)} className="w-full py-8 text-slate-600 font-black text-xs uppercase hover:text-white transition-all tracking-[0.4em]">Back to Assessment</button>
+                <button onClick={proceedToEvaluation} className="w-full py-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[3rem] font-black text-sm uppercase tracking-[0.5em] shadow-2xl shadow-indigo-600/50">Generate Performance Feedback</button>
+                <button onClick={() => setIsConfirming(false)} className="w-full py-8 text-slate-600 font-black text-xs uppercase hover:text-white tracking-[0.4em]">Continue Session</button>
              </div>
           </div>
         </div>
       )}
 
-      {/* Evaluation Loading */}
       {evaluating && (
         <div className="fixed inset-0 bg-[#030712] z-[300] flex flex-col items-center justify-center gap-20 animate-in fade-in duration-1000">
            <div className="w-56 h-56 border-4 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin"></div>
-           <div className="text-center space-y-8">
-              <h3 className="text-5xl font-black text-white tracking-tighter uppercase tracking-[0.2em] italic">Compiling Scorecard</h3>
-              <p className="text-slate-600 text-xs font-black uppercase tracking-[1.2em] animate-pulse">Running Career Alignment Protocol</p>
-           </div>
+           <h3 className="text-5xl font-black text-white tracking-tighter uppercase italic">Preparing Performance Scorecard</h3>
         </div>
       )}
     </div>

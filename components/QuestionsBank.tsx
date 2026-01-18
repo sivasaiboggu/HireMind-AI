@@ -65,11 +65,11 @@ const QuestionsBank: React.FC<Props> = ({ onNavigate }) => {
     <div className="max-w-7xl mx-auto px-6 py-24 animate-in fade-in duration-700">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 mb-24 relative">
         <div className="space-y-6">
-          <div className="inline-flex px-6 py-2.5 rounded-full glass border border-white/5 text-indigo-400 text-[10px] font-black uppercase tracking-[0.5em] mb-4">The Archive</div>
-          <h1 className="text-7xl md:text-9xl font-black text-white tracking-tighter italic leading-none">FAANG <br />Vault</h1>
+          <div className="inline-flex px-6 py-2.5 rounded-full glass border border-white/5 text-indigo-400 text-[10px] font-black uppercase tracking-[0.5em] mb-4">Professional Library</div>
+          <h1 className="text-7xl md:text-9xl font-black text-white tracking-tighter italic leading-none">Industry <br />Case Studies</h1>
           <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-[10px] flex items-center gap-4">
             <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-            {filteredQuestions.length} High-Stakes Challenges Available
+            {filteredQuestions.length} Interview Scenarios Available
           </p>
         </div>
         <div className="flex-grow max-w-lg relative group">
@@ -131,7 +131,7 @@ const QuestionsBank: React.FC<Props> = ({ onNavigate }) => {
                 onClick={() => onNavigate('interview')}
                 className="flex items-center gap-4 text-[11px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-all group/btn"
               >
-                Simulation <i className="fas fa-arrow-right group-hover/btn:translate-x-3 transition-transform"></i>
+                Start Simulation <i className="fas fa-arrow-right group-hover/btn:translate-x-3 transition-transform"></i>
               </button>
             </footer>
           </div>
@@ -142,8 +142,8 @@ const QuestionsBank: React.FC<Props> = ({ onNavigate }) => {
         <div className="py-72 text-center space-y-12">
           <div className="w-40 h-40 bg-white/5 rounded-full flex items-center justify-center mx-auto text-slate-800 text-7xl shadow-inner border border-white/5"><i className="fas fa-search-minus"></i></div>
           <div className="space-y-4">
-            <p className="text-slate-500 font-black uppercase tracking-[0.8em] text-sm">No Matching Records</p>
-            <button onClick={() => { setActiveCompany('All'); setSearchTerm(''); }} className="text-indigo-400 font-black uppercase tracking-widest text-[10px] hover:text-white transition-all">Clear All Filters</button>
+            <p className="text-slate-500 font-black uppercase tracking-[0.8em] text-sm">No Results Found</p>
+            <button onClick={() => { setActiveCompany('All'); setSearchTerm(''); }} className="text-indigo-400 font-black uppercase tracking-widest text-[10px] hover:text-white transition-all">Clear Search Filters</button>
           </div>
         </div>
       )}

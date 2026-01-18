@@ -14,7 +14,7 @@ const LearningPathTool: React.FC<Props> = ({ onRoadmapComplete }) => {
   const [result, setResult] = useState<LearningRoadmap | null>(null);
 
   const handleGenerate = async () => {
-    if (!field || !goal) return alert("Please specify the field and your career goal.");
+    if (!field || !goal) return alert("Please specify your professional field and career objective.");
     setLoading(true);
     try {
       const roadmapData = await gemini.generateCustomRoadmap(field, goal);
@@ -29,7 +29,7 @@ const LearningPathTool: React.FC<Props> = ({ onRoadmapComplete }) => {
       setResult(fullRoadmap);
       onRoadmapComplete(fullRoadmap);
     } catch (error) {
-      alert("Failed to generate your strategic path. Please try again.");
+      alert("Failed to create your professional roadmap. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -42,15 +42,15 @@ const LearningPathTool: React.FC<Props> = ({ onRoadmapComplete }) => {
           {/* Header Stats */}
           <div className="glass rounded-[3rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8 border-indigo-500/20 glow-indigo">
              <div className="space-y-2 text-center md:text-left">
-                <h2 className="text-4xl font-black text-white tracking-tighter">Career Strategy</h2>
+                <h2 className="text-4xl font-black text-white tracking-tighter">Professional Strategy</h2>
                 <p className="text-slate-500 text-xs font-black uppercase tracking-widest">
-                  Strategic Focus: <span className="text-indigo-400">{result.field}</span>
+                  Target Field: <span className="text-indigo-400">{result.field}</span>
                 </p>
              </div>
              <div className="flex items-center gap-6">
                 <div className="text-center px-6 border-r border-white/10">
                    <div className="text-4xl font-black text-indigo-400 tabular-nums">{result.estimated_days}</div>
-                   <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Est. Days</div>
+                   <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estimated Days</div>
                 </div>
                 <button onClick={() => setResult(null)} className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all">New Strategy</button>
              </div>
@@ -98,7 +98,7 @@ const LearningPathTool: React.FC<Props> = ({ onRoadmapComplete }) => {
              <div className="lg:col-span-4 space-y-12">
                 <section className="space-y-6">
                    <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500 px-2 flex items-center gap-3">
-                      <i className="fas fa-rocket"></i> Tactical Projects
+                      <i className="fas fa-rocket"></i> Recommended Projects
                    </h4>
                    <div className="space-y-4">
                       {result.project_suggestions.map((proj, idx) => (
@@ -117,7 +117,7 @@ const LearningPathTool: React.FC<Props> = ({ onRoadmapComplete }) => {
 
                 <section className="space-y-6">
                    <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400 px-2 flex items-center gap-3">
-                      <i className="fas fa-landmark"></i> Industry Alignment
+                      <i className="fas fa-landmark"></i> Industry Opportunities
                    </h4>
                    <div className="space-y-4">
                       {result.hiring_companies.map((company, idx) => (
@@ -127,7 +127,7 @@ const LearningPathTool: React.FC<Props> = ({ onRoadmapComplete }) => {
                                <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">{company.industry}</div>
                             </div>
                             <div className="text-right">
-                               <div className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Target Roles</div>
+                               <div className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Target Positions</div>
                                <div className="text-[9px] text-slate-400 font-medium">{company.typical_roles[0]}</div>
                             </div>
                          </div>
@@ -147,21 +147,21 @@ const LearningPathTool: React.FC<Props> = ({ onRoadmapComplete }) => {
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-emerald-500 to-indigo-500 opacity-50"></div>
           
           <header className="mb-16">
-             <h2 className="text-5xl font-black text-white tracking-tighter mb-4">Career Strategy</h2>
+             <h2 className="text-5xl font-black text-white tracking-tighter mb-4">Career Strategy Builder</h2>
              <p className="text-slate-500 text-xs font-black uppercase tracking-[0.4em] flex items-center gap-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                AI-Driven Strategic Orchestration
+                Structured Professional Planning
              </p>
           </header>
 
           <div className="space-y-10">
              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-2">Objective Field</label>
+                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-2">Professional Field</label>
                 <div className="relative group">
                   <i className="fas fa-map-location-dot absolute left-6 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-500 transition-colors"></i>
                   <input 
                     type="text" 
-                    placeholder="e.g. Lead Frontend Engineer, Principal Architect" 
+                    placeholder="e.g. Senior Frontend Engineer, Product Architect" 
                     className="w-full bg-black/40 border border-white/5 rounded-[1.5rem] pl-16 pr-8 py-5 outline-none focus:border-indigo-500/50 transition-all font-bold text-white shadow-inner" 
                     value={field} 
                     onChange={(e) => setField(e.target.value)} 
@@ -170,10 +170,10 @@ const LearningPathTool: React.FC<Props> = ({ onRoadmapComplete }) => {
              </div>
 
              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-2">Career Goal & Timeline</label>
+                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-2">Objectives & Timeline</label>
                 <textarea 
                   rows={4}
-                  placeholder="Where are you now, and what is your desired outcome? (e.g. 'I want to transition from Mid-level to Senior Backend in 6 months')" 
+                  placeholder="Describe your current status and desired professional goal (e.g., 'Transitioning to a Leadership role within 12 months')." 
                   className="w-full bg-black/40 border border-white/5 rounded-[2rem] px-8 py-6 outline-none focus:border-indigo-500/50 transition-all font-medium text-slate-400 text-sm leading-relaxed" 
                   value={goal} 
                   onChange={(e) => setGoal(e.target.value)} 
@@ -187,9 +187,9 @@ const LearningPathTool: React.FC<Props> = ({ onRoadmapComplete }) => {
              >
                 {loading ? (
                    <span className="flex items-center justify-center gap-4">
-                      <i className="fas fa-circle-notch animate-spin"></i> Orchestrating Strategy
+                      <i className="fas fa-circle-notch animate-spin"></i> Preparing Strategy Roadmap
                    </span>
-                ) : 'Generate Professional Strategy'}
+                ) : 'Create Professional Roadmap'}
              </button>
           </div>
        </div>
