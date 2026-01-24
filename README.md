@@ -4,6 +4,8 @@ Smart AI Career Assistant
 
 HireMind AI is a simple and intelligent web application that helps users improve their resumes, practice interviews, and plan their learning journey using artificial intelligence. It is designed to make career preparation easier, smarter, and more personalized.
 
+
+
 ✨ What HireMind AI Does
 
 📝 AI Resume Analyzer
@@ -21,6 +23,8 @@ Manage resumes, interviews, and learning plans in one place.
 📱 Responsive Design
 Works smoothly on desktop and mobile devices.
 
+
+
 🛠 Tech Stack 💻
 
 ⚛️ React & TypeScript
@@ -34,6 +38,8 @@ Works smoothly on desktop and mobile devices.
 🧩 Modular Components
 
 🧑‍💻 Git & GitHub
+
+
 
 🏗 How It Works 🧠
 
@@ -53,11 +59,19 @@ npm install
 # Start the app
 npm run dev
 
+
+
+
+
 🔑 Setup AI Key 🤖
 
 Create a .env file and add your Gemini API key:
 
 VITE_GEMINI_API_KEY=your_api_key_here
+
+
+
+
 
 📸 Screenshots 📷
 
@@ -71,6 +85,8 @@ Dashboard 📊
 
 Learning Roadmap 🧭
 
+
+
 🌱 Future Improvements 🚀
 
 👤 User accounts and profiles
@@ -80,6 +96,9 @@ Learning Roadmap 🧭
 📈 Progress tracking
 
 ☁️ Cloud deployment
+
+
+
 
 👨‍💻 Author 👋
 
