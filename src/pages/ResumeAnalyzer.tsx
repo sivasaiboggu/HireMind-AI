@@ -153,7 +153,7 @@ export const ResumeAnalyzer: React.FC = () => {
             <Terminal style={{ width: '24px', height: '24px' }} />
             <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Analysis Process Halted</h4>
           </div>
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
             {error.message || 'An unexpected error occurred while processing your resume details. Please try again.'}
           </p>
           <Button variant="danger" onClick={reset} style={{ width: 'fit-content' }}>

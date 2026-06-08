@@ -315,7 +315,7 @@ export const InterviewPractice: React.FC = () => {
             <ShieldAlert style={{ width: '24px', height: '24px' }} />
             <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Simulation Process Halted</h4>
           </div>
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
             {questionsError?.message || evalError?.message || 'Failed to reach generative endpoints. Check internet parameters and API configurations.'}
           </p>
           <Button variant="danger" onClick={handleRetry} style={{ width: 'fit-content' }}>

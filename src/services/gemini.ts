@@ -27,6 +27,37 @@ const getApiKey = (): string => {
   return typeof apiKey === 'string' ? apiKey.trim() : '';
 };
 
+const handleApiError = (error: any, context: string): never => {
+  console.error(`Gemini API error during ${context}:`, error);
+  const originalMessage = error?.message || error?.toString() || '';
+  
+  if (originalMessage.includes('429') || originalMessage.toLowerCase().includes('quota') || originalMessage.toLowerCase().includes('limit exceeded') || originalMessage.toLowerCase().includes('resource exhausted')) {
+    throw new Error(
+      `[Quota/Rate Limit Exceeded (429)]\n\n` +
+      `Your Google AI Studio Free Tier quota has been exhausted. To fix this, please try one of these options:\n` +
+      `• Option A: Create a brand new API key in Google AI Studio (https://aistudio.google.com/) using a different Google Cloud project or a different Google account.\n` +
+      `• Option B: Enable billing on your current Google Cloud project to upgrade to Pay-As-You-Go pricing.\n` +
+      `• Option C: Wait a few minutes (for per-minute limits) or until midnight Pacific Time (for daily free tier limits) for your quota to reset.`
+    );
+  }
+  
+  if (originalMessage.includes('403') || originalMessage.toLowerCase().includes('denied') || originalMessage.toLowerCase().includes('permission')) {
+    throw new Error(
+      `[Access Denied (403)]\n\n` +
+      `The Gemini API key is either invalid, lacks permissions, or has been restricted. Please verify the VITE_GEMINI_API_KEY in your .env file or generate a new key in Google AI Studio.`
+    );
+  }
+
+  if (originalMessage.includes('404') || originalMessage.toLowerCase().includes('not found')) {
+    throw new Error(
+      `[Model/Resource Not Found (404)]\n\n` +
+      `The requested Gemini model was not found or is deprecated. We have updated the app to 'gemini-2.0-flash'. Please restart your server if this persists.`
+    );
+  }
+
+  throw new Error(originalMessage || `Gemini API call failed during ${context}.`);
+};
+
 export class GeminiService {
   private getClient = () => {
     const key = getApiKey();
@@ -56,8 +87,7 @@ export class GeminiService {
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeResumeAnalysis(parsed);
     } catch (error: any) {
-      console.error('Gemini analyzeResume API error:', error);
-      throw new Error(error.message || 'Gemini API call failed during resume analysis.');
+      return handleApiError(error, 'resume analysis');
     }
   };
 
@@ -86,8 +116,7 @@ export class GeminiService {
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeInterviewQuestions(parsed);
     } catch (error: any) {
-      console.error('Gemini generateInterviewQuestions API error:', error);
-      throw new Error(error.message || 'Gemini API call failed during question generation.');
+      return handleApiError(error, 'question generation');
     }
   };
 
@@ -109,8 +138,7 @@ export class GeminiService {
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeAnswerFeedback(parsed);
     } catch (error: any) {
-      console.error('Gemini evaluateAnswer API error:', error);
-      throw new Error(error.message || 'Gemini API call failed during answer evaluation.');
+      return handleApiError(error, 'answer evaluation');
     }
   };
 
@@ -132,8 +160,7 @@ export class GeminiService {
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeRoadmap(parsed);
     } catch (error: any) {
-      console.error('Gemini generateRoadmap API error:', error);
-      throw new Error(error.message || 'Gemini API call failed during roadmap generation.');
+      return handleApiError(error, 'roadmap generation');
     }
   };
 }

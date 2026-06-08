@@ -241,7 +241,7 @@ export const LearningRoadmap: React.FC = () => {
             <AlertTriangle style={{ width: '24px', height: '24px' }} />
             <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Roadmap Generation Suspended</h4>
           </div>
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
             {error.message || 'An error occurred during roadmap assembly. Please verify connectivity and parameters.'}
           </p>
           <Button variant="danger" onClick={reset} style={{ width: 'fit-content' }}>
