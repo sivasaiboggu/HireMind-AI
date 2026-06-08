@@ -136,4 +136,4 @@ npm run build
 
 **Boggu Sivasai** - Full Stack Developer
 *   **GitHub**: [sivasaiboggu](https://github.com/sivasaiboggu)
-*   **Portfolio**: [Strategic Strategy Strategy Portfolio]
+
