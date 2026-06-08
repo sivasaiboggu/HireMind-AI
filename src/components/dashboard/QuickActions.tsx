@@ -1,12 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FileText, Mic, Map, ArrowRight } from 'lucide-react';
 import { Card } from '../ui/Card';
-import { useAppStore, AppView } from '../../store/appStore';
+import { AppView } from '../../store/appStore';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
 export const QuickActions: React.FC = () => {
-  const { setView } = useAppStore();
+  const navigate = useNavigate();
 
   const actions = [
     {
@@ -46,7 +47,7 @@ export const QuickActions: React.FC = () => {
         return (
           <Card 
             key={act.view} 
-            onClick={() => setView(act.view)}
+            onClick={() => navigate('/' + act.view)}
             style={{ 
               cursor: 'pointer',
               display: 'flex',

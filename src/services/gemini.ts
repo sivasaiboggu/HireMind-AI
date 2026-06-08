@@ -1,5 +1,11 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { parseGeminiJson } from './parsers';
+import { 
+  parseGeminiJson, 
+  sanitizeResumeAnalysis, 
+  sanitizeInterviewQuestions, 
+  sanitizeAnswerFeedback, 
+  sanitizeRoadmap 
+} from './parsers';
 import { 
   RESUME_ANALYSIS_PROMPT, 
   INTERVIEW_QUESTIONS_PROMPT, 
@@ -41,7 +47,8 @@ export class GeminiService {
       const prompt = RESUME_ANALYSIS_PROMPT(resumeText, jobDescription);
       const response = await model.generateContent(prompt);
       const responseText = response.response.text();
-      return parseGeminiJson<ResumeAnalysis>(responseText);
+      const parsed = parseGeminiJson<any>(responseText);
+      return sanitizeResumeAnalysis(parsed);
     } catch (error: any) {
       console.error('Gemini analyzeResume API error:', error);
       throw new Error(error.message || 'Gemini API call failed during resume analysis.');
@@ -70,7 +77,8 @@ export class GeminiService {
       
       const response = await model.generateContent(prompt);
       const responseText = response.response.text();
-      return parseGeminiJson<Question[]>(responseText);
+      const parsed = parseGeminiJson<any>(responseText);
+      return sanitizeInterviewQuestions(parsed);
     } catch (error: any) {
       console.error('Gemini generateInterviewQuestions API error:', error);
       throw new Error(error.message || 'Gemini API call failed during question generation.');
@@ -92,7 +100,8 @@ export class GeminiService {
       const prompt = ANSWER_EVALUATION_PROMPT(question, expectedTopics, answer, role);
       const response = await model.generateContent(prompt);
       const responseText = response.response.text();
-      return parseGeminiJson<AnswerFeedback>(responseText);
+      const parsed = parseGeminiJson<any>(responseText);
+      return sanitizeAnswerFeedback(parsed);
     } catch (error: any) {
       console.error('Gemini evaluateAnswer API error:', error);
       throw new Error(error.message || 'Gemini API call failed during answer evaluation.');
@@ -114,7 +123,8 @@ export class GeminiService {
       const prompt = ROADMAP_PROMPT(goal, skills, level, timeline);
       const response = await model.generateContent(prompt);
       const responseText = response.response.text();
-      return parseGeminiJson<Roadmap>(responseText);
+      const parsed = parseGeminiJson<any>(responseText);
+      return sanitizeRoadmap(parsed);
     } catch (error: any) {
       console.error('Gemini generateRoadmap API error:', error);
       throw new Error(error.message || 'Gemini API call failed during roadmap generation.');

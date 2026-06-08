@@ -11,11 +11,11 @@ export interface Toast {
 }
 
 interface AppState {
-  view: AppView;
   sidebarCollapsed: boolean;
   searchOpen: boolean;
   toasts: Toast[];
   credits: number;
+  theme: 'light' | 'dark';
   
   resumeHistory: SavedResumeAnalysis[];
   activeResume: SavedResumeAnalysis | null;
@@ -26,11 +26,11 @@ interface AppState {
   roadmapHistory: SavedRoadmap[];
   activeRoadmap: SavedRoadmap | null;
   
-  // Navigation & UI Layout Actions
-  setView: (view: AppView) => void;
+  // Layout & Theme Actions
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setSearchOpen: (open: boolean) => void;
+  toggleTheme: () => void;
   
   // Notification Toast Actions
   addToast: (type: 'success' | 'error' | 'info', message: string) => void;
@@ -81,11 +81,17 @@ const getSavedJson = <T>(key: string, defaultValue: T): T => {
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
-  view: getSavedJson<AppView>(KEYS.VIEW, 'dashboard'),
   sidebarCollapsed: getSavedJson<boolean>(KEYS.COLLAPSED, false),
   searchOpen: false,
   toasts: [],
   credits: getSavedJson<number>(KEYS.CREDITS, 85), // Default starting credits
+  theme: (() => {
+    const saved = localStorage.getItem('hiremind_theme_v9') || 'dark';
+    try {
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+    return saved as 'light' | 'dark';
+  })(),
   
   resumeHistory: getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []),
   activeResume: getSavedJson<SavedResumeAnalysis | null>(KEYS.RESUMES, []).length > 0
@@ -102,9 +108,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, [])[0]
     : null,
 
-  setView: (view) => {
-    set({ view });
-    localStorage.setItem(KEYS.VIEW, JSON.stringify(view));
+  toggleTheme: () => {
+    const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
+    set({ theme: nextTheme });
+    localStorage.setItem('hiremind_theme_v9', nextTheme);
+    try {
+      document.documentElement.setAttribute('data-theme', nextTheme);
+    } catch (e) {}
   },
   
   toggleSidebar: () => {

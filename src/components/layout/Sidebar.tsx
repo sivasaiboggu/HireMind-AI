@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -6,7 +7,7 @@ import {
   Map, 
   ChevronLeft, 
   ChevronRight, 
-  Sparkles,
+  Coins,
   RefreshCw
 } from 'lucide-react';
 import { useAppStore, AppView } from '../../store/appStore';
@@ -21,13 +22,16 @@ interface NavItem {
 
 export const Sidebar: React.FC = () => {
   const { 
-    view, 
-    setView, 
     sidebarCollapsed, 
     toggleSidebar, 
     credits, 
     resetCredits 
   } = useAppStore();
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const currentView = (location.pathname.substring(1) || 'dashboard') as AppView;
 
   const navItems: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -135,11 +139,11 @@ export const Sidebar: React.FC = () => {
       >
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = view === item.id;
+          const isActive = currentView === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => setView(item.id)}
+              onClick={() => navigate('/' + item.id)}
               className="btn-press"
               style={{
                 display: 'flex',
@@ -205,7 +209,7 @@ export const Sidebar: React.FC = () => {
             onClick={resetCredits}
             title={`Credits: ${credits}% - Click to refresh`}
           >
-            <Sparkles style={{ width: '16px', height: '16px', color: 'var(--accent-primary)' }} />
+            <Coins style={{ width: '16px', height: '16px', color: 'var(--accent-primary)' }} />
             <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 700 }}>
               {credits}
             </span>
@@ -214,7 +218,7 @@ export const Sidebar: React.FC = () => {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Sparkles style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />
+                <Coins style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />
                 AI CREDITS
               </span>
               <button 

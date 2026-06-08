@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StatsGrid } from '../components/dashboard/StatsGrid';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
 import { QuickActions } from '../components/dashboard/QuickActions';
@@ -21,9 +22,10 @@ export const Dashboard: React.FC = () => {
     roadmapHistory, 
     activeRoadmap, 
     setActiveRoadmap, 
-    deleteRoadmap,
-    setView 
+    deleteRoadmap
   } = useAppStore();
+
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'resume' | 'interview' | 'roadmap'>('resume');
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,19 +53,19 @@ export const Dashboard: React.FC = () => {
   const handleSelectResume = (id: string) => {
     const resume = resumeHistory.find(r => r.id === id) || null;
     setActiveResume(resume);
-    setView('resume');
+    navigate('/resume');
   };
 
   const handleSelectInterview = (id: string) => {
     const interview = interviewHistory.find(i => i.id === id) || null;
     setActiveInterview(interview);
-    setView('interview');
+    navigate('/interview');
   };
 
   const handleSelectRoadmap = (id: string) => {
     const roadmap = roadmapHistory.find(r => r.id === id) || null;
     setActiveRoadmap(roadmap);
-    setView('roadmap');
+    navigate('/roadmap');
   };
 
   return (

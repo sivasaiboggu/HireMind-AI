@@ -26,6 +26,39 @@
   --glow-primary: 0 0 40px rgba(0, 212, 170, 0.15);
   --glow-amber: 0 0 40px rgba(245, 158, 11, 0.15);
   
+  --grid-line: rgba(0, 212, 170, 0.03);
+  --mesh-color-1: rgba(0, 212, 170, 0.05);
+  --mesh-color-2: rgba(129, 140, 248, 0.05);
+
+  /* Light Theme overrides */
+  &[data-theme='light'], [data-theme='light'] & {
+    --bg-base: #F8FAFC;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #F1F5F9;
+    --bg-hover: #E2E8F0;
+    
+    --accent-primary: #0D9488;
+    --accent-secondary: #D97706;
+    --accent-danger: #E11D48;
+    --accent-purple: #4F46E5;
+    
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+    
+    --border-subtle: rgba(13, 148, 136, 0.12);
+    --border-active: rgba(13, 148, 136, 0.35);
+    --border-danger: rgba(225, 29, 72, 0.2);
+    --border-purple: rgba(79, 70, 229, 0.2);
+    
+    --glow-primary: 0 4px 20px rgba(13, 148, 136, 0.08);
+    --glow-amber: 0 4px 20px rgba(217, 119, 6, 0.08);
+    
+    --grid-line: rgba(13, 148, 136, 0.05);
+    --mesh-color-1: rgba(13, 148, 136, 0.04);
+    --mesh-color-2: rgba(79, 70, 229, 0.04);
+  }
+  
   /* Typography */
   --font-display: 'Clash Display', 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
@@ -71,6 +104,12 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* Smooth transitions for theme colors */
+body, header, aside, .glass-panel, input, textarea, select {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
 }
 
 /* Grid background */
@@ -80,8 +119,8 @@ body {
   z-index: -2;
   background-color: var(--bg-base);
   background-image: 
-    linear-gradient(rgba(0, 212, 170, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 170, 0.03) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
 }
@@ -91,8 +130,8 @@ body {
   inset: 0;
   z-index: -1;
   background: 
-    radial-gradient(circle at 10% 20%, rgba(0, 212, 170, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(129, 140, 248, 0.05) 0%, transparent 40%);
+    radial-gradient(circle at 10% 20%, var(--mesh-color-1) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, var(--mesh-color-2) 0%, transparent 40%);
   pointer-events: none;
 }
 

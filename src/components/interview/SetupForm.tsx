@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Plus, X } from 'lucide-react';
+import { Zap, Plus, X } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { InterviewConfig } from '../../types';
@@ -299,7 +299,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({
         variant="primary"
         loading={loading}
         disabled={loading || !jobRole.trim()}
-        icon={<Sparkles style={{ width: '16px', height: '16px' }} />}
+        icon={<Zap style={{ width: '16px', height: '16px' }} />}
         style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)' }}
       >
         Generate Custom Interview Lab

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FileText, Mic, Map, Calendar, AlertCircle } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { Card } from '../ui/Card';
@@ -6,7 +7,8 @@ import '../../styles/globals.css';
 import '../../styles/animations.css';
 
 export const RecentActivity: React.FC = () => {
-  const { getRecentActivity, setView } = useAppStore();
+  const { getRecentActivity } = useAppStore();
+  const navigate = useNavigate();
   const activities = getRecentActivity();
 
   // Helper to format timestamps relative to current time
@@ -147,7 +149,7 @@ export const RecentActivity: React.FC = () => {
             No activities recorded yet
           </div>
           <button 
-            onClick={() => setView('resume')}
+            onClick={() => navigate('/resume')}
             style={{
               fontSize: '11px',
               color: 'var(--accent-primary)',

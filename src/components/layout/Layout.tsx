@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { useAppStore, AppView, Toast } from '../../store/appStore';
@@ -23,8 +24,6 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { 
-    view, 
-    setView, 
     sidebarCollapsed, 
     setSidebarCollapsed, 
     searchOpen, 
@@ -32,6 +31,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     toasts,
     removeToast 
   } = useAppStore();
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const currentView = (location.pathname.substring(1) || 'dashboard') as AppView;
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -86,7 +90,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 
   const handleSearchNavigate = (targetView: AppView) => {
-    setView(targetView);
+    navigate('/' + targetView);
     setSearchOpen(false);
     setSearchQuery('');
   };
@@ -189,11 +193,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         >
           {searchItems.map(item => {
             const Icon = item.icon;
-            const isActive = view === item.view;
+            const isActive = currentView === item.view;
             return (
               <button
                 key={item.view}
-                onClick={() => setView(item.view)}
+                onClick={() => navigate('/' + item.view)}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -234,12 +238,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {searchItems.map(item => {
               const Icon = item.icon;
-              const isActive = view === item.view;
+              const isActive = currentView === item.view;
               return (
                 <button
                   key={item.view}
                   onClick={() => {
-                    setView(item.view);
+                    navigate('/' + item.view);
                     setMobileMenuOpen(false);
                   }}
                   style={{

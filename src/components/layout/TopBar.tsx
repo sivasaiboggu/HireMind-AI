@@ -1,15 +1,19 @@
-import React from 'react';
-import { Search, Bell, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Search, Bell, Sun, Moon, Award, Activity } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
 export const TopBar: React.FC = () => {
-  const { view, sidebarCollapsed, setSearchOpen } = useAppStore();
+  const { sidebarCollapsed, setSearchOpen, theme, toggleTheme } = useAppStore();
+  const location = useLocation();
+
+  const currentView = location.pathname.substring(1) || 'dashboard';
 
   // Dynamic titles
   const getPageTitle = () => {
-    switch (view) {
+    switch (currentView) {
       case 'dashboard':
         return 'Career Hub';
       case 'resume':
@@ -97,6 +101,36 @@ export const TopBar: React.FC = () => {
 
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* Real-time Status Badge */}
+        <div 
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: 'rgba(0, 212, 170, 0.05)',
+            border: '1px solid rgba(0, 212, 170, 0.15)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '4px 10px',
+            color: 'var(--accent-primary)',
+            fontSize: '10px',
+            fontWeight: 700,
+            letterSpacing: '0.05em'
+          }}
+          title="Gemini API endpoint synced in real time"
+        >
+          <span 
+            className="logo-pulse-dot"
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--accent-primary)',
+              display: 'inline-block'
+            }}
+          />
+          API LIVE
+        </div>
+
         {/* Pro Badge */}
         <div 
           style={{
@@ -113,9 +147,33 @@ export const TopBar: React.FC = () => {
             letterSpacing: '0.05em'
           }}
         >
-          <Sparkles style={{ width: '12px', height: '12px' }} />
-          PRO MEMBER
+          <Award style={{ width: '12px', height: '12px' }} />
+          PRO
         </div>
+
+        {/* Theme Toggle Button */}
+        <button 
+          onClick={toggleTheme}
+          style={{
+            color: 'var(--text-secondary)',
+            padding: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%',
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            cursor: 'pointer'
+          }}
+          className="btn-press"
+          title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {theme === 'dark' ? (
+            <Sun style={{ width: '18px', height: '18px', color: 'var(--accent-secondary)' }} />
+          ) : (
+            <Moon style={{ width: '18px', height: '18px', color: 'var(--accent-purple)' }} />
+          )}
+        </button>
 
         {/* Notification Bell */}
         <button 

@@ -8,7 +8,7 @@ import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
 import { useAppStore } from '../store/appStore';
 import { SavedRoadmap } from '../types';
-import { Compass, Brain, Cpu, Clock, Award, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Compass, Activity, Terminal, Clock, Award, AlertTriangle, ArrowLeft } from 'lucide-react';
 import '../styles/globals.css';
 import '../styles/animations.css';
 
@@ -83,9 +83,9 @@ export const LearningRoadmap: React.FC = () => {
       {/* Loading Skeletons */}
       {loading && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center', justifyContent: 'center', padding: '60px 0', textAlign: 'center' }}>
-          <Brain className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
+          <Activity className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
           <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-purple)', letterSpacing: '0.05em' }}>
-            🧠 CUSTOMIZING LEARNING TOPICS & CURATING STUDY MATERIALS...
+            CUSTOMIZING LEARNING TOPICS & CURATING STUDY MATERIALS...
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
             Evaluating prerequisite knowledge, technical dependencies, and industry demand spikes.

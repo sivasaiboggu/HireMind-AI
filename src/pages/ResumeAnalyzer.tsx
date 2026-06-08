@@ -4,11 +4,12 @@ import { ATSScoreCard } from '../components/resume/ATSScoreCard';
 import { ResumeAnalysis } from '../components/resume/ResumeAnalysis';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
 import { useAppStore } from '../store/appStore';
 import { SavedResumeAnalysis } from '../types';
-import { Brain, Cpu, ShieldCheck } from 'lucide-react';
+import { Activity, Terminal, ShieldCheck } from 'lucide-react';
 import '../styles/globals.css';
 import '../styles/animations.css';
 
@@ -76,12 +77,12 @@ export const ResumeAnalyzer: React.FC = () => {
               gap: '16px'
             }}
           >
-            <Brain className="rotating-brain" style={{ width: '48px', height: '48px' }} />
+            <Activity className="rotating-brain" style={{ width: '48px', height: '48px' }} />
             <div 
               className="typing-cursor"
               style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-primary)', letterSpacing: '0.05em' }}
             >
-              🧠 ANALYZING RESUME & MATCHING ATS KEYWORDS...
+              ANALYZING RESUME & MATCHING ATS KEYWORDS...
             </div>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
               Evaluating structural compliance, key verbs, and industry benchmark standards.
@@ -149,7 +150,7 @@ export const ResumeAnalyzer: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--accent-danger)' }}>
-            <Cpu style={{ width: '24px', height: '24px' }} />
+            <Terminal style={{ width: '24px', height: '24px' }} />
             <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Analysis Process Halted</h4>
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>

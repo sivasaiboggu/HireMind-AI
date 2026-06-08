@@ -5,11 +5,12 @@ import { FeedbackPanel } from '../components/interview/FeedbackPanel';
 import { SessionSummary } from '../components/interview/SessionSummary';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
+import { Button } from '../components/ui/Button';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
 import { useAppStore } from '../store/appStore';
 import { Question, AnswerRecord, SavedInterview, InterviewConfig } from '../types';
-import { Brain, Cpu, Clock, Award, ShieldAlert } from 'lucide-react';
+import { Activity, Terminal, Clock, Award, ShieldAlert } from 'lucide-react';
 import '../styles/globals.css';
 import '../styles/animations.css';
 
@@ -199,9 +200,9 @@ export const InterviewPractice: React.FC = () => {
       {/* Loading Skeletons */}
       {sessionState === 'loading_questions' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center', justifyContent: 'center', padding: '60px 0', textAlign: 'center' }}>
-          <Brain className="rotating-brain" style={{ width: '48px', height: '48px' }} />
+          <Activity className="rotating-brain" style={{ width: '48px', height: '48px' }} />
           <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-primary)', letterSpacing: '0.05em' }}>
-            🧠 GENERATING CHALLENGING MOCK INTERVIEW QUESTIONS...
+            GENERATING CHALLENGING MOCK INTERVIEW QUESTIONS...
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
             Configuring behavioral anchors and stack-specific engineering criteria.
@@ -216,9 +217,9 @@ export const InterviewPractice: React.FC = () => {
       {/* Evaluating Answer Loading */}
       {evaluatingAnswer && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center', justifyContent: 'center', padding: '60px 0', textAlign: 'center' }}>
-          <Cpu className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
+          <Terminal className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
           <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-purple)', letterSpacing: '0.05em' }}>
-            🧠 GRADING RESPONSE QUALITY & COMPREHENSIVENESS...
+            GRADING RESPONSE QUALITY & COMPREHENSIVENESS...
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
             Checking key verbs, architecture definitions, and STAR methods.
