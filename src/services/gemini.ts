@@ -17,7 +17,13 @@ import { ResumeAnalysis, Question, AnswerFeedback, Roadmap, InterviewConfig } fr
 
 const getApiKey = (): string => {
   // Try to read from Vite's import.meta.env or process.env configuration defines
-  const apiKey = (import.meta.env?.VITE_GEMINI_API_KEY || (window as any).process?.env?.GEMINI_API_KEY || '');
+  const apiKey = (
+    import.meta.env.VITE_GEMINI_API_KEY || 
+    process.env.GEMINI_API_KEY || 
+    process.env.VITE_GEMINI_API_KEY || 
+    process.env.API_KEY || 
+    ''
+  );
   return typeof apiKey === 'string' ? apiKey.trim() : '';
 };
 
