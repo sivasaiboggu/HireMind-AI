@@ -36,7 +36,7 @@ export const TopBar: React.FC = () => {
         height: 'var(--topbar-height)',
         left: sidebarCollapsed ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width-expanded)',
         zIndex: 40,
-        backgroundColor: 'rgba(5, 10, 15, 0.85)',
+        backgroundColor: 'var(--header-bg)',
         backdropFilter: 'blur(20px)',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',

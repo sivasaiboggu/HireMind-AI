@@ -220,7 +220,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(5, 10, 15, 0.98)',
+            backgroundColor: 'var(--bg-base)',
             zIndex: 100,
             display: 'flex',
             flexDirection: 'column',
@@ -366,7 +366,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(5, 10, 15, 0.85)',
+            backgroundColor: 'var(--modal-overlay)',
             backdropFilter: 'blur(12px)',
             zIndex: 1000,
             display: 'flex',

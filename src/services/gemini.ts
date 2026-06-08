@@ -22,7 +22,7 @@ const getApiKey = (): string => {
 };
 
 export class GeminiService {
-  private getClient() {
+  private getClient = () => {
     const key = getApiKey();
     if (!key) {
       throw new Error(
@@ -30,12 +30,12 @@ export class GeminiService {
       );
     }
     return new GoogleGenerativeAI(key);
-  }
+  };
 
   /**
    * Run full ATS resume analysis
    */
-  async analyzeResume(resumeText: string, jobDescription?: string): Promise<ResumeAnalysis> {
+  analyzeResume = async (resumeText: string, jobDescription?: string): Promise<ResumeAnalysis> => {
     try {
       const ai = this.getClient();
       const model = ai.getGenerativeModel({
@@ -53,12 +53,12 @@ export class GeminiService {
       console.error('Gemini analyzeResume API error:', error);
       throw new Error(error.message || 'Gemini API call failed during resume analysis.');
     }
-  }
+  };
 
   /**
    * Generate multiple interview questions based on configurations
    */
-  async generateInterviewQuestions(config: InterviewConfig): Promise<Question[]> {
+  generateInterviewQuestions = async (config: InterviewConfig): Promise<Question[]> => {
     try {
       const ai = this.getClient();
       const model = ai.getGenerativeModel({
@@ -83,12 +83,12 @@ export class GeminiService {
       console.error('Gemini generateInterviewQuestions API error:', error);
       throw new Error(error.message || 'Gemini API call failed during question generation.');
     }
-  }
+  };
 
   /**
    * Evaluate a single question-answer pair from the session
    */
-  async evaluateAnswer(question: string, answer: string, role: string, expectedTopics: string[]): Promise<AnswerFeedback> {
+  evaluateAnswer = async (question: string, answer: string, role: string, expectedTopics: string[]): Promise<AnswerFeedback> => {
     try {
       const ai = this.getClient();
       const model = ai.getGenerativeModel({
@@ -106,12 +106,12 @@ export class GeminiService {
       console.error('Gemini evaluateAnswer API error:', error);
       throw new Error(error.message || 'Gemini API call failed during answer evaluation.');
     }
-  }
+  };
 
   /**
    * Generate a custom learning strategy roadmap with phases and topics
    */
-  async generateRoadmap(goal: string, skills: string[], level: string, timeline: string): Promise<Roadmap> {
+  generateRoadmap = async (goal: string, skills: string[], level: string, timeline: string): Promise<Roadmap> => {
     try {
       const ai = this.getClient();
       const model = ai.getGenerativeModel({
@@ -129,7 +129,7 @@ export class GeminiService {
       console.error('Gemini generateRoadmap API error:', error);
       throw new Error(error.message || 'Gemini API call failed during roadmap generation.');
     }
-  }
+  };
 }
 
 export const gemini = new GeminiService();

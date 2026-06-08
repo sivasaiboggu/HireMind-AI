@@ -191,7 +191,7 @@ export const Sidebar: React.FC = () => {
         style={{
           padding: sidebarCollapsed ? '12px' : '20px',
           borderTop: '1px solid var(--border-subtle)',
-          backgroundColor: 'rgba(5, 10, 15, 0.3)',
+          backgroundColor: 'var(--panel-bg)',
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
@@ -276,7 +276,7 @@ export const Sidebar: React.FC = () => {
           borderTop: '1px solid var(--border-subtle)',
           color: 'var(--text-secondary)',
           width: '100%',
-          backgroundColor: 'rgba(10, 22, 40, 0.8)'
+          backgroundColor: 'var(--collapse-bg)'
         }}
         className="btn-press"
       >
