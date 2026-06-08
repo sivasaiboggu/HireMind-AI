@@ -1,0 +1,214 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Syne:wght@400..800&display=swap');
+/* Note: Clash Display is typically loaded from CDN, we will fall back to sans-serif display fonts or Syne if local font is not present. We'll also load it in HTML */
+
+:root {
+  /* Colors */
+  --bg-base: #050A0F;
+  --bg-surface: #0A1628;
+  --bg-elevated: #0F1E35;
+  --bg-hover: #142540;
+  
+  --accent-primary: #00D4AA;
+  --accent-secondary: #F59E0B;
+  --accent-danger: #F43F5E;
+  --accent-purple: #818CF8;
+  
+  --text-primary: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --text-muted: #475569;
+  
+  --border-subtle: rgba(0, 212, 170, 0.12);
+  --border-active: rgba(0, 212, 170, 0.35);
+  --border-danger: rgba(244, 63, 94, 0.2);
+  --border-purple: rgba(129, 140, 248, 0.2);
+  
+  --glow-primary: 0 0 40px rgba(0, 212, 170, 0.15);
+  --glow-amber: 0 0 40px rgba(245, 158, 11, 0.15);
+  
+  /* Typography */
+  --font-display: 'Clash Display', 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-numeric: 'Syne', sans-serif;
+
+  /* Font sizes */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  
+  /* Layout */
+  --sidebar-width-expanded: 240px;
+  --sidebar-width-collapsed: 64px;
+  --topbar-height: 64px;
+}
+
+/* Reset and Base styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Grid background */
+.app-grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-color: var(--bg-base);
+  background-image: 
+    linear-gradient(rgba(0, 212, 170, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 170, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.app-mesh-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(0, 212, 170, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(129, 140, 248, 0.05) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* Typographic resets */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+code, pre {
+  font-family: var(--font-mono);
+}
+
+/* Form Controls */
+input, textarea, select {
+  width: 100%;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  padding: 12px 16px;
+  outline: none;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.1);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+}
+
+label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+/* Common Layout Helpers */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 48px;
+  }
+}
+
+/* Utilities */
+.text-cyan { color: var(--accent-primary) !important; }
+.text-amber { color: var(--accent-secondary) !important; }
+.text-rose { color: var(--accent-danger) !important; }
+.text-purple { color: var(--accent-purple) !important; }
+.text-muted { color: var(--text-secondary) !important; }
+
+.bg-cyan-subtle { background-color: rgba(0, 212, 170, 0.1) !important; }
+.bg-amber-subtle { background-color: rgba(245, 158, 11, 0.1) !important; }
+.bg-rose-subtle { background-color: rgba(244, 63, 94, 0.1) !important; }
+.bg-purple-subtle { background-color: rgba(129, 140, 248, 0.1) !important; }
+
+/* Frosted glass panel */
+.glass-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  backdrop-filter: var(--blur-glass);
+  box-shadow: var(--glow-primary);
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+
+.glass-panel:hover {
+  border-color: var(--border-active);
+  box-shadow: var(--glow-primary);
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

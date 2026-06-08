@@ -1,0 +1,181 @@
+/* Page Transitions */
+.page-enter {
+  animation: pageFadeUp 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes pageFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card Hover */
+.animate-hover-card {
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 200ms cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-hover-card:hover {
+  transform: scale(1.01);
+  border-color: var(--accent-primary) !important;
+  box-shadow: var(--glow-primary);
+}
+
+/* Button Press */
+.btn-press {
+  transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Skeleton Loading Shimmer */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-hover) 37%,
+    var(--bg-elevated) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeletonShimmer 1.4s ease infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Typing Cursor Blink */
+.typing-cursor::after {
+  content: '|';
+  margin-left: 2px;
+  animation: cursorBlink 1s step-end infinite;
+  color: var(--accent-primary);
+}
+
+@keyframes cursorBlink {
+  from, to { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* AI Thinking Brain Rotate & Dots */
+.rotating-brain {
+  animation: spinBrain 3s linear infinite;
+  color: var(--accent-primary);
+}
+
+@keyframes spinBrain {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.bouncing-dots span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-primary);
+  margin: 0 2px;
+  animation: bounceDot 0.6s infinite alternate;
+}
+
+.bouncing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.bouncing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounceDot {
+  from {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+/* Pulse Animation for Logo Dot */
+.logo-pulse-dot {
+  animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4);
+  }
+  50% {
+    opacity: .5;
+    transform: scale(1.2);
+    box-shadow: 0 0 8px 4px rgba(0, 212, 170, 0.2);
+  }
+}
+
+/* Slide in from right panel */
+.slide-in-right {
+  animation: slideInRight 350ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Score counter count-up transition helper */
+.score-value {
+  transition: all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Progress bar filling */
+.progress-bar-fill {
+  transition: width 800ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Fade in general */
+.fade-in {
+  animation: fadeIn 300ms ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Floating animation for upload zone icon */
+.floating-icon {
+  animation: floatIcon 4s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
