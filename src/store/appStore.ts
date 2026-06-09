@@ -264,7 +264,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     const nextCredits = current - amount;
     
     // Update local state
-    set({ credits: nextCredits });
+    set((state) => ({
+      credits: nextCredits,
+      profile: state.profile ? { ...state.profile, credits: nextCredits } : null
+    }));
     
     // Sync to Supabase profile
     const user = get().user;
@@ -281,18 +284,28 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   resetCredits: async () => {
-    set({ credits: 100 });
     const user = get().user;
     if (user && hasSupabaseConfig) {
       try {
-        await supabaseService.updateProfile(user.id, { credits: 100 });
+        const userProfile = await supabaseService.getProfile(user.id);
+        if (userProfile) {
+          set({
+            profile: userProfile,
+            credits: userProfile.credits ?? 100
+          });
+          get().addToast('success', `Credits successfully synced from server: ${userProfile.credits}`);
+        } else {
+          get().addToast('error', 'Failed to retrieve profile data.');
+        }
       } catch (err) {
-        console.error('Failed to reset credits in Supabase:', err);
+        console.error('Failed to sync credits in Supabase:', err);
+        get().addToast('error', 'Network error syncing credits.');
       }
     } else {
+      set({ credits: 100 });
       localStorage.setItem(KEYS.CREDITS, JSON.stringify(100));
+      get().addToast('info', 'Credits successfully refreshed to 100.');
     }
-    get().addToast('info', 'Credits successfully refreshed to 100.');
   },
   
   addResumeAnalysis: async (analysis) => {

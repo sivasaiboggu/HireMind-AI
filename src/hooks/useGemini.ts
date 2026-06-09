@@ -25,7 +25,7 @@ export function useGemini<Args extends any[], T>(
       setState({ data: null, loading: true, error: null });
       
       // Deduct AI credits
-      const hasCredit = useCredit(creditCost);
+      const hasCredit = await useCredit(creditCost);
       if (!hasCredit) {
         const err = new Error('Insufficient AI credits. Refill required.');
         setState({ data: null, loading: false, error: err });

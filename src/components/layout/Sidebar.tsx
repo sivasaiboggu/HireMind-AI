@@ -26,7 +26,8 @@ export const Sidebar: React.FC = () => {
     sidebarCollapsed, 
     toggleSidebar, 
     credits, 
-    resetCredits 
+    resetCredits,
+    user
   } = useAppStore();
 
   const location = useLocation();
@@ -209,7 +210,7 @@ export const Sidebar: React.FC = () => {
               cursor: 'pointer'
             }}
             onClick={resetCredits}
-            title={`Credits: ${credits}% - Click to refresh`}
+            title={user ? `Credits: ${credits} left - Click to sync from server` : `Credits: ${credits}% - Click to refill to 100`}
           >
             <Coins style={{ width: '16px', height: '16px', color: 'var(--accent-primary)' }} />
             <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 700 }}>
@@ -225,7 +226,7 @@ export const Sidebar: React.FC = () => {
               </span>
               <button 
                 onClick={resetCredits}
-                title="Refresh Credits to 100"
+                title={user ? "Sync Credits from Database" : "Refresh Credits to 100"}
                 style={{
                   color: 'var(--text-muted)',
                   display: 'flex',
