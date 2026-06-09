@@ -15,6 +15,7 @@ export const Auth: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [authMethod, setAuthMethod] = useState<'password' | 'otp'>('password');
   const [otpSent, setOtpSent] = useState(false);
+  const [otpType, setOtpType] = useState<'signup' | 'email'>('email');
   
   // Inputs
   const [email, setEmail] = useState('');
@@ -75,9 +76,10 @@ export const Auth: React.FC = () => {
           addToast('success', 'Account registered and logged in successfully!');
           navigate('/dashboard');
         } else {
-          addToast('success', 'Registration successful! Verification link/code sent to your email.');
-          // Automatically switch to OTP verify if they want to enter a code, or keep standard signup messages
-          setIsSignUp(false);
+          addToast('success', 'Account registered! A 6-digit confirmation code has been sent to your email.');
+          setOtpType('signup');
+          setOtpSent(true);
+          setCountdown(60);
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -151,21 +153,22 @@ export const Auth: React.FC = () => {
     }
 
     try {
-      // Verify OTP token with type 'email' (for standard magic link/OTP logins)
+      // Verify OTP token with the specified type (either 'signup' for new user email confirmation or 'email' for magic link/OTP logins)
       const { error } = await supabase.auth.verifyOtp({
         email,
         token,
-        type: 'email'
+        type: otpType
       });
 
       if (error) {
-        // Fallback: try verification as type 'signup' in case it's a new email confirmation code
-        const { error: signupError } = await supabase.auth.verifyOtp({
+        // Fallback: try the other type just in case
+        const alternativeType = otpType === 'signup' ? 'email' : 'signup';
+        const { error: altError } = await supabase.auth.verifyOtp({
           email,
           token,
-          type: 'signup'
+          type: alternativeType
         });
-        if (signupError) throw error; // Throw original error if both fail
+        if (altError) throw error; // Throw original error if both fail
       }
 
       addToast('success', 'Verification successful! Logging you in...');
