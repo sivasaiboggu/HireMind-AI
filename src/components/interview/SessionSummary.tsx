@@ -90,7 +90,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
         </Card>
 
         {/* Dynamic Category rings */}
-        {Object.entries(categoryScores).map(([cat, metric]) => {
+        {(Object.entries(categoryScores) as [string, { total: number; count: number }][]).map(([cat, metric]) => {
           const score = Math.round((metric.total / (metric.count * 10)) * 100);
           return (
             <Card key={cat} hoverable={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', gap: '12px' }}>

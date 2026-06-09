@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, Plus, X } from 'lucide-react';
+import { Zap, Plus, X, Video, Mic, Briefcase, ListFilter, HelpCircle, CheckCircle } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { InterviewConfig } from '../../types';
@@ -21,6 +21,11 @@ export const SetupForm: React.FC<SetupFormProps> = ({
   const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Senior'>('Intermediate');
   const [interviewType, setInterviewType] = useState<'technical' | 'behavioral' | 'system-design' | 'hr'>('technical');
   const [questionCount, setQuestionCount] = useState(5);
+  
+  // Custom Toggles
+  const [mode, setMode] = useState<'full' | 'specific'>('full');
+  const [videoMode, setVideoMode] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
 
   const presetTags = ['React', 'TypeScript', 'Node.js', 'Python', 'SQL', 'AWS', 'System Design', 'Git'];
 
@@ -50,15 +55,80 @@ export const SetupForm: React.FC<SetupFormProps> = ({
       jobRole,
       techStack: techStack.length > 0 ? techStack : ['General'],
       difficulty,
-      interviewType,
-      questionCount
+      interviewType: mode === 'full' ? 'full' : interviewType,
+      questionCount,
+      mode,
+      videoMode,
+      voiceMode
     });
   };
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       
-      {/* 3 Config Cards Grid */}
+      {/* Simulation Mode Selector */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <label style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+          Choose Simulation Mode
+        </label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }} className="mode-grid">
+          <style dangerouslySetInnerHTML={{__html: `
+            @media (min-width: 768px) {
+              .mode-grid {
+                grid-template-columns: 1fr 1fr !important;
+              }
+            }
+          `}} />
+
+          {/* Full Simulation */}
+          <div
+            onClick={() => setMode('full')}
+            style={{
+              padding: '20px',
+              borderRadius: 'var(--radius-lg)',
+              border: mode === 'full' ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+              backgroundColor: mode === 'full' ? 'var(--bg-hover)' : 'var(--bg-elevated)',
+              cursor: 'pointer',
+              transition: 'all 200ms ease',
+              position: 'relative'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <Briefcase style={{ width: '20px', height: '20px', color: mode === 'full' ? 'var(--accent-primary)' : 'var(--text-muted)' }} />
+              <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>Full Interview Loop</h4>
+              {mode === 'full' && <CheckCircle style={{ width: '16px', height: '16px', color: 'var(--accent-primary)', marginLeft: 'auto' }} />}
+            </div>
+            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+              Simulates a comprehensive career interview. Questions progress through <strong>Technical ➔ Coding ➔ Behavioral ➔ HR</strong>, escalating in difficulty level from Easy to Hard.
+            </p>
+          </div>
+
+          {/* Target Practice */}
+          <div
+            onClick={() => setMode('specific')}
+            style={{
+              padding: '20px',
+              borderRadius: 'var(--radius-lg)',
+              border: mode === 'specific' ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+              backgroundColor: mode === 'specific' ? 'var(--bg-hover)' : 'var(--bg-elevated)',
+              cursor: 'pointer',
+              transition: 'all 200ms ease',
+              position: 'relative'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <ListFilter style={{ width: '20px', height: '20px', color: mode === 'specific' ? 'var(--accent-primary)' : 'var(--text-muted)' }} />
+              <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>Specific Practice Round</h4>
+              {mode === 'specific' && <CheckCircle style={{ width: '16px', height: '16px', color: 'var(--accent-primary)', marginLeft: 'auto' }} />}
+            </div>
+            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+              Select a single focused round type (e.g. only coding challenges or behavioral STAR questions) to drill down and perfect specific concepts.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Target Configs (Job, Tech Stack, Experience) */}
       <div 
         style={{
           display: 'grid',
@@ -87,7 +157,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({
             style={{ backgroundColor: 'var(--bg-elevated)' }}
           />
           <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-            Specifies the theme of interview simulation.
+            Defines the role context of the simulation.
           </span>
         </Card>
 
@@ -202,7 +272,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({
         </Card>
       </div>
 
-      {/* Row 2: Focus Round Type & Question Slider */}
+      {/* Row 2: Select Focus Rounds OR Interactive Audio/Video Setup */}
       <div 
         style={{
           display: 'grid',
@@ -219,53 +289,120 @@ export const SetupForm: React.FC<SetupFormProps> = ({
           }
         `}} />
 
-        {/* Interview Focus Type */}
+        {/* Dynamic Focus Section */}
+        {mode === 'specific' ? (
+          <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <label>Round Format type</label>
+            <div 
+              style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
+                gap: '12px' 
+              }}
+            >
+              {(['technical', 'behavioral', 'system-design', 'hr'] as const).map(type => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setInterviewType(type)}
+                  style={{
+                    padding: '16px 12px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--bg-elevated)',
+                    color: 'var(--text-secondary)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '6px',
+                    textTransform: 'uppercase',
+                    fontSize: '9px',
+                    fontWeight: 700,
+                    letterSpacing: '0.05em',
+                    boxShadow: interviewType === type ? 'var(--glow-primary)' : 'none',
+                    border: interviewType === type ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)'
+                  }}
+                  className="btn-press"
+                >
+                  <span style={{ color: interviewType === type ? 'var(--accent-primary)' : 'var(--text-muted)' }}>
+                    {type.replace('-', ' ')}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </Card>
+        ) : (
+          <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <label>Round Outline Summary</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {[
+                { name: '1. Technical Quiz Qs', desc: 'Core concept mapping & coding fundamentals (Easy)' },
+                { name: '2. Real-time IDE Coding', desc: 'Code challenge implementation in the live IDE (Medium)' },
+                { name: '3. System Design / STAR behavioral', desc: 'Architecture discussion & scenario-based prompts (Medium/Hard)' },
+                { name: '4. HR & Culture Fit', desc: 'Goal alignment and values assessment (Hard)' }
+              ].map(round => (
+                <div key={round.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-xs)' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{round.name}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>{round.desc}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Audio / Video Options */}
         <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <label>Round Format type</label>
-          <div 
-            style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
-              gap: '12px' 
-            }}
-          >
-            {(['technical', 'behavioral', 'system-design', 'hr'] as const).map(type => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setInterviewType(type)}
-                style={{
-                  padding: '16px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid transparent',
-                  backgroundColor: 'var(--bg-elevated)',
-                  color: 'var(--text-secondary)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '6px',
-                  textTransform: 'uppercase',
-                  fontSize: '9px',
-                  fontWeight: 700,
-                  letterSpacing: '0.05em',
-                  boxShadow: interviewType === type ? 'var(--glow-primary)' : 'none',
-                  borderRight: interviewType === type ? '1px solid var(--accent-primary)' : 'none',
-                  borderLeft: interviewType === type ? '1px solid var(--accent-primary)' : 'none',
-                  borderTop: interviewType === type ? '1px solid var(--accent-primary)' : 'none',
-                  borderBottom: interviewType === type ? '1px solid var(--accent-primary)' : 'none'
-                }}
-                className="btn-press"
-              >
-                <span style={{ color: interviewType === type ? 'var(--accent-primary)' : 'var(--text-muted)' }}>
-                  {type.replace('-', ' ')}
-                </span>
-              </button>
-            ))}
+          <label>Recruiter & Input Settings</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Video Mode Toggle */}
+            <div 
+              onClick={() => setVideoMode(!videoMode)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: videoMode ? 'rgba(0, 212, 170, 0.05)' : 'var(--bg-elevated)',
+                border: videoMode ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                cursor: 'pointer',
+                transition: 'all 150ms ease'
+              }}
+            >
+              <Video style={{ width: '18px', height: '18px', color: videoMode ? 'var(--accent-primary)' : 'var(--text-secondary)' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)' }}>AI Video Recruiter</span>
+                <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Simulates visual feed and speaks questions</span>
+              </div>
+            </div>
+
+            {/* Voice Mode Toggle */}
+            <div 
+              onClick={() => setVoiceMode(!voiceMode)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: voiceMode ? 'rgba(0, 212, 170, 0.05)' : 'var(--bg-elevated)',
+                border: voiceMode ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                cursor: 'pointer',
+                transition: 'all 150ms ease'
+              }}
+            >
+              <Mic style={{ width: '18px', height: '18px', color: voiceMode ? 'var(--accent-primary)' : 'var(--text-secondary)' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)' }}>Voice Input Dictation</span>
+                <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Use microphone to dictate response</span>
+              </div>
+            </div>
           </div>
         </Card>
+      </div>
 
-        {/* Question Count Slider */}
-        <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '16px' }}>
+      {/* Slider & Actions */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <label>Question Count</label>
             <span style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--accent-primary)', fontFamily: 'var(--font-numeric)' }}>
@@ -274,9 +411,9 @@ export const SetupForm: React.FC<SetupFormProps> = ({
           </div>
           <input
             type="range"
-            min={5}
+            min={4}
             max={20}
-            step={1}
+            step={4}
             value={questionCount}
             onChange={(e) => setQuestionCount(Number(e.target.value))}
             style={{ 
@@ -288,22 +425,22 @@ export const SetupForm: React.FC<SetupFormProps> = ({
             }}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600 }}>
-            <span>5 Qs (Quick)</span>
-            <span>20 Qs (Exhaustive)</span>
+            <span>4 Qs (Standard Loop)</span>
+            <span>20 Qs (Exhaustive Loop)</span>
           </div>
         </Card>
-      </div>
 
-      <Button
-        type="submit"
-        variant="primary"
-        loading={loading}
-        disabled={loading || !jobRole.trim()}
-        icon={<Zap style={{ width: '16px', height: '16px' }} />}
-        style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)' }}
-      >
-        Generate Custom Interview Lab
-      </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          loading={loading}
+          disabled={loading || !jobRole.trim()}
+          icon={<Zap style={{ width: '16px', height: '16px' }} />}
+          style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', width: '100%' }}
+        >
+          Generate Custom Interview Lab
+        </Button>
+      </div>
 
     </form>
   );
