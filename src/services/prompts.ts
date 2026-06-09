@@ -70,6 +70,8 @@ The difficulty of questions MUST escalate progressively from easy to hard.
 Each question should challenge the candidate's core expertise. Provide realistic technical, scenario-based, or behavioral questions.
 `}
 
+CRITICAL INSTRUCTION: BANNED FORMATS: Do NOT generate fill-in-the-blank, multiple choice, matching, or puzzle questions. Every single question must be an open-ended interview question. In coding rounds, the question must define a clear algorithmic coding problem, describe target input/output cases, and ask the candidate to write a complete, functional programming solution in Javascript/Typescript from scratch.
+
 Your response MUST be a JSON array of objects with this EXACT structure:
 [
   {

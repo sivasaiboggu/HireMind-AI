@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { SavedResumeAnalysis, SavedInterview, SavedRoadmap, ActivityEvent } from '../types';
+import { supabase, supabaseService, hasSupabaseConfig } from '../services/supabase';
+import { User } from '@supabase/supabase-js';
 
 export type AppView = 'dashboard' | 'resume' | 'interview' | 'roadmap' | 'quiz';
 
@@ -10,12 +12,26 @@ export interface Toast {
   duration?: number;
 }
 
+export interface UserProfile {
+  id: string;
+  full_name: string;
+  target_role: string;
+  credits: number;
+  updated_at?: string;
+}
+
 interface AppState {
   sidebarCollapsed: boolean;
   searchOpen: boolean;
   toasts: Toast[];
   credits: number;
   theme: 'light' | 'dark';
+  
+  // Auth State
+  user: User | null;
+  profile: UserProfile | null;
+  authLoading: boolean;
+  guestMode: boolean;
   
   resumeHistory: SavedResumeAnalysis[];
   activeResume: SavedResumeAnalysis | null;
@@ -37,30 +53,35 @@ interface AppState {
   removeToast: (id: string) => void;
   
   // Credit management Actions
-  useCredit: (amount?: number) => boolean;
-  resetCredits: () => void;
+  useCredit: (amount?: number) => Promise<boolean>;
+  resetCredits: () => Promise<void>;
+  
+  // Auth Actions
+  initializeAuth: () => () => void;
+  signOutUser: () => Promise<void>;
+  setGuestMode: (active: boolean) => void;
   
   // Resume Actions
-  addResumeAnalysis: (analysis: SavedResumeAnalysis) => void;
-  deleteResumeAnalysis: (id: string) => void;
+  addResumeAnalysis: (analysis: SavedResumeAnalysis) => Promise<void>;
+  deleteResumeAnalysis: (id: string) => Promise<void>;
   setActiveResume: (resume: SavedResumeAnalysis | null) => void;
   
   // Interview Actions
-  addInterviewSession: (session: SavedInterview) => void;
-  deleteInterviewSession: (id: string) => void;
+  addInterviewSession: (session: SavedInterview) => Promise<void>;
+  deleteInterviewSession: (id: string) => Promise<void>;
   setActiveInterview: (interview: SavedInterview | null) => void;
   
   // Roadmap Actions
-  addRoadmap: (roadmap: SavedRoadmap) => void;
-  deleteRoadmap: (id: string) => void;
+  addRoadmap: (roadmap: SavedRoadmap) => Promise<void>;
+  deleteRoadmap: (id: string) => Promise<void>;
   setActiveRoadmap: (roadmap: SavedRoadmap | null) => void;
-  togglePhaseCompleted: (roadmapId: string, phaseId: string) => void;
+  togglePhaseCompleted: (roadmapId: string, phaseId: string) => Promise<void>;
   
   // Metrics & Activity Helpers
   getRecentActivity: () => ActivityEvent[];
 }
 
-// LocalStorage Keys
+// LocalStorage Keys (Guest Mode fallbacks)
 const KEYS = {
   RESUMES: 'hiremind_resume_v9',
   INTERVIEWS: 'hiremind_interview_v9',
@@ -84,7 +105,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   sidebarCollapsed: getSavedJson<boolean>(KEYS.COLLAPSED, false),
   searchOpen: false,
   toasts: [],
-  credits: getSavedJson<number>(KEYS.CREDITS, 85), // Default starting credits
+  credits: getSavedJson<number>(KEYS.CREDITS, 85), 
   theme: (() => {
     const saved = localStorage.getItem('hiremind_theme_v9') || 'dark';
     try {
@@ -93,20 +114,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     return saved as 'light' | 'dark';
   })(),
   
-  resumeHistory: getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []),
-  activeResume: getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []).length > 0
-    ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, [])[0]
-    : null,
-    
-  interviewHistory: getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []),
-  activeInterview: getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []).length > 0
-    ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, [])[0]
-    : null,
-    
-  roadmapHistory: getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []),
-  activeRoadmap: getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []).length > 0
-    ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, [])[0]
-    : null,
+  // Auth initial state
+  user: null,
+  profile: null,
+  authLoading: true,
+  guestMode: getSavedJson<boolean>('hiremind_guest_v9', false),
+  
+  resumeHistory: [],
+  activeResume: null,
+  interviewHistory: [],
+  activeInterview: null,
+  roadmapHistory: [],
+  activeRoadmap: null,
 
   toggleTheme: () => {
     const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
@@ -136,7 +155,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       toasts: [...state.toasts, { id, type, message }]
     }));
     
-    // Auto remove after 4 seconds
     setTimeout(() => {
       get().removeToast(id);
     }, 4000);
@@ -145,83 +163,272 @@ export const useAppStore = create<AppState>((set, get) => ({
   removeToast: (id) => set((state) => ({
     toasts: state.toasts.filter((t) => t.id !== id)
   })),
+
+  /**
+   * Auth Initialization Subscriber
+   */
+  initializeAuth: () => {
+    if (!hasSupabaseConfig) {
+      // Offline mode - Load Guest historical records from localStorage immediately
+      set({
+        resumeHistory: getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []),
+        activeResume: getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []).length > 0 ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, [])[0] : null,
+        interviewHistory: getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []),
+        activeInterview: getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []).length > 0 ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, [])[0] : null,
+        roadmapHistory: getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []),
+        activeRoadmap: getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []).length > 0 ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, [])[0] : null,
+        guestMode: true,
+        authLoading: false
+      });
+      return () => {};
+    }
+
+    // Subscribe to auth state updates
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      set({ authLoading: true });
+      const currentUser = session?.user || null;
+
+      if (currentUser) {
+        // Logged In -> Fetch User Data from Supabase database
+        const userProfile = await supabaseService.getProfile(currentUser.id);
+        const resumes = await supabaseService.fetchResumes(currentUser.id);
+        const interviews = await supabaseService.fetchInterviews(currentUser.id);
+        const roadmaps = await supabaseService.fetchRoadmaps(currentUser.id);
+
+        localStorage.setItem('hiremind_guest_v9', 'false');
+        set({
+          user: currentUser,
+          profile: userProfile,
+          credits: userProfile?.credits ?? 100,
+          resumeHistory: resumes,
+          activeResume: resumes.length > 0 ? resumes[0] : null,
+          interviewHistory: interviews,
+          activeInterview: interviews.length > 0 ? interviews[0] : null,
+          roadmapHistory: roadmaps,
+          activeRoadmap: roadmaps.length > 0 ? roadmaps[0] : null,
+          guestMode: false,
+          authLoading: false
+        });
+      } else {
+        // Logged Out -> Read from Guest localStorage mode if guestMode is true, otherwise empty
+        const isGuest = getSavedJson<boolean>('hiremind_guest_v9', false);
+        set({
+          user: null,
+          profile: null,
+          credits: getSavedJson<number>(KEYS.CREDITS, 85),
+          resumeHistory: isGuest ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []) : [],
+          activeResume: isGuest && getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []).length > 0 ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, [])[0] : null,
+          interviewHistory: isGuest ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []) : [],
+          activeInterview: isGuest && getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []).length > 0 ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, [])[0] : null,
+          roadmapHistory: isGuest ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []) : [],
+          activeRoadmap: isGuest && getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []).length > 0 ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, [])[0] : null,
+          authLoading: false
+        });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  },
+
+  signOutUser: async () => {
+    localStorage.setItem('hiremind_guest_v9', 'false');
+    set({ guestMode: false });
+    if (hasSupabaseConfig) {
+      await supabase.auth.signOut();
+    }
+    get().addToast('info', 'Logged out of account session.');
+  },
   
-  useCredit: (amount = 5) => {
+  setGuestMode: (active: boolean) => {
+    localStorage.setItem('hiremind_guest_v9', JSON.stringify(active));
+    set({ 
+      guestMode: active,
+      // Load local storage content immediately if activated
+      resumeHistory: active ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []) : [],
+      activeResume: active && getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []).length > 0 ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, [])[0] : null,
+      interviewHistory: active ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []) : [],
+      activeInterview: active && getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []).length > 0 ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, [])[0] : null,
+      roadmapHistory: active ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []) : [],
+      activeRoadmap: active && getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []).length > 0 ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, [])[0] : null,
+    });
+  },
+  
+  useCredit: async (amount = 5) => {
     const current = get().credits;
     if (current < amount) {
       get().addToast('error', 'Insufficient AI credits. Upgrade to PRO or wait for credit refresh!');
       return false;
     }
     const nextCredits = current - amount;
+    
+    // Update local state
     set({ credits: nextCredits });
-    localStorage.setItem(KEYS.CREDITS, JSON.stringify(nextCredits));
+    
+    // Sync to Supabase profile
+    const user = get().user;
+    if (user && hasSupabaseConfig) {
+      try {
+        await supabaseService.updateProfile(user.id, { credits: nextCredits });
+      } catch (err) {
+        console.error('Failed to sync updated credits to Supabase:', err);
+      }
+    } else {
+      localStorage.setItem(KEYS.CREDITS, JSON.stringify(nextCredits));
+    }
     return true;
   },
   
-  resetCredits: () => {
+  resetCredits: async () => {
     set({ credits: 100 });
-    localStorage.setItem(KEYS.CREDITS, JSON.stringify(100));
+    const user = get().user;
+    if (user && hasSupabaseConfig) {
+      try {
+        await supabaseService.updateProfile(user.id, { credits: 100 });
+      } catch (err) {
+        console.error('Failed to reset credits in Supabase:', err);
+      }
+    } else {
+      localStorage.setItem(KEYS.CREDITS, JSON.stringify(100));
+    }
     get().addToast('info', 'Credits successfully refreshed to 100.');
   },
   
-  addResumeAnalysis: (analysis) => {
+  addResumeAnalysis: async (analysis) => {
     const nextHistory = [analysis, ...get().resumeHistory];
     set({ resumeHistory: nextHistory, activeResume: analysis });
-    localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
+
+    const user = get().user;
+    if (user && hasSupabaseConfig) {
+      try {
+        await supabaseService.insertResume(user.id, analysis);
+        // Refresh analysis listing from database to get UUID
+        const refreshedResumes = await supabaseService.fetchResumes(user.id);
+        set({ 
+          resumeHistory: refreshedResumes, 
+          activeResume: refreshedResumes.length > 0 ? refreshedResumes[0] : analysis 
+        });
+      } catch (err) {
+        get().addToast('error', 'Failed to save resume analysis to database.');
+      }
+    } else {
+      localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
+    }
     get().addToast('success', `Resume analyzed successfully. ATS Score: ${analysis.atsScore}`);
   },
   
-  deleteResumeAnalysis: (id) => {
+  deleteResumeAnalysis: async (id) => {
     const nextHistory = get().resumeHistory.filter(r => r.id !== id);
     const active = get().activeResume?.id === id
       ? (nextHistory.length > 0 ? nextHistory[0] : null)
       : get().activeResume;
     set({ resumeHistory: nextHistory, activeResume: active });
-    localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
+
+    const user = get().user;
+    if (user && hasSupabaseConfig) {
+      try {
+        await supabaseService.deleteResume(user.id, id);
+      } catch (err) {
+        get().addToast('error', 'Failed to remove resume record from server.');
+      }
+    } else {
+      localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
+    }
     get().addToast('info', 'Resume audit record deleted.');
   },
   
   setActiveResume: (activeResume) => set({ activeResume }),
   
-  addInterviewSession: (session) => {
+  addInterviewSession: async (session) => {
     const nextHistory = [session, ...get().interviewHistory];
     set({ interviewHistory: nextHistory, activeInterview: session });
-    localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
+
+    const user = get().user;
+    if (user && hasSupabaseConfig) {
+      try {
+        await supabaseService.insertInterview(user.id, session);
+        const refreshedInterviews = await supabaseService.fetchInterviews(user.id);
+        set({ 
+          interviewHistory: refreshedInterviews, 
+          activeInterview: refreshedInterviews.length > 0 ? refreshedInterviews[0] : session 
+        });
+      } catch (err) {
+        get().addToast('error', 'Failed to save interview session to database.');
+      }
+    } else {
+      localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
+    }
     get().addToast('success', `Interview evaluated. Score: ${session.overallScore}/10`);
   },
   
-  deleteInterviewSession: (id) => {
+  deleteInterviewSession: async (id) => {
     const nextHistory = get().interviewHistory.filter(i => i.id !== id);
     const active = get().activeInterview?.id === id
       ? (nextHistory.length > 0 ? nextHistory[0] : null)
       : get().activeInterview;
     set({ interviewHistory: nextHistory, activeInterview: active });
-    localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
+
+    const user = get().user;
+    if (user && hasSupabaseConfig) {
+      try {
+        await supabaseService.deleteInterview(user.id, id);
+      } catch (err) {
+        get().addToast('error', 'Failed to remove interview record from database.');
+      }
+    } else {
+      localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
+    }
     get().addToast('info', 'Interview session record deleted.');
   },
   
   setActiveInterview: (activeInterview) => set({ activeInterview }),
   
-  addRoadmap: (roadmap) => {
+  addRoadmap: async (roadmap) => {
     const nextHistory = [roadmap, ...get().roadmapHistory];
     set({ roadmapHistory: nextHistory, activeRoadmap: roadmap });
-    localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+
+    const user = get().user;
+    if (user && hasSupabaseConfig) {
+      try {
+        await supabaseService.insertRoadmap(user.id, roadmap);
+        const refreshedRoadmaps = await supabaseService.fetchRoadmaps(user.id);
+        set({ 
+          roadmapHistory: refreshedRoadmaps, 
+          activeRoadmap: refreshedRoadmaps.length > 0 ? refreshedRoadmaps[0] : roadmap 
+        });
+      } catch (err) {
+        get().addToast('error', 'Failed to save roadmap to database.');
+      }
+    } else {
+      localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+    }
     get().addToast('success', `Learning path generated for ${roadmap.role}.`);
   },
   
-  deleteRoadmap: (id) => {
+  deleteRoadmap: async (id) => {
     const nextHistory = get().roadmapHistory.filter(r => r.id !== id);
     const active = get().activeRoadmap?.id === id
       ? (nextHistory.length > 0 ? nextHistory[0] : null)
       : get().activeRoadmap;
     set({ roadmapHistory: nextHistory, activeRoadmap: active });
-    localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+
+    const user = get().user;
+    if (user && hasSupabaseConfig) {
+      try {
+        await supabaseService.deleteRoadmap(user.id, id);
+      } catch (err) {
+        get().addToast('error', 'Failed to remove roadmap database record.');
+      }
+    } else {
+      localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+    }
     get().addToast('info', 'Learning roadmap deleted.');
   },
   
   setActiveRoadmap: (activeRoadmap) => set({ activeRoadmap }),
   
-  togglePhaseCompleted: (roadmapId, phaseId) => {
+  togglePhaseCompleted: async (roadmapId, phaseId) => {
     const nextHistory = get().roadmapHistory.map((roadmap) => {
       if (roadmap.id === roadmapId) {
         const completed = roadmap.completedPhases || [];
@@ -238,7 +445,22 @@ export const useAppStore = create<AppState>((set, get) => ({
       : get().activeRoadmap;
       
     set({ roadmapHistory: nextHistory, activeRoadmap: active });
-    localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+
+    const user = get().user;
+    const activeRoadmapRecord = nextHistory.find(r => r.id === roadmapId);
+    if (user && hasSupabaseConfig && activeRoadmapRecord) {
+      try {
+        await supabaseService.updateRoadmapProgress(
+          user.id, 
+          roadmapId, 
+          activeRoadmapRecord.completedPhases || []
+        );
+      } catch (err) {
+        get().addToast('error', 'Failed to sync roadmap progress to database.');
+      }
+    } else {
+      localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+    }
     get().addToast('info', 'Roadmap milestone progress updated.');
   },
   
@@ -258,7 +480,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       title: 'Mock Interview Done',
       subtitle: `${i.config.interviewType} - ${i.config.jobRole} (Score: ${i.overallScore}/10)`,
       timestamp: i.timestamp,
-      score: i.overallScore * 10 // scale to percentage-ish for UI
+      score: i.overallScore * 10 
     }));
     
     const roadmaps = get().roadmapHistory.map(r => ({
@@ -269,7 +491,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       timestamp: r.timestamp,
     }));
     
-    // Sort all by timestamp desc
     return [...resumes, ...interviews, ...roadmaps].sort((a, b) => b.timestamp - a.timestamp);
   }
 }));
+
