@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { SavedResumeAnalysis, SavedInterview, SavedRoadmap, ActivityEvent } from '../types';
 
-export type AppView = 'dashboard' | 'resume' | 'interview' | 'roadmap';
+export type AppView = 'dashboard' | 'resume' | 'interview' | 'roadmap' | 'quiz';
 
 export interface Toast {
   id: string;
@@ -94,17 +94,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   })(),
   
   resumeHistory: getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []),
-  activeResume: getSavedJson<SavedResumeAnalysis | null>(KEYS.RESUMES, []).length > 0
+  activeResume: getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []).length > 0
     ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, [])[0]
     : null,
     
   interviewHistory: getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []),
-  activeInterview: getSavedJson<SavedInterview | null>(KEYS.INTERVIEWS, []).length > 0
+  activeInterview: getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []).length > 0
     ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, [])[0]
     : null,
     
   roadmapHistory: getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []),
-  activeRoadmap: getSavedJson<SavedRoadmap | null>(KEYS.ROADMAPS, []).length > 0
+  activeRoadmap: getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []).length > 0
     ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, [])[0]
     : null,
 

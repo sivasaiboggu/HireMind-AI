@@ -109,8 +109,35 @@ export interface InterviewConfig {
   jobRole: string;
   techStack: string[];
   difficulty: 'Beginner' | 'Intermediate' | 'Senior';
-  interviewType: 'technical' | 'behavioral' | 'system-design' | 'hr';
+  interviewType: 'technical' | 'behavioral' | 'system-design' | 'hr' | 'full';
   questionCount: number;
+  mode?: 'full' | 'specific';
+  videoMode?: boolean;
+  voiceMode?: boolean;
+}
+
+export interface QuizQuestion {
+  id: string;
+  text: string;
+  codeSnippet?: string;
+  type: 'mcq' | 'coding-fill';
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+  category: 'technical' | 'coding' | 'behavioral';
+}
+
+export interface QuizScoreRecord {
+  id: string;
+  timestamp: number;
+  techStack: string[];
+  score: number;
+  totalQuestions: number;
+  answers: {
+    question: QuizQuestion;
+    userAnswer: string;
+    isCorrect: boolean;
+  }[];
 }
 
 export interface AnswerRecord {
@@ -130,7 +157,7 @@ export interface SavedInterview {
 
 export interface ActivityEvent {
   id: string;
-  type: 'resume' | 'interview' | 'roadmap';
+  type: 'resume' | 'interview' | 'roadmap' | 'quiz';
   title: string;
   subtitle: string;
   timestamp: number;
