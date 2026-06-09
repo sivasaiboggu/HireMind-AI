@@ -19,8 +19,9 @@ export const SetupForm: React.FC<SetupFormProps> = ({
   const [techStack, setTechStack] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Senior'>('Intermediate');
-  const [interviewType, setInterviewType] = useState<'technical' | 'behavioral' | 'system-design' | 'hr'>('technical');
+  const [interviewType, setInterviewType] = useState<'technical' | 'behavioral' | 'system-design' | 'hr' | 'dsa'>('technical');
   const [questionCount, setQuestionCount] = useState(5);
+  const [targetCompany, setTargetCompany] = useState('');
   
   // Custom Toggles
   const [mode, setMode] = useState<'full' | 'specific'>('full');
@@ -59,7 +60,8 @@ export const SetupForm: React.FC<SetupFormProps> = ({
       questionCount,
       mode,
       videoMode,
-      voiceMode
+      voiceMode,
+      targetCompany: targetCompany.trim() || 'General'
     });
   };
 
@@ -140,7 +142,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({
         <style dangerouslySetInnerHTML={{__html: `
           @media (min-width: 1024px) {
             .setup-grid {
-              grid-template-columns: repeat(3, 1fr) !important;
+              grid-template-columns: repeat(4, 1fr) !important;
             }
           }
         `}} />
@@ -270,6 +272,21 @@ export const SetupForm: React.FC<SetupFormProps> = ({
             ))}
           </div>
         </Card>
+
+        {/* Card 4: Target Company */}
+        <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <label>4. Target Company</label>
+          <input
+            type="text"
+            placeholder="e.g. Google, Meta, Netflix (optional)"
+            value={targetCompany}
+            onChange={(e) => setTargetCompany(e.target.value)}
+            style={{ backgroundColor: 'var(--bg-elevated)' }}
+          />
+          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+            Tailors questions to this company's interview style.
+          </span>
+        </Card>
       </div>
 
       {/* Row 2: Select Focus Rounds OR Interactive Audio/Video Setup */}
@@ -300,7 +317,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({
                 gap: '12px' 
               }}
             >
-              {(['technical', 'behavioral', 'system-design', 'hr'] as const).map(type => (
+              {(['technical', 'behavioral', 'system-design', 'hr', 'dsa'] as const).map(type => (
                 <button
                   key={type}
                   type="button"

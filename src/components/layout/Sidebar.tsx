@@ -40,7 +40,7 @@ export const Sidebar: React.FC = () => {
     { id: 'resume', label: 'Resume Analyzer', icon: FileText },
     { id: 'interview', label: 'Interview Prep', icon: Mic },
     { id: 'roadmap', label: 'Learning Path', icon: Map },
-    { id: 'quiz', label: 'Quiz Practice', icon: BookOpen },
+    { id: 'quiz', label: 'Practice', icon: BookOpen },
   ];
 
   return (

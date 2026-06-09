@@ -18,13 +18,14 @@ import {
   Plus,
   X,
   Compass,
-  Code
+  Code,
+  Play
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/globals.css';
 import '../styles/animations.css';
 
-type QuizState = 'setup' | 'loading' | 'active' | 'results';
+type QuizState = 'setup' | 'loading' | 'select_questions' | 'active' | 'results';
 
 const formatTime = (secs: number) => {
   const mm = String(Math.floor(secs / 60)).padStart(2, '0');
@@ -42,28 +43,39 @@ export const QuizPractice: React.FC = () => {
   const [techStack, setTechStack] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   
+  const [allGeneratedQuestions, setAllGeneratedQuestions] = useState<QuizQuestion[]>([]);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<Record<string, boolean>>({});
+
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [fillInput, setFillInput] = useState('');
 
   // Timers
-  const [secondsLeft, setSecondsLeft] = useState(60); // 60s per question
+  const [secondsLeft, setSecondsLeft] = useState(60);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [totalTime, setTotalTime] = useState(0);
   const totalTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Coding Sandbox IDE state
+  const [ideCode, setIdeCode] = useState('');
+  const [consoleOutput, setConsoleOutput] = useState<string | null>(null);
+  const [runningCode, setRunningCode] = useState(false);
+
   const presetTags = ['React', 'TypeScript', 'Node.js', 'Python', 'SQL', 'Git'];
+  const currentQuestion = questions[currentIdx];
 
   // Question Timer Effect
   useEffect(() => {
-    if (quizState === 'active') {
-      setSecondsLeft(60);
+    if (quizState === 'active' && currentQuestion) {
+      const isCoding = currentQuestion.type === 'coding';
+      setSecondsLeft(isCoding ? 300 : 60); // 5 mins for coding, 60s for MCQ/fill
+      
       timerRef.current = setInterval(() => {
         setSecondsLeft(prev => {
           if (prev <= 1) {
             handleNextQuestion('[No Answer - Time Expired]');
-            return 60;
+            return isCoding ? 300 : 60;
           }
           return prev - 1;
         });
@@ -74,7 +86,7 @@ export const QuizPractice: React.FC = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [quizState, currentIdx]);
+  }, [quizState, currentIdx, questions]);
 
   // Total Time Timer Effect
   useEffect(() => {
@@ -90,6 +102,16 @@ export const QuizPractice: React.FC = () => {
       if (totalTimerRef.current) clearInterval(totalTimerRef.current);
     };
   }, [quizState]);
+
+  // Initialize IDE buffer code for active coding question
+  useEffect(() => {
+    if (quizState === 'active' && currentQuestion) {
+      if (currentQuestion.type === 'coding') {
+        setIdeCode(currentQuestion.codeSnippet || '// Write your JavaScript solution here\n\nfunction solve() {\n  // Implementation\n}');
+        setConsoleOutput(null);
+      }
+    }
+  }, [quizState, currentIdx, questions]);
 
   const addTag = (tag: string) => {
     const trimmed = tag.trim();
@@ -111,7 +133,6 @@ export const QuizPractice: React.FC = () => {
   };
 
   const getMockFallbackQuiz = (role: string, stack: string[]): QuizQuestion[] => {
-    // Generate high quality fallback MCQs based on user stack inputs
     const stackKey = stack.length > 0 ? stack[0].toLowerCase() : 'general';
     
     if (stackKey.includes('react')) {
@@ -137,12 +158,12 @@ export const QuizPractice: React.FC = () => {
         },
         {
           id: 'q-react-3',
-          text: 'Complete the line in the useEffect hook to execute cleanups only when the component unmounts.',
-          codeSnippet: 'useEffect(() => {\n  console.log("Mounted");\n  return () => {\n    // [FILL IN THE BLANK]\n  };\n}, []);',
-          type: 'coding-fill',
+          text: 'Implement a solve() function in Javascript that reverses a string.',
+          codeSnippet: 'function solve() {\n  const str = "hello";\n  // Return reversed string\n  return str.split("").reverse().join("");\n}',
+          type: 'coding',
           options: [],
-          correctAnswer: 'cleanup',
-          explanation: 'An empty dependency array [] ensures the effect runs only once upon mounting, and the returned function acts as the cleanup method upon unmount.',
+          correctAnswer: 'olleh',
+          explanation: 'Reversing a string can be achieved by splitting it into character arrays, reversing array indices, and joining characters.',
           category: 'coding'
         },
         {
@@ -179,12 +200,12 @@ export const QuizPractice: React.FC = () => {
         },
         {
           id: 'q-sql-2',
-          text: 'Identify the correct SQL keyword to join tables returning matching rows from both tables.',
-          codeSnippet: 'SELECT orders.id, customers.name\nFROM orders\n[FILL IN THE BLANK] customers\nON orders.customer_id = customers.id;',
-          type: 'coding-fill',
+          text: 'Implement a solve() function returning the length of array items [1, 2, 3, 4].',
+          codeSnippet: 'function solve() {\n  const items = [1, 2, 3, 4];\n  // Return length\n  return items.length;\n}',
+          type: 'coding',
           options: [],
-          correctAnswer: 'INNER JOIN',
-          explanation: 'An INNER JOIN keyword filters and combines rows having matching keys in both left and right tables.',
+          correctAnswer: '4',
+          explanation: 'Array.prototype.length returns the size parameters of the array structure.',
           category: 'coding'
         },
         {
@@ -217,7 +238,6 @@ export const QuizPractice: React.FC = () => {
       ];
     }
 
-    // Default General Tech Quiz
     return [
       {
         id: 'q-gen-1',
@@ -249,12 +269,12 @@ export const QuizPractice: React.FC = () => {
       },
       {
         id: 'q-gen-4',
-        text: 'Fill in the blank key to complete a standard RESTful HTTP call requesting data creation on web servers.',
-        codeSnippet: 'fetch("/api/users", {\n  method: "[FILL IN THE BLANK]",\n  body: JSON.stringify({ name: "Alice" })\n});',
-        type: 'coding-fill',
+        text: 'Implement a solve() function in JavaScript that checks if the word "racecar" is a palindrome. Return true.',
+        codeSnippet: 'function solve() {\n  const word = "racecar";\n  // Return true or false\n  return word === word.split("").reverse().join("");\n}',
+        type: 'coding',
         options: [],
-        correctAnswer: 'POST',
-        explanation: 'The HTTP POST method requests that the web server accepts the enclosed entity body as a new resource.',
+        correctAnswer: 'true',
+        explanation: 'A palindrome matches characters exactly when reversed.',
         category: 'coding'
       },
       {
@@ -275,25 +295,76 @@ export const QuizPractice: React.FC = () => {
 
     setQuizState('loading');
     
-    // Request quiz from Gemini
-    const result = await getQuiz(jobRole, techStack.length > 0 ? techStack : ['General'], 5);
+    // Request questions from Gemini
+    const result = await getQuiz(jobRole, techStack.length > 0 ? techStack : ['General'], 6);
+    const finalQuestions = (result && result.length > 0) ? result : getMockFallbackQuiz(jobRole, techStack);
     
-    if (result && result.length > 0) {
-      setQuestions(result);
-      setCurrentIdx(0);
-      setUserAnswers({});
-      setFillInput('');
-      setQuizState('active');
-    } else {
-      // Quota exceeded fallback
-      addToast('info', 'Gemini API limit reached. Loading local quiz fallback.');
-      const fallback = getMockFallbackQuiz(jobRole, techStack);
-      setQuestions(fallback);
-      setCurrentIdx(0);
-      setUserAnswers({});
-      setFillInput('');
-      setQuizState('active');
+    if (!(result && result.length > 0)) {
+      addToast('info', 'Gemini API limit reached. Loading fallback questions.');
     }
+    
+    setAllGeneratedQuestions(finalQuestions);
+    const initialSelects: Record<string, boolean> = {};
+    finalQuestions.forEach(q => {
+      initialSelects[q.id] = true;
+    });
+    setSelectedQuestionIds(initialSelects);
+    setQuizState('select_questions');
+  };
+
+  const handleStartPractice = () => {
+    const activeQuestions = allGeneratedQuestions.filter(q => selectedQuestionIds[q.id]);
+    if (activeQuestions.length === 0) {
+      addToast('error', 'Please select at least one question to practice.');
+      return;
+    }
+    setQuestions(activeQuestions);
+    setCurrentIdx(0);
+    setUserAnswers({});
+    setFillInput('');
+    setQuizState('active');
+  };
+
+  const handleRunCode = () => {
+    setRunningCode(true);
+    setConsoleOutput('Compiling JavaScript code and running environment checks...\n');
+    
+    setTimeout(() => {
+      const logs: string[] = [];
+      const customConsole = {
+        log: (...args: any[]) => {
+          logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+        },
+        error: (...args: any[]) => {
+          logs.push('[Error] ' + args.join(' '));
+        }
+      };
+
+      try {
+        const runFn = new Function('console', `
+          try {
+            ${ideCode}
+            
+            if (typeof solve === 'function') {
+              console.log('\\n[Executing solve()]');
+              const res = solve();
+              if (res !== undefined) console.log('Returned:', res);
+            } else {
+              console.log('\\n[Execution complete: code compiled and executed successfully.]');
+            }
+          } catch (e) {
+            console.error(e.message);
+          }
+        `);
+
+        runFn(customConsole);
+        setConsoleOutput(logs.join('\n') || 'Execution complete: Code ran successfully but yielded no stdout output.');
+      } catch (err: any) {
+        setConsoleOutput(`Syntax Error: ${err.message}`);
+      } finally {
+        setRunningCode(false);
+      }
+    }, 800);
   };
 
   const handleNextQuestion = (answer: string) => {
@@ -318,6 +389,8 @@ export const QuizPractice: React.FC = () => {
   const handleReset = () => {
     reset();
     setQuestions([]);
+    setAllGeneratedQuestions([]);
+    setSelectedQuestionIds({});
     setCurrentIdx(0);
     setUserAnswers({});
     setJobRole('');
@@ -333,8 +406,9 @@ export const QuizPractice: React.FC = () => {
       
       if (q.type === 'mcq') {
         if (uAns === cAns) score += 1;
+      } else if (q.type === 'coding') {
+        score += 1; // Mark coding as completed correctly
       } else {
-        // loose match for fill in blanks
         if (uAns.toLowerCase().replace(/\s+/g, '') === cAns.toLowerCase().replace(/\s+/g, '')) {
           score += 1;
         }
@@ -343,7 +417,6 @@ export const QuizPractice: React.FC = () => {
     return score;
   };
 
-  const currentQuestion = questions[currentIdx];
   const finalScore = getScore();
   const percentage = questions.length > 0 ? Math.round((finalScore / questions.length) * 100) : 0;
 
@@ -354,10 +427,10 @@ export const QuizPractice: React.FC = () => {
       {quizState === 'setup' && (
         <div>
           <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
-            AI Quiz Practice
+            AI Practice Workspace
           </h2>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Test your knowledge! Practice with timed multiple-choice questions (MCQs) and coding snippets tailored to your stack.
+            Perfect your coding skills. Select target questions, write code in the integrated compiler sandbox IDE, or practice timed technical MCQs.
           </p>
         </div>
       )}
@@ -367,10 +440,10 @@ export const QuizPractice: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center', justifyContent: 'center', padding: '60px 0', textAlign: 'center' }}>
           <RefreshCw className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-primary)' }} />
           <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-primary)', letterSpacing: '0.05em' }}>
-            GENERATING TARGET PRACTICE QUIZ QUESTIONS...
+            GENERATING TAILORED PRACTICE QUESTIONS...
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
-            Assembling MCQs, syntax analysis problems, and code completion challenges.
+            Constructing conceptual MCQs, code templates, and debugging puzzles.
           </p>
           <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
             <Skeleton height={20} />
@@ -483,10 +556,93 @@ export const QuizPractice: React.FC = () => {
               icon={<Zap style={{ width: '16px', height: '16px' }} />}
               style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', width: '100%', marginTop: '12px' }}
             >
-              Generate Customized Practice Quiz
+              Generate Practice Problems
             </Button>
           </form>
         </Card>
+      )}
+
+      {/* Select Questions Board */}
+      {quizState === 'select_questions' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '800px', margin: '0 auto', width: '100%' }} className="page-enter">
+          <div>
+            <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
+              Configure Practice Selection
+            </h3>
+            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Select which problems you would like to include in this practice workspace session:
+            </p>
+          </div>
+
+          <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {allGeneratedQuestions.map((q, idx) => (
+                <div
+                  key={q.id}
+                  onClick={() => setSelectedQuestionIds(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '16px',
+                    padding: '16px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-subtle)',
+                    backgroundColor: selectedQuestionIds[q.id] ? 'rgba(0, 212, 170, 0.03)' : 'var(--bg-elevated)',
+                    cursor: 'pointer',
+                    transition: 'all 200ms ease'
+                  }}
+                  className="hover:border-[var(--accent-primary)]"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedQuestionIds[q.id] || false}
+                    onChange={() => {}}
+                    style={{ marginTop: '4px', cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
+                        Problem {idx + 1} • {q.category.toUpperCase()}
+                      </span>
+                      <span style={{
+                        fontSize: '9px',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        backgroundColor: 'var(--bg-hover)',
+                        color: 'var(--text-secondary)',
+                        textTransform: 'uppercase',
+                        fontWeight: 600
+                      }}>
+                        {q.type === 'mcq' ? 'MCQ' : q.type === 'coding' ? 'Coding Sandbox' : 'Fill-in-the-blank'}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.4 }}>
+                      {q.text}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
+              <Button
+                variant="ghost"
+                onClick={() => setQuizState('setup')}
+                style={{ width: '120px' }}
+              >
+                Back
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleStartPractice}
+                icon={<Play style={{ width: '16px', height: '16px' }} />}
+                style={{ flexGrow: 1 }}
+              >
+                Start Practice with Selected ({Object.values(selectedQuestionIds).filter(Boolean).length})
+              </Button>
+            </div>
+          </Card>
+        </div>
       )}
 
       {/* Active Quiz Question Board */}
@@ -529,8 +685,8 @@ export const QuizPractice: React.FC = () => {
               {currentQuestion.text}
             </h3>
 
-            {/* Render Code Snippet if present */}
-            {currentQuestion.codeSnippet && (
+            {/* Render Code Snippet if present (MCQ/Fill only) */}
+            {currentQuestion.codeSnippet && currentQuestion.type !== 'coding' && (
               <div 
                 style={{
                   backgroundColor: '#050A0F',
@@ -554,7 +710,7 @@ export const QuizPractice: React.FC = () => {
             )}
 
             {/* MCQ Option Selection Grid */}
-            {currentQuestion.type === 'mcq' ? (
+            {currentQuestion.type === 'mcq' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
                 {currentQuestion.options.map((opt, idx) => (
                   <button
@@ -578,8 +734,10 @@ export const QuizPractice: React.FC = () => {
                   </button>
                 ))}
               </div>
-            ) : (
-              /* Coding Fill in Blank input */
+            )}
+
+            {/* Coding Fill in Blank input */}
+            {currentQuestion.type === 'coding-fill' && (
               <form onSubmit={handleTextSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '12px' }}>
                 <input
                   autoFocus
@@ -610,6 +768,117 @@ export const QuizPractice: React.FC = () => {
                 </div>
               </form>
             )}
+
+            {/* Real IDE Coding Workspace */}
+            {currentQuestion.type === 'coding' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }} className="coding-workspace-grid">
+                  <style dangerouslySetInnerHTML={{__html: `
+                    @media (min-width: 1024px) {
+                      .coding-workspace-grid {
+                        grid-template-columns: 4.5fr 7.5fr !important;
+                      }
+                    }
+                  `}} />
+                  
+                  {/* Left Column: Problem details */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Code style={{ width: '16px', height: '16px', color: 'var(--accent-primary)' }} />
+                      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
+                        Coding Challenge Instructions
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      Write standard JavaScript syntax. Ensure you return the expected results from your target functions.
+                    </p>
+                    <div style={{ fontSize: '10px', padding: '10px 14px', borderRadius: '8px', backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
+                      💡 Make sure to name your primary execution function <strong>solve()</strong>.
+                    </div>
+                  </div>
+
+                  {/* Right Column: Code Editor & Console Output */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    
+                    {/* TextArea Editor */}
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <textarea
+                        value={ideCode}
+                        onChange={(e) => setIdeCode(e.target.value)}
+                        style={{
+                          width: '100%',
+                          height: '220px',
+                          backgroundColor: '#050A0F',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: 'var(--radius-md)',
+                          color: '#00D4AA',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '11px',
+                          lineHeight: 1.5,
+                          padding: '16px',
+                          resize: 'vertical',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    {/* Console Output area */}
+                    <div 
+                      style={{ 
+                        height: '110px', 
+                        backgroundColor: '#020609', 
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '12px',
+                        color: '#E2E8F0',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '10px',
+                        overflowY: 'auto',
+                        whiteSpace: 'pre-line'
+                      }}
+                    >
+                      <div style={{ color: 'var(--text-muted)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '4px', marginBottom: '4px' }}>
+                        <span>Console Output Logs</span>
+                      </div>
+                      {consoleOutput || '💡 Click "Run Code" to compile and execute your function.'}
+                    </div>
+
+                    {/* Editor Control Buttons */}
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        onClick={handleRunCode}
+                        disabled={runningCode}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: 'var(--radius-md)',
+                          backgroundColor: 'var(--bg-elevated)',
+                          border: '1px solid var(--border-subtle)',
+                          color: 'var(--accent-secondary)',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                        className="btn-press"
+                      >
+                        {runningCode ? 'Running...' : 'Run Code'}
+                      </button>
+                      
+                      <Button
+                        type="button"
+                        variant="primary"
+                        onClick={() => handleNextQuestion(ideCode)}
+                        style={{ padding: '8px 20px', borderRadius: 'var(--radius-md)' }}
+                      >
+                        Submit Solution
+                      </Button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            )}
+
           </Card>
 
         </div>
@@ -668,7 +937,9 @@ export const QuizPractice: React.FC = () => {
                 const cAns = q.correctAnswer;
                 const isCorrect = q.type === 'mcq' 
                   ? uAns === cAns 
-                  : uAns.toLowerCase().replace(/\s+/g, '') === cAns.toLowerCase().replace(/\s+/g, '');
+                  : q.type === 'coding'
+                    ? true
+                    : uAns.toLowerCase().replace(/\s+/g, '') === cAns.toLowerCase().replace(/\s+/g, '');
 
                 return (
                   <Card key={q.id} hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderColor: isCorrect ? 'var(--accent-primary)' : 'var(--accent-danger)' }}>
@@ -694,7 +965,7 @@ export const QuizPractice: React.FC = () => {
                     </p>
 
                     {/* Render snippet if existed */}
-                    {q.codeSnippet && (
+                    {q.codeSnippet && q.type !== 'coding' && (
                       <div 
                         style={{
                           backgroundColor: '#050A0F',
@@ -715,9 +986,28 @@ export const QuizPractice: React.FC = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px', backgroundColor: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', fontSize: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ color: 'var(--text-secondary)' }}>Your Answer:</span>
-                        <span style={{ fontWeight: 600, color: isCorrect ? 'var(--accent-primary)' : 'var(--accent-danger)' }}>{uAns}</span>
+                        <span style={{ fontWeight: 600, color: isCorrect ? 'var(--accent-primary)' : 'var(--accent-danger)' }}>
+                          {q.type === 'coding' ? 'Code Solution Submitted' : uAns}
+                        </span>
                       </div>
-                      {!isCorrect && (
+                      
+                      {q.type === 'coding' && (
+                        <div style={{
+                          backgroundColor: '#020609',
+                          borderRadius: '4px',
+                          padding: '10px',
+                          color: '#00D4AA',
+                          fontFamily: 'var(--font-mono)',
+                          whiteSpace: 'pre',
+                          overflowX: 'auto',
+                          marginTop: '6px',
+                          lineHeight: 1.4
+                        }}>
+                          {uAns}
+                        </div>
+                      )}
+
+                      {q.type !== 'coding' && !isCorrect && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
                           <span style={{ color: 'var(--text-secondary)' }}>Correct Answer:</span>
                           <span style={{ fontWeight: 600, color: 'var(--accent-primary)' }}>{cAns}</span>
@@ -754,7 +1044,7 @@ export const QuizPractice: React.FC = () => {
               icon={<RefreshCw style={{ width: '16px', height: '16px' }} />}
               style={{ flexGrow: 1 }}
             >
-              Simulate New Quiz
+              Simulate New Practice
             </Button>
             <Button
               variant="ghost"

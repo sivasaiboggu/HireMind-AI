@@ -536,7 +536,7 @@ export const InterviewPractice: React.FC = () => {
 
   const getInterviewer = (category: string) => {
     const cat = category.toLowerCase();
-    if (cat.includes('technical') || cat.includes('coding')) {
+    if (cat.includes('technical') || cat.includes('coding') || cat.includes('dsa')) {
       return {
         name: 'Sophia',
         title: 'Principal Technical Recruiter',

@@ -45,7 +45,7 @@ export interface SavedResumeAnalysis extends ResumeAnalysis {
 export interface Question {
   id: string;
   text: string;
-  category: 'technical' | 'behavioral' | 'system-design' | 'hr';
+  category: 'technical' | 'behavioral' | 'system-design' | 'hr' | 'dsa';
   difficulty: 'easy' | 'medium' | 'hard';
   expectedTopics: string[];
 }
@@ -109,18 +109,19 @@ export interface InterviewConfig {
   jobRole: string;
   techStack: string[];
   difficulty: 'Beginner' | 'Intermediate' | 'Senior';
-  interviewType: 'technical' | 'behavioral' | 'system-design' | 'hr' | 'full';
+  interviewType: 'technical' | 'behavioral' | 'system-design' | 'hr' | 'full' | 'dsa';
   questionCount: number;
   mode?: 'full' | 'specific';
   videoMode?: boolean;
   voiceMode?: boolean;
+  targetCompany?: string;
 }
 
 export interface QuizQuestion {
   id: string;
   text: string;
   codeSnippet?: string;
-  type: 'mcq' | 'coding-fill';
+  type: 'mcq' | 'coding-fill' | 'coding';
   options: string[];
   correctAnswer: string;
   explanation: string;

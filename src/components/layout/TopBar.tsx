@@ -65,6 +65,8 @@ export const TopBar: React.FC = () => {
         return 'Interview Simulator';
       case 'roadmap':
         return 'Career Roadmap';
+      case 'quiz':
+        return 'Practice Workspace';
       default:
         return 'Career Hub';
     }

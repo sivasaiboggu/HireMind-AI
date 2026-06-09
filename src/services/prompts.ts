@@ -53,11 +53,21 @@ Your response MUST be a JSON object with this EXACT structure (all scores are ou
 Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks (e.g. do not write \`\`\`json).
 `;
 
-export const INTERVIEW_QUESTIONS_PROMPT = (role: string, stack: string[], difficulty: string, type: string, count: number) => `
+export const INTERVIEW_QUESTIONS_PROMPT = (role: string, stack: string[], difficulty: string, type: string, count: number, company: string = 'General') => `
 Generate exactly ${count} mock interview questions for the role: "${role}".
 Target Stack: ${stack.join(', ')}
 Seniority Level: ${difficulty}
-Interview Focus Type: ${type} (can be 'technical', 'behavioral', 'system-design', 'hr', or 'full')
+Interview Focus Type: ${type} (can be 'technical', 'behavioral', 'system-design', 'hr', 'dsa', or 'full')
+Target Company: ${company}
+
+${company && company.toLowerCase() !== 'general' ? `Ensure that several interview questions are tailored and specific to the known recruitment process, technical screens, or values of "${company}".` : ''}
+
+${type === 'dsa' ? `
+The focus of this round is strictly Data Structures & Algorithms (DSA).
+Generate algorithmic questions (e.g. Arrays, Strings, HashMaps, Trees, Graphs, Dynamic Programming).
+The "text" field must clearly outline the problem, constraints, and target input/output test cases.
+The candidate will write their solution in a JavaScript editor.
+` : ''}
 
 ${type === 'full' ? `
 For 'full' type, the interview must be a complete progressive loop of:
@@ -77,7 +87,7 @@ Your response MUST be a JSON array of objects with this EXACT structure:
   {
     "id": "string",
     "text": "string (the interview question text)",
-    "category": "technical" | "behavioral" | "system-design" | "hr",
+    "category": "technical" | "behavioral" | "system-design" | "hr" | "dsa",
     "difficulty": "easy" | "medium" | "hard",
     "expectedTopics": ["string expected topic 1", "string expected topic 2"]
   }
@@ -159,21 +169,22 @@ Ensure the output is valid JSON and only contains the JSON block. Do not wrap th
 `;
 
 export const QUIZ_PROMPT = (role: string, stack: string[], count: number) => `
-Generate exactly \${count} practice quiz questions for a candidate targeted at the role "\${role}" with tech stack: \${stack.join(', ')}.
-The quiz must include a mix of:
-- Multiple-choice questions (MCQs) testing core concepts.
-- Coding snippet questions (where the user identifies the output or fills in the blank).
+Generate exactly ${count} practice questions for a candidate targeted at the role "${role}" with tech stack: ${stack.join(', ')}.
+The practice questions must include a mix of:
+- Multiple-choice questions (MCQs) testing core concepts (type: "mcq").
+- Coding snippet questions (where the user identifies the output or fills in the blank, type: "coding-fill").
+- Coding questions (type: "coding") where the candidate is asked to implement a full functional algorithm or utility function. For "coding" questions, the "text" must detail the algorithm requirements and constraints, and the "codeSnippet" field MUST contain a boilerplate starter code template (e.g. "function solve() {\\n  // Write solution here\\n}").
 
 Your response MUST be a JSON array of objects with this EXACT structure:
 [
   {
     "id": "string",
-    "text": "string (the quiz question text or question about coding snippet)",
-    "codeSnippet": "string (optional, any code block to display for analysis, or empty)",
-    "type": "mcq" | "coding-fill",
-    "options": ["Option A", "Option B", "Option C", "Option D"], // Provide exactly 4 options for mcq. Empty array for coding-fill.
-    "correctAnswer": "string (exact correct option matching one of the options, or the correct code snippet/answer for coding-fill)",
-    "explanation": "string (detailed, professional explanation of why this answer is correct)",
+    "text": "string (the question prompt or code problem description)",
+    "codeSnippet": "string (optional code block to display, or boilerplate starter code for coding questions)",
+    "type": "mcq" | "coding-fill" | "coding",
+    "options": ["Option A", "Option B", "Option C", "Option D"], // Provide exactly 4 options for mcq. Empty array for coding-fill and coding.
+    "correctAnswer": "string (exact correct option for mcq, correct output string for coding-fill, or expected return value/implementation hint for coding)",
+    "explanation": "string (detailed explanation of the concept or solution)",
     "category": "technical" | "coding" | "behavioral"
   }
 ]

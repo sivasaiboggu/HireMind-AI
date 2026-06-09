@@ -109,7 +109,8 @@ export class GeminiService {
         config.techStack,
         config.difficulty,
         config.interviewType,
-        config.questionCount
+        config.questionCount,
+        config.targetCompany
       );
       
       const response = await model.generateContent(prompt);
