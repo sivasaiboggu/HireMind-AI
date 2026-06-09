@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Mic, Map, Calendar, AlertCircle } from 'lucide-react';
+import { FileText, Mic, Map, Calendar, AlertCircle, Award } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { Card } from '../ui/Card';
 import '../../styles/globals.css';
@@ -24,7 +24,7 @@ export const RecentActivity: React.FC = () => {
     return `${days}d ago`;
   };
 
-  const getActivityIcon = (type: 'resume' | 'interview' | 'roadmap') => {
+  const getActivityIcon = (type: 'resume' | 'interview' | 'roadmap' | 'quiz') => {
     switch (type) {
       case 'resume':
         return <FileText style={{ width: '14px', height: '14px', color: 'var(--accent-secondary)' }} />;
@@ -32,14 +32,17 @@ export const RecentActivity: React.FC = () => {
         return <Mic style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />;
       case 'roadmap':
         return <Map style={{ width: '14px', height: '14px', color: 'var(--accent-purple)' }} />;
+      case 'quiz':
+        return <Award style={{ width: '14px', height: '14px', color: 'var(--accent-purple)' }} />;
     }
   };
 
-  const getBorderColor = (type: 'resume' | 'interview' | 'roadmap') => {
+  const getBorderColor = (type: 'resume' | 'interview' | 'roadmap' | 'quiz') => {
     switch (type) {
       case 'resume': return 'var(--accent-secondary)';
       case 'interview': return 'var(--accent-primary)';
       case 'roadmap': return 'var(--accent-purple)';
+      case 'quiz': return 'var(--accent-purple)';
     }
   };
 

@@ -26,7 +26,7 @@ Your response MUST be a JSON object with this EXACT structure (all scores are ou
       "name": "Work Experience" | "Education" | "Skills" | "Summary" | "Projects",
       "score": number,
       "status": "pass" | "warn" | "fail",
-      "feedback": ["string feedback point 1", "string feedback point 2"]
+      "feedback": ["concise feedback point (max 1 sentence)", "concise feedback point (max 1 sentence)"]
     }
   ],
   "recommendations": [
@@ -34,7 +34,7 @@ Your response MUST be a JSON object with this EXACT structure (all scores are ou
       "id": "string-uuid-or-number",
       "priority": "HIGH" | "MED" | "LOW",
       "title": "string action item title",
-      "description": "string detailed description of the action item"
+      "description": "string description of the action item (concise, max 2 sentences)"
     }
   ],
   "matchedKeywords": ["string", "string"],
@@ -57,9 +57,18 @@ export const INTERVIEW_QUESTIONS_PROMPT = (role: string, stack: string[], diffic
 Generate exactly ${count} mock interview questions for the role: "${role}".
 Target Stack: ${stack.join(', ')}
 Seniority Level: ${difficulty}
-Interview Focus Type: ${type}
+Interview Focus Type: ${type} (can be 'technical', 'behavioral', 'system-design', 'hr', or 'full')
 
+${type === 'full' ? `
+For 'full' type, the interview must be a complete progressive loop of:
+- First ~25%: Easy Technical questions.
+- Next ~25%: Coding challenges (requiring writing actual code snippets).
+- Next ~25%: Medium System Design or Behavioral questions.
+- Last ~25%: HR/cultural fit questions.
+The difficulty of questions MUST escalate progressively from easy to hard.
+` : `
 Each question should challenge the candidate's core expertise. Provide realistic technical, scenario-based, or behavioral questions.
+`}
 
 Your response MUST be a JSON array of objects with this EXACT structure:
 [
@@ -92,9 +101,9 @@ Your response MUST be a JSON object with this EXACT structure:
   "clarity": number,
   "depth": number,
   "examples": number,
-  "strengths": ["string strength 1", "string strength 2"],
-  "improvements": ["string improvement area 1", "string improvement area 2"],
-  "modelAnswer": "string (a high-quality, comprehensive reference answer that demonstrates how to answer this question perfectly)"
+  "strengths": ["concise strength (max 1 sentence)", "concise strength (max 1 sentence)"],
+  "improvements": ["concise improvement area (max 1 sentence)", "concise improvement area (max 1 sentence)"],
+  "modelAnswer": "string (a high-quality, professional, and concise reference answer demonstrating how to answer this question perfectly, max 4 sentences)"
 }
 
 Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks.
@@ -122,8 +131,8 @@ Your response MUST be a JSON object with this EXACT structure:
           "id": "string",
           "name": "string (topic name)",
           "level": "Beginner" | "Intermediate" | "Advanced",
-          "description": "string (topic brief description)",
-          "whyItMatters": "Why this matters: 1-sentence explanation",
+          "description": "string (topic brief description, max 2 sentences)",
+          "whyItMatters": "Why this matters: concise 1-sentence explanation",
           "resources": [
             {
               "type": "video" | "article" | "project" | "quiz",
@@ -143,6 +152,29 @@ Your response MUST be a JSON object with this EXACT structure:
     }
   ]
 }
+
+Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks.
+`;
+
+export const QUIZ_PROMPT = (role: string, stack: string[], count: number) => `
+Generate exactly \${count} practice quiz questions for a candidate targeted at the role "\${role}" with tech stack: \${stack.join(', ')}.
+The quiz must include a mix of:
+- Multiple-choice questions (MCQs) testing core concepts.
+- Coding snippet questions (where the user identifies the output or fills in the blank).
+
+Your response MUST be a JSON array of objects with this EXACT structure:
+[
+  {
+    "id": "string",
+    "text": "string (the quiz question text or question about coding snippet)",
+    "codeSnippet": "string (optional, any code block to display for analysis, or empty)",
+    "type": "mcq" | "coding-fill",
+    "options": ["Option A", "Option B", "Option C", "Option D"], // Provide exactly 4 options for mcq. Empty array for coding-fill.
+    "correctAnswer": "string (exact correct option matching one of the options, or the correct code snippet/answer for coding-fill)",
+    "explanation": "string (detailed, professional explanation of why this answer is correct)",
+    "category": "technical" | "coding" | "behavioral"
+  }
+]
 
 Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks.
 `;

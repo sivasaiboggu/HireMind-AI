@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 import { ResumeAnalyzer } from './pages/ResumeAnalyzer';
 import { InterviewPractice } from './pages/InterviewPractice';
 import { LearningRoadmap } from './pages/LearningRoadmap';
+import { QuizPractice } from './pages/QuizPractice';
 
 // Synchronizes React Router path and Zustand view store
 const AppRoutes: React.FC = () => {
@@ -16,6 +17,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/resume" element={<ResumeAnalyzer />} />
         <Route path="/interview" element={<InterviewPractice />} />
         <Route path="/roadmap" element={<LearningRoadmap />} />
+        <Route path="/quiz" element={<QuizPractice />} />
         <Route path="*" element={<Dashboard />} />
       </Routes>
     </Layout>

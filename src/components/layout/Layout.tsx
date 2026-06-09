@@ -13,7 +13,8 @@ import {
   Menu,
   CheckCircle,
   AlertTriangle,
-  Info
+  Info,
+  BookOpen
 } from 'lucide-react';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
@@ -82,6 +83,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { label: 'Resume Analyzer', desc: 'Check resume against ATS requirements', view: 'resume' as AppView, icon: FileText },
     { label: 'Interview Practice', desc: 'Launch mock interview simulation', view: 'interview' as AppView, icon: Mic },
     { label: 'Learning Roadmap', desc: 'Create step-by-step career milestones', view: 'roadmap' as AppView, icon: Map },
+    { label: 'Quiz Practice', desc: 'Take technical and coding practice tests', view: 'quiz' as AppView, icon: BookOpen },
   ];
 
   const filteredSearchItems = searchItems.filter(item => 
@@ -284,23 +286,20 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         {toasts.map((toast: Toast) => {
           let Icon = Info;
           let color = 'var(--accent-primary)';
-          let border = '1px solid rgba(0, 212, 170, 0.2)';
-          let bg = 'rgba(10, 22, 40, 0.95)';
+          let border = '1px solid var(--border-subtle)';
           
           if (toast.type === 'success') {
             Icon = CheckCircle;
             color = 'var(--accent-primary)';
-            border = '1px solid rgba(0, 212, 170, 0.2)';
+            border = '1px solid rgba(0, 212, 170, 0.3)';
           } else if (toast.type === 'error') {
             Icon = X;
             color = 'var(--accent-danger)';
-            border = '1px solid rgba(244, 63, 94, 0.2)';
-            bg = 'rgba(20, 10, 15, 0.95)';
+            border = '1px solid rgba(244, 63, 94, 0.3)';
           } else if (toast.type === 'info') {
             Icon = AlertTriangle;
             color = 'var(--accent-secondary)';
-            border = '1px solid rgba(245, 158, 11, 0.2)';
-            bg = 'rgba(20, 15, 10, 0.95)';
+            border = '1px solid rgba(245, 158, 11, 0.3)';
           }
 
           return (
@@ -313,10 +312,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 padding: '16px',
                 borderRadius: 'var(--radius-md)',
                 border,
-                backgroundColor: bg,
+                backgroundColor: 'var(--bg-surface)',
                 backdropFilter: 'blur(8px)',
                 color: 'var(--text-primary)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
                 transform: 'translateY(0)',
                 animation: 'slideInRight 350ms cubic-bezier(0.34, 1.56, 0.64, 1)',
                 position: 'relative',

@@ -8,7 +8,8 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Coins,
-  RefreshCw
+  RefreshCw,
+  BookOpen
 } from 'lucide-react';
 import { useAppStore, AppView } from '../../store/appStore';
 import '../../styles/globals.css';
@@ -38,6 +39,7 @@ export const Sidebar: React.FC = () => {
     { id: 'resume', label: 'Resume Analyzer', icon: FileText },
     { id: 'interview', label: 'Interview Prep', icon: Mic },
     { id: 'roadmap', label: 'Learning Path', icon: Map },
+    { id: 'quiz', label: 'Quiz Practice', icon: BookOpen },
   ];
 
   return (

@@ -11,9 +11,10 @@ import {
   INTERVIEW_QUESTIONS_PROMPT, 
   ANSWER_EVALUATION_PROMPT, 
   ROADMAP_PROMPT,
-  SYSTEM_INSTRUCTION
+  SYSTEM_INSTRUCTION,
+  QUIZ_PROMPT
 } from './prompts';
-import { ResumeAnalysis, Question, AnswerFeedback, Roadmap, InterviewConfig } from '../types';
+import { ResumeAnalysis, Question, AnswerFeedback, Roadmap, InterviewConfig, QuizQuestion } from '../types';
 
 const getApiKey = (): string => {
   // Try to read from Vite's import.meta.env or process.env configuration defines
@@ -51,7 +52,7 @@ const handleApiError = (error: any, context: string): never => {
   if (originalMessage.includes('404') || originalMessage.toLowerCase().includes('not found')) {
     throw new Error(
       `[Model/Resource Not Found (404)]\n\n` +
-      `The requested Gemini model was not found or is deprecated. We have updated the app to 'gemini-2.0-flash'. Please restart your server if this persists.`
+      `The requested Gemini model was not found or is deprecated. We have updated the app to 'gemini-2.5-flash'. Please restart your server if this persists.`
     );
   }
 
@@ -76,7 +77,7 @@ export class GeminiService {
     try {
       const ai = this.getClient();
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -98,7 +99,7 @@ export class GeminiService {
     try {
       const ai = this.getClient();
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -127,7 +128,7 @@ export class GeminiService {
     try {
       const ai = this.getClient();
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -149,7 +150,7 @@ export class GeminiService {
     try {
       const ai = this.getClient();
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -161,6 +162,39 @@ export class GeminiService {
       return sanitizeRoadmap(parsed);
     } catch (error: any) {
       return handleApiError(error, 'roadmap generation');
+    }
+  };
+
+  /**
+   * Generate multiple quiz questions based on configuration
+   */
+  generateQuizQuestions = async (role: string, stack: string[], count: number = 5): Promise<QuizQuestion[]> => {
+    try {
+      const ai = this.getClient();
+      const model = ai.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: SYSTEM_INSTRUCTION,
+        generationConfig: { responseMimeType: 'application/json' }
+      });
+      
+      const prompt = QUIZ_PROMPT(role, stack, count);
+      const response = await model.generateContent(prompt);
+      const responseText = response.response.text();
+      const parsed = parseGeminiJson<any>(responseText);
+      
+      const arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.questions) ? parsed.questions : []);
+      return arr.map((q: any, idx: number) => ({
+        id: String(q?.id || `quiz-q-${idx}`),
+        text: String(q?.text || q?.question || 'No question text provided'),
+        codeSnippet: q?.codeSnippet || q?.code_snippet || undefined,
+        type: ['mcq', 'coding-fill'].includes(q?.type) ? q.type : 'mcq',
+        options: Array.isArray(q?.options) ? q.options.map(String) : [],
+        correctAnswer: String(q?.correctAnswer || q?.correct_answer || ''),
+        explanation: String(q?.explanation || ''),
+        category: ['technical', 'coding', 'behavioral'].includes(q?.category) ? q.category : 'technical'
+      }));
+    } catch (error: any) {
+      return handleApiError(error, 'quiz generation');
     }
   };
 }
