@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatsGrid } from '../components/dashboard/StatsGrid';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { Card } from '../components/ui/Card';
 import { useAppStore, AppView } from '../store/appStore';
-import { Search, Trash2, Calendar, FileText, Mic, Map } from 'lucide-react';
+import { supabaseService } from '../services/supabase';
+import { Search, Trash2, Calendar, FileText, Mic, Map, Briefcase, Sparkles, Award, ArrowRight } from 'lucide-react';
 import '../styles/globals.css';
 import '../styles/animations.css';
 
@@ -22,13 +23,79 @@ export const Dashboard: React.FC = () => {
     roadmapHistory, 
     activeRoadmap, 
     setActiveRoadmap, 
-    deleteRoadmap
+    deleteRoadmap,
+    user,
+    profile,
+    addToast
   } = useAppStore();
 
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'resume' | 'interview' | 'roadmap'>('resume');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Onboarding states
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingName, setOnboardingName] = useState('');
+  const [onboardingRole, setOnboardingRole] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  // Check if onboarding is needed (empty target role)
+  useEffect(() => {
+    if (user) {
+      if (profile && (!profile.target_role || profile.target_role.trim() === '')) {
+        setShowOnboarding(true);
+        setOnboardingName(profile.full_name || user.user_metadata?.full_name || '');
+      }
+    } else {
+      // Guest mode: check local storage role
+      const guestRole = localStorage.getItem('hiremind_guest_role');
+      if (!guestRole || guestRole.trim() === '') {
+        setShowOnboarding(true);
+        setOnboardingName(localStorage.getItem('hiremind_guest_name') || 'Guest Candidate');
+      }
+    }
+  }, [user, profile]);
+
+  const handleOnboardingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!onboardingName.trim() || !onboardingRole.trim()) {
+      addToast('error', 'Please enter your name and target job role.');
+      return;
+    }
+    setSubmitting(true);
+
+    try {
+      if (user) {
+        // Update user profile in Supabase
+        const updated = await supabaseService.updateProfile(user.id, {
+          full_name: onboardingName.trim(),
+          target_role: onboardingRole.trim()
+        });
+        if (updated) {
+          useAppStore.setState({ profile: updated });
+        }
+      } else {
+        // Save to guest local storage
+        localStorage.setItem('hiremind_guest_name', onboardingName.trim());
+        localStorage.setItem('hiremind_guest_role', onboardingRole.trim());
+      }
+      addToast('success', `Profile personalized successfully! Welcome, ${onboardingName.trim()}.`);
+      setShowOnboarding(false);
+    } catch (err) {
+      addToast('error', 'Failed to update profile settings.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const popularRoles = [
+    'Frontend Engineer',
+    'Backend Engineer',
+    'Fullstack Developer',
+    'AI Specialist',
+    'System Architect'
+  ];
 
   // Greetings logic
   const getGreeting = () => {
@@ -36,6 +103,13 @@ export const Dashboard: React.FC = () => {
     if (hr < 12) return 'Good morning';
     if (hr < 18) return 'Good afternoon';
     return 'Good evening';
+  };
+
+  const getDisplayName = () => {
+    if (user) {
+      return profile?.full_name?.trim().split(' ')[0] || 'Candidate';
+    }
+    return localStorage.getItem('hiremind_guest_name')?.trim().split(' ')[0] || 'Candidate';
   };
 
   const filteredResumeHistory = useMemo(() => {
@@ -71,10 +145,154 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
       
+      {/* Onboarding Modal Overlay */}
+      {showOnboarding && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(16px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '24px'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '450px',
+            backgroundColor: '#ffffff',
+            borderRadius: '24px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+            padding: '36px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '14px',
+                backgroundColor: 'rgba(13, 148, 136, 0.06)',
+                border: '1px solid rgba(13, 148, 136, 0.15)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px'
+              }}>
+                <Sparkles style={{ width: '20px', height: '20px', color: '#0d9488' }} />
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#0f172a', fontFamily: 'Clash Display, Syne, sans-serif' }}>
+                Personalize Your Hub
+              </h3>
+              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.4, marginTop: '4px' }}>
+                Welcome to HireMind AI! Help us configure your target roles for recruiters, sandboxes, and resume matching.
+              </p>
+            </div>
+
+            <form onSubmit={handleOnboardingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Your Full Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Boggu Sivasai"
+                  value={onboardingName}
+                  onChange={(e) => setOnboardingName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '11px 14px',
+                    fontSize: '13.5px',
+                    color: '#0f172a',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Target Job Role</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Lead React Architect"
+                  value={onboardingRole}
+                  onChange={(e) => setOnboardingRole(e.target.value)}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '11px 14px',
+                    fontSize: '13.5px',
+                    color: '#0f172a',
+                    outline: 'none'
+                  }}
+                />
+                
+                {/* Popular roles pills */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
+                  {popularRoles.map((role) => (
+                    <button
+                      key={role}
+                      type="button"
+                      onClick={() => setOnboardingRole(role)}
+                      style={{
+                        fontSize: '11px',
+                        padding: '6px 12px',
+                        borderRadius: '100px',
+                        backgroundColor: onboardingRole === role ? 'rgba(13, 148, 136, 0.08)' : '#f1f5f9',
+                        border: onboardingRole === role ? '1px solid #0d9488' : '1px solid #e2e8f0',
+                        color: onboardingRole === role ? '#0d9488' : '#475569',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        transition: 'all 150ms ease'
+                      }}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  fontSize: '13.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.15)',
+                  marginTop: '10px',
+                  transition: 'all 200ms ease'
+                }}
+              >
+                {submitting ? 'Setting up workspace...' : 'Initialize Workspace'}
+                <ArrowRight style={{ width: '14px', height: '14px' }} />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Hero Greeting */}
       <div>
         <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 600, fontFamily: 'var(--font-display)', lineHeight: 1.2 }}>
-          {getGreeting()}, Sivasai 👋
+          {getGreeting()}, {getDisplayName()} 👋
         </h2>
         <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
           Your career intelligence hub is ready. Optimize your profile and practice key roles.
