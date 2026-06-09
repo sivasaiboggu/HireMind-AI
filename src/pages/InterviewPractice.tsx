@@ -24,7 +24,9 @@ import {
   Clipboard, 
   Code, 
   Compass, 
-  UserCheck 
+  UserCheck,
+  PhoneOff,
+  VideoOff
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/globals.css';
@@ -34,7 +36,7 @@ type SessionState = 'setup' | 'loading_questions' | 'answering' | 'viewing_feedb
 
 export const InterviewPractice: React.FC = () => {
   const navigate = useNavigate();
-  const { addInterviewSession, activeInterview, setActiveInterview } = useAppStore();
+  const { addInterviewSession, activeInterview, setActiveInterview, addToast } = useAppStore();
   const { execute: getQuestions, loading: loadingQuestions, error: questionsError, reset: resetQuestions } = useGemini(gemini.generateInterviewQuestions, 10);
   const { execute: evaluateAns, loading: evaluatingAnswer, error: evalError, reset: resetEval } = useGemini(gemini.evaluateAnswer, 5);
 
@@ -52,6 +54,40 @@ export const InterviewPractice: React.FC = () => {
   // Webcam media stream
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+
+  // Locked Meeting Room UI States
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [micMuted, setMicMuted] = useState(false);
+  const [idePanelOpen, setIdePanelOpen] = useState(true);
+  const [notesPanelOpen, setNotesPanelOpen] = useState(true);
+
+  // Prevent escape/leave during active call
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (sessionState === 'answering' || sessionState === 'viewing_feedback' || sessionState === 'loading_questions') {
+        e.preventDefault();
+        e.returnValue = 'You are currently in an active interview session. Leaving will lose all progress. Are you sure?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [sessionState]);
+
+  // Handle document scroll locking during calls
+  useEffect(() => {
+    if (sessionState === 'answering' || sessionState === 'viewing_feedback' || sessionState === 'loading_questions' || evaluatingAnswer) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [sessionState, evaluatingAnswer]);
 
   // TTS Speech Synthesis State
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -175,6 +211,10 @@ export const InterviewPractice: React.FC = () => {
   };
 
   const startDictation = () => {
+    if (micMuted) {
+      addToast('info', 'Your microphone is muted in call controls! Unmute to start speaking.');
+      return;
+    }
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Speech recognition is not supported in this browser. Please use Chrome or Microsoft Edge.");
@@ -386,624 +426,949 @@ export const InterviewPractice: React.FC = () => {
     typedAnswer.toLowerCase().includes(topic.toLowerCase())
   ) : [];
 
+  const getInterviewer = (category: string) => {
+    const cat = category.toLowerCase();
+    if (cat.includes('technical') || cat.includes('coding')) {
+      return {
+        name: 'Sophia',
+        title: 'Principal Technical Recruiter',
+        color: '#00d4aa',
+        avatarType: 'sophia',
+        accentVar: '--accent-primary',
+        desc: 'Expert in frontend, databases, and core data structures.'
+      };
+    } else if (cat.includes('system') || cat.includes('architecture') || cat.includes('design')) {
+      return {
+        name: 'Marcus',
+        title: 'VP of Software Engineering',
+        color: '#f59e0b',
+        avatarType: 'marcus',
+        accentVar: '--accent-secondary',
+        desc: 'Architecture expert focusing on system design, scalability, and algorithms.'
+      };
+    } else {
+      return {
+        name: 'Emily',
+        title: 'Director of HR & Culture',
+        color: '#a855f7',
+        avatarType: 'emily',
+        accentVar: '--accent-purple',
+        desc: 'HR Director testing communication, conflict resolution, and behavioral stories.'
+      };
+    }
+  };
+
+  const renderAvatarSVG = (type: string, isSpk: boolean, isThk: boolean) => {
+    const accent = type === 'sophia' ? '#00d4aa' : type === 'marcus' ? '#f59e0b' : '#a855f7';
+    return (
+      <svg width="130" height="130" viewBox="0 0 100 100" style={{ transformOrigin: 'center', transition: 'all 300ms ease' }}>
+        <defs>
+          <radialGradient id={`glow-${type}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={isSpk ? `${accent}44` : isThk ? '#a855f744' : `${accent}11`} />
+            <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+          </radialGradient>
+          <linearGradient id={`gradient-${type}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={accent} />
+            <stop offset="100%" stopColor={type === 'sophia' ? '#a855f7' : type === 'marcus' ? '#ef4444' : '#ec4899'} />
+          </linearGradient>
+        </defs>
+        <circle cx="50" cy="50" r="45" fill={`url(#glow-${type})`} className="avatar-breath" />
+        <circle cx="50" cy="50" r="38" fill="none" stroke={`url(#gradient-${type})`} strokeWidth="1.5" strokeDasharray={isThk ? "4,6" : "8,6"} className="ring-rotate-cw" style={{ animationDuration: isThk ? '3s' : '15s' }} />
+        <circle cx="50" cy="50" r="32" fill="none" stroke={isThk ? '#a855f7' : `${accent}bb`} strokeWidth="1" strokeDasharray={isSpk ? "10,6,4,6" : "15,5"} className="ring-rotate-ccw" style={{ animationDuration: isSpk ? '5s' : '12s' }} />
+        <path d="M 32,35 C 32,25 68,25 68,35 L 68,60 C 68,70 50,78 50,78 C 50,78 32,70 32,60 Z" fill="#060b11" stroke={accent} strokeWidth="2" style={{ filter: isSpk ? `drop-shadow(0 0 8px ${accent})` : 'none', transition: 'all 200ms ease' }} />
+        {type === 'sophia' ? (
+          <>
+            <path d="M 38,44 Q 50,47 62,44" fill="none" stroke={accent} strokeWidth="1.5" />
+            <circle cx="44" cy="44" r="2" fill="#ffffff" className="eye-left" />
+            <circle cx="56" cy="44" r="2" fill="#ffffff" className="eye-right" />
+          </>
+        ) : type === 'marcus' ? (
+          <>
+            <polygon points="36,42 45,42 43,46 38,46" fill={accent} />
+            <polygon points="55,42 64,42 62,46 57,46" fill={accent} />
+            <line x1="42" y1="52" x2="58" y2="52" stroke={accent} strokeWidth="1" />
+          </>
+        ) : (
+          <>
+            <circle cx="43" cy="43" r="2.5" fill="none" stroke={accent} strokeWidth="1" />
+            <circle cx="43" cy="43" r="0.8" fill="#ffffff" className="eye-left" />
+            <circle cx="57" cy="43" r="2.5" fill="none" stroke={accent} strokeWidth="1" />
+            <circle cx="57" cy="43" r="0.8" fill="#ffffff" className="eye-right" />
+          </>
+        )}
+        {isSpk ? (
+          <path d="M 40,58 Q 45,50 50,58 T 60,58" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" className="pulse-speaking" />
+        ) : isThk ? (
+          <circle cx="50" cy="58" r="2.5" fill="#a855f7" className="pulse-speaking" />
+        ) : (
+          <line x1="42" y1="58" x2="58" y2="58" stroke={`${accent}aa`} strokeWidth="1" strokeLinecap="round" />
+        )}
+      </svg>
+    );
+  };
+
+  const cssStyle = `
+    .secure-call-room {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background-color: #060b11;
+      color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font-body);
+      overflow: hidden;
+      animation: fadeIn 200ms ease;
+    }
+    @keyframes rotateCw {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes rotateCcw {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+    @keyframes blinkEyes {
+      0%, 90%, 100% { transform: scaleY(1); }
+      95% { transform: scaleY(0.1); }
+    }
+    .ring-rotate-cw {
+      animation: rotateCw 20s linear infinite;
+      transform-origin: 50px 50px;
+    }
+    .ring-rotate-ccw {
+      animation: rotateCcw 15s linear infinite;
+      transform-origin: 50px 50px;
+    }
+    .eye-left, .eye-right {
+      animation: blinkEyes 4s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .avatar-breath {
+      animation: breath 3s ease-in-out infinite alternate;
+      transform-origin: 50px 50px;
+    }
+    @keyframes breath {
+      from { transform: scale(0.96); opacity: 0.8; }
+      to { transform: scale(1.04); opacity: 1; }
+    }
+    .pulse-speaking {
+      animation: voicePulse 0.4s ease-in-out infinite alternate;
+      transform-origin: center;
+    }
+    @keyframes voicePulse {
+      from { transform: scaleY(0.8); }
+      to { transform: scaleY(1.3); }
+    }
+    .mic-pulse {
+      animation: micGlow 1.5s infinite alternate;
+    }
+    @keyframes micGlow {
+      from { box-shadow: 0 0 4px rgba(0, 212, 170, 0.2); }
+      to { box-shadow: 0 0 16px rgba(0, 212, 170, 0.6); }
+    }
+    @media (max-width: 1024px) {
+      .call-layout-grid {
+        grid-template-columns: 1fr !important;
+        overflow-y: auto !important;
+      }
+      .video-feeds-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  `;
+
+  const currentInterviewer = currentQuestion ? getInterviewer(currentQuestion.category) : {
+    name: 'Sophia',
+    title: 'Principal Technical Recruiter',
+    color: '#00d4aa',
+    avatarType: 'sophia',
+    accentVar: '--accent-primary',
+    desc: 'Expert in frontend, databases, and algorithms.'
+  };
+
   return (
     <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      
-      {/* Title */}
-      {sessionState === 'setup' && (
-        <div>
-          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
-            AI Interview Simulator
-          </h2>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Simulate realistic mock interviews with live video, voice synthesis, real-time feedback, and coding IDE integration.
-          </p>
-        </div>
-      )}
+      <style dangerouslySetInnerHTML={{ __html: cssStyle }} />
 
-      {/* Loading Skeletons */}
-      {sessionState === 'loading_questions' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center', justifyContent: 'center', padding: '60px 0', textAlign: 'center' }}>
-          <Activity className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
-          <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-primary)', letterSpacing: '0.05em' }}>
-            GENERATING INTERVIEW ROUND CRITERIA & QUESTIONS...
-          </div>
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
-            Calibrating progressive difficulty tiers (Easy ➔ Medium ➔ Hard) and round guidelines.
-          </p>
-          <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
-            <Skeleton height={20} />
-            <Skeleton height={200} />
-          </div>
-        </div>
-      )}
-
-      {/* Evaluating Answer Loading */}
-      {evaluatingAnswer && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center', justifyContent: 'center', padding: '60px 0', textAlign: 'center' }}>
-          <Terminal className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
-          <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-purple)', letterSpacing: '0.05em' }}>
-            GRADING RESPONSE FOR TECH ACCURACY & CLARITY...
-          </div>
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
-            Auditing vocabulary, implementation logic, and STAR framework coverage.
-          </p>
-          <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
-            <Skeleton height={20} />
-            <Skeleton height={150} />
-          </div>
-        </div>
-      )}
-
-      {/* Answering State */}
-      {sessionState === 'answering' && questions.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-          
-          {/* Progress Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', fontWeight: 600 }}>
-              <Clock style={{ width: '16px', height: '16px' }} />
-              <span>ELAPSED: {formatTime(seconds)}</span>
-              <span style={{ color: 'var(--text-muted)' }}>|</span>
-              <span style={{ textTransform: 'uppercase', color: 'var(--accent-primary)', fontWeight: 700 }}>
-                Round: {currentQuestion.category.replace('-', ' ')} ({currentQuestion.difficulty})
-              </span>
+      {/* Leave Confirmation Dialog */}
+      {showLeaveConfirm && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(5, 10, 15, 0.9)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100000,
+          animation: 'fadeIn 200ms ease'
+        }}>
+          <div style={{
+            width: '90%',
+            maxWidth: '420px',
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--accent-danger)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '28px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            boxShadow: '0 20px 50px rgba(244, 63, 94, 0.15)'
+          }}>
+            <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--text-primary)' }}>
+              Exit Secure Interview Meeting?
+            </h3>
+            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              You are in an active proctored interview call. Leaving now will terminate the session, and your responses will not be evaluated. Are you sure you want to leave?
+            </p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowLeaveConfirm(false)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-primary)',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+                className="btn-press"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={() => {
+                  setShowLeaveConfirm(false);
+                  handleRetry();
+                }}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--accent-danger)',
+                  color: 'white',
+                  border: 'none',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+                className="btn-press"
+              >
+                Abort & Leave
+              </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULLSCREEN MEETING ROOM WORKSPACE */}
+      {(sessionState === 'answering' || sessionState === 'viewing_feedback' || sessionState === 'loading_questions' || evaluatingAnswer) ? (
+        <div 
+          className="secure-call-room"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            backgroundColor: '#060b11',
+            color: '#f3f4f6',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}
+        >
+          {/* SECURE CALL ROOM HEADER */}
+          <div 
+            style={{
+              height: '64px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              padding: '0 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: 'rgba(10, 17, 26, 0.95)',
+              zIndex: 10
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {activeConfig?.videoMode && (
-                <button 
-                  onClick={handleSpeechToggle}
-                  style={{
-                    backgroundColor: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'var(--text-secondary)',
-                    padding: '6px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                  className="btn-press"
-                >
-                  {isMuted ? <VolumeX style={{ width: '14px', height: '14px', color: 'var(--accent-danger)' }} /> : <Volume2 style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />}
-                  {isMuted ? 'UNMUTE RECITER' : 'MUTE RECITER'}
-                </button>
-              )}
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 600 }}>
-                QUESTION {currentIdx + 1} OF {questions.length}
+              <div 
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: sessionState === 'loading_questions' ? '#f59e0b' : '#ef4444',
+                  animation: 'breath 1s infinite alternate'
+                }}
+              />
+              <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: '#f3f4f6', textTransform: 'uppercase' }}>
+                {sessionState === 'loading_questions' ? 'DIALING MEETING ROOM...' : 'LIVE SECURE INTERVIEW ROOM'}
+              </span>
+              <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
+              <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.6)', fontWeight: 500 }}>
+                {activeConfig?.jobRole} Practice Lab
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.03)', padding: '6px 16px', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+              <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
+                {currentQuestion ? `ROUND: ${currentQuestion.category.replace('-', ' ')}` : 'ESTABLISHING...'}
+              </span>
+              <span style={{ color: 'rgba(255, 255, 255, 0.15)' }}>•</span>
+              <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'var(--font-mono)' }}>
+                {currentQuestion ? `Difficulty: ${currentQuestion.difficulty}` : ''}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
+                🔒 Proctored Environment
+              </span>
+              <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
+              <span style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+                CALL TIME: {formatTime(seconds)}
               </span>
             </div>
           </div>
 
-          {/* Progress line */}
-          <div style={{ height: '4px', backgroundColor: 'var(--bg-elevated)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', backgroundColor: 'var(--accent-primary)', width: `${currentProgress}%`, transition: 'width 300ms ease' }} />
-          </div>
-
-          {/* Split view: Recruiter/Webcam Video panels */}
-          {activeConfig?.videoMode && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }} className="video-panels-grid">
-              <style dangerouslySetInnerHTML={{__html: `
-                @media (min-width: 768px) {
-                  .video-panels-grid {
-                    grid-template-columns: 1fr 1fr !important;
-                  }
-                }
-              `}} />
-
-              {/* Left: AI Recruiter visual avatar */}
-              <div 
-                style={{
-                  height: '180px',
-                  borderRadius: 'var(--radius-lg)',
-                  backgroundColor: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                <div 
-                  className={`avatar-glow ${isSpeaking ? 'speaking-pulse' : ''}`}
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-purple))',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#050A0F',
-                    fontWeight: 700,
-                    fontSize: '24px',
-                    boxShadow: isSpeaking ? '0 0 30px var(--accent-primary)' : 'none',
-                    transition: 'all 200ms ease'
-                  }}
-                >
-                  AI
-                </div>
+          {/* SECURE CALL ROOM SUB-COMPONENTS */}
+          {sessionState === 'loading_questions' ? (
+            /* DIALING IN SCREEN */
+            <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px', padding: '40px', textAlign: 'center' }}>
+              <Activity className="rotating-brain" style={{ width: '56px', height: '56px', color: 'var(--accent-primary)' }} />
+              <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600 }}>
+                Connecting to Secure Call Panel...
+              </h3>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'rgba(255, 255, 255, 0.6)', maxWidth: '440px', lineHeight: 1.6 }}>
+                Establishing video handshake and calibrating round criteria questions for the {activeConfig?.jobRole} profile. Please keep webcam and microphone permissions allowed.
+              </p>
+              <div style={{ width: '100%', maxWidth: '400px', height: '4px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '2px', overflow: 'hidden', marginTop: '12px' }}>
+                <div style={{ height: '100%', backgroundColor: 'var(--accent-primary)', width: '60%', animation: 'voicePulse 1.5s infinite ease-in-out' }} />
+              </div>
+            </div>
+          ) : (
+            /* THE ACTIVE VIDEO GRID MEETING ROOM */
+            <div 
+              style={{
+                flexGrow: 1,
+                display: 'grid',
+                gridTemplateColumns: (isCodingQuestion && idePanelOpen && sessionState === 'answering') ? '1fr 1fr' : '1fr',
+                gap: '24px',
+                padding: '24px',
+                overflow: 'hidden'
+              }}
+              className="call-layout-grid"
+            >
+              {/* Left Workspace Panel: Video Grids and Feedback Screen Shares */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto' }}>
                 
-                {/* Visualizer voice waves when speaking */}
-                {isSpeaking && (
-                  <div style={{ display: 'flex', gap: '4px', marginTop: '12px' }}>
-                    {[...Array(6)].map((_, i) => (
-                      <div 
-                        key={i} 
-                        className="voice-bar" 
-                        style={{
-                          width: '3px',
-                          height: '16px',
-                          backgroundColor: 'var(--accent-primary)',
-                          borderRadius: '2px',
-                          animation: 'pulseVoice 1s ease-in-out infinite',
-                          animationDelay: `${i * 150}ms`
-                        }}
+                {/* 1. Scorecard Screen Share View */}
+                {sessionState === 'viewing_feedback' && currentFeedback && !evaluatingAnswer ? (
+                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'rgba(10, 17, 26, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'relative' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '12px', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)' }} />
+                        <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {currentInterviewer.name} is sharing: Evaluation Scorecard
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '8px' }}>
+                      <FeedbackPanel 
+                        feedback={currentFeedback} 
+                        onNext={handleNext} 
+                        isLastQuestion={currentIdx === questions.length - 1} 
                       />
-                    ))}
+                    </div>
                   </div>
-                )}
-                
-                <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', marginTop: '8px', letterSpacing: '0.05em' }}>
-                  {isSpeaking ? 'SPEAKING DIALOGUE...' : 'RECIPROCATING INPUT...'}
-                </span>
-              </div>
-
-              {/* Right: Candidate Camera panel */}
-              <div 
-                style={{
-                  height: '180px',
-                  borderRadius: 'var(--radius-lg)',
-                  backgroundColor: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                {stream ? (
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline 
-                    muted 
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      transform: 'scaleX(-1)' // Mirror effect
-                    }}
-                  />
+                ) : evaluatingAnswer ? (
+                  /* 2. Analyzing/Thinking Screen inside the meeting */
+                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px', backgroundColor: 'rgba(10, 17, 26, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '24px' }}>
+                    <Terminal className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
+                    <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-purple)', letterSpacing: '0.05em' }}>
+                      {currentInterviewer.name} IS ANALYZING YOUR PERFORMANCE...
+                    </div>
+                    <p style={{ fontSize: 'var(--text-xs)', color: 'rgba(255, 255, 255, 0.6)', maxWidth: '400px', textAlign: 'center', lineHeight: 1.5 }}>
+                      Auditing technical parameters, word patterns, coding constraints, and structural STAR responses for quality.
+                    </p>
+                    <div style={{ width: '100%', maxWidth: '400px', height: '4px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', backgroundColor: 'var(--accent-purple)', width: '40%', animation: 'voicePulse 1.2s infinite ease-in-out' }} />
+                    </div>
+                  </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-                    <Video style={{ width: '28px', height: '28px' }} />
-                    <span style={{ fontSize: '10px', fontWeight: 600 }}>CANDIDATE FEED UNAVAILABLE</span>
+                  /* 3. Normal Interview Grid (Feeds Side-by-Side) */
+                  <div 
+                    style={{
+                      flexGrow: 1,
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '20px',
+                      alignItems: 'stretch'
+                    }}
+                    className="video-feeds-grid"
+                  >
+                    {/* Left Grid: AI Recruiter Avatar Feed */}
+                    <div 
+                      style={{
+                        backgroundColor: '#0a111a',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: 'var(--radius-lg)',
+                        overflow: 'hidden',
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '260px'
+                      }}
+                    >
+                      <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(0,0,0,0.4)', padding: '4px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
+                          {currentInterviewer.name} (AI Interviewer)
+                        </span>
+                      </div>
+
+                      <div style={{ position: 'absolute', top: '16px', right: '16px' }}>
+                        <span style={{
+                          fontSize: '8px', 
+                          fontWeight: 700, 
+                          color: isSpeaking ? 'var(--accent-primary)' : 'rgba(255,255,255,0.4)',
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          backgroundColor: isSpeaking ? 'rgba(0, 212, 170, 0.1)' : 'rgba(255,255,255,0.05)',
+                          border: isSpeaking ? '1px solid rgba(0, 212, 170, 0.3)' : '1px solid transparent',
+                          letterSpacing: '0.05em'
+                        }}>
+                          {isSpeaking ? '• SPEAKING' : '• LISTENING'}
+                        </span>
+                      </div>
+
+                      {renderAvatarSVG(currentInterviewer.avatarType, isSpeaking, evaluatingAnswer)}
+
+                      <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#f3f4f6' }}>
+                            {currentInterviewer.name}
+                          </span>
+                          <span style={{ fontSize: '9px', color: 'rgba(255, 255, 255, 0.4)' }}>
+                            {currentInterviewer.title}
+                          </span>
+                        </div>
+                        {isSpeaking && (
+                          <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '16px' }}>
+                            {[...Array(6)].map((_, i) => (
+                              <div 
+                                key={i}
+                                className="pulse-speaking"
+                                style={{
+                                  width: '2px',
+                                  height: '10px',
+                                  backgroundColor: currentInterviewer.color,
+                                  borderRadius: '1px',
+                                  animationDelay: `${i * 100}ms`
+                                }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Grid: Candidate Video webcam Feed */}
+                    <div 
+                      style={{
+                        backgroundColor: '#0a111a',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: 'var(--radius-lg)',
+                        overflow: 'hidden',
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '260px'
+                      }}
+                    >
+                      {activeConfig?.videoMode && cameraEnabled && stream ? (
+                        <video 
+                          ref={videoRef} 
+                          autoPlay 
+                          playsInline 
+                          muted 
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            transform: 'scaleX(-1)'
+                          }}
+                        />
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                          <div style={{
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.08))',
+                            color: 'rgba(255,255,255,0.4)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '20px'
+                          }}>
+                            YOU
+                          </div>
+                          <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
+                            {!cameraEnabled ? 'CAMERA TURNED OFF' : 'WEBCAM UNAVAILABLE'}
+                          </span>
+                        </div>
+                      )}
+
+                      <div style={{ position: 'absolute', bottom: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#f3f4f6' }}>
+                            You (Candidate)
+                          </span>
+                          <span style={{ fontSize: '9px', color: micMuted ? 'var(--accent-danger)' : 'var(--accent-primary)', fontWeight: 600 }}>
+                            {micMuted ? '🎙 MIC MUTED' : '🎙 MIC ACTIVE'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(0,0,0,0.5)', padding: '3px 8px', borderRadius: '4px' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: (isRecording && !micMuted) ? 'var(--accent-danger)' : 'rgba(255,255,255,0.2)' }} />
+                        <span style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>
+                          {(isRecording && !micMuted) ? 'TRANSCRIBING' : 'IDLE'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
-                <div 
-                  style={{
-                    position: 'absolute',
-                    bottom: '12px',
-                    left: '12px',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    backgroundColor: 'rgba(0,0,0,0.6)',
-                    fontSize: '8px',
-                    color: 'white',
-                    fontWeight: 700,
-                    letterSpacing: '0.05em'
-                  }}
-                >
-                  YOU (LIVE CAMERA)
+
+                {/* 4. Bottom Row: Current Question Prompt details */}
+                <div style={{ backgroundColor: 'rgba(10, 17, 26, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Question {currentIdx + 1} of {questions.length} Prompt
+                    </span>
+                    <span style={{ fontSize: '9px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
+                      Current Section: {currentQuestion?.category}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: '#f3f4f6', lineHeight: 1.5 }}>
+                    {currentQuestion?.text}
+                  </p>
+                  {currentQuestion?.expectedTopics && currentQuestion.expectedTopics.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
+                      <span style={{ fontSize: '9px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 700 }}>Expected Coverage:</span>
+                      {currentQuestion.expectedTopics.map(topic => (
+                        <span key={topic} style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Right Workspace Panel: Code Editor OR Text Answer and Notes */}
+              {sessionState === 'answering' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto' }}>
+                  {isCodingQuestion && idePanelOpen ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', backgroundColor: '#050a0f' }}>
+                      <div style={{ padding: '12px 20px', backgroundColor: '#091017', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <Code style={{ width: '16px', height: '16px', color: 'var(--accent-primary)' }} />
+                          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em' }}>MOCK CODING TERMINAL</span>
+                          <select 
+                            value={ideLanguage} 
+                            onChange={(e) => setIdeLanguage(e.target.value)}
+                            style={{
+                              padding: '2px 6px',
+                              fontSize: '9px',
+                              borderRadius: '4px',
+                              backgroundColor: 'rgba(255,255,255,0.05)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              color: '#fff',
+                              width: 'auto'
+                            }}
+                          >
+                            <option value="javascript">JavaScript</option>
+                            <option value="typescript">TypeScript</option>
+                            <option value="python">Python</option>
+                            <option value="sql">SQL</option>
+                          </select>
+                        </div>
+                        <span style={{ fontSize: '9px', color: codingSeconds < 120 ? 'var(--accent-danger)' : 'rgba(255, 255, 255, 0.4)', fontFamily: 'var(--font-mono)' }}>
+                          TIMER: {formatTime(codingSeconds)}
+                        </span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexGrow: 1, backgroundColor: '#03060a', position: 'relative', minHeight: '200px' }}>
+                        <div style={{ width: '32px', borderRight: '1px solid rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.15)', textAlign: 'right', paddingRight: '8px', fontFamily: 'var(--font-mono)', fontSize: '10px', lineHeight: '18px', userSelect: 'none', paddingTop: '12px' }}>
+                          {ideCode.split('\n').map((_, i) => <div key={i}>{i + 1}</div>)}
+                        </div>
+                        <textarea
+                          value={ideCode}
+                          onChange={(e) => setIdeCode(e.target.value)}
+                          style={{
+                            flexGrow: 1,
+                            backgroundColor: 'transparent',
+                            color: '#fff',
+                            border: 'none',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '11px',
+                            lineHeight: '18px',
+                            padding: '12px',
+                            resize: 'none',
+                            outline: 'none',
+                            boxShadow: 'none',
+                            height: '100%',
+                            minHeight: '180px'
+                          }}
+                        />
+                      </div>
+
+                      {consoleOutput && (
+                        <div style={{ padding: '12px 20px', backgroundColor: '#020406', borderTop: '1px solid rgba(255,255,255,0.05)', color: 'var(--accent-primary)', fontSize: '9px', fontFamily: 'var(--font-mono)', lineHeight: 1.4 }}>
+                          {consoleOutput}
+                        </div>
+                      )}
+
+                      <div style={{ padding: '12px 20px', backgroundColor: '#091017', borderTop: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <button 
+                          onClick={runMockTests}
+                          disabled={runningTests}
+                          style={{ fontSize: '10px', padding: '6px 12px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }}
+                          className="btn-press"
+                        >
+                          {runningTests ? 'Compiling...' : 'Run Test Cases'}
+                        </button>
+                        <Button 
+                          variant="primary" 
+                          onClick={() => handleSubmitAnswer(ideCode)}
+                          style={{ padding: '6px 16px', borderRadius: 'var(--radius-md)', fontSize: '10px' }}
+                        >
+                          Submit Solution
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Standard Response and Notes */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
+                      <div style={{ backgroundColor: 'rgba(10, 17, 26, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>Draft response detail</span>
+                          {activeConfig?.voiceMode && (
+                            <button
+                              type="button"
+                              onClick={isRecording ? stopDictation : startDictation}
+                              style={{
+                                padding: '4px 10px',
+                                borderRadius: '4px',
+                                backgroundColor: isRecording ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0, 212, 170, 0.1)',
+                                border: isRecording ? '1px solid #ef4444' : '1px solid var(--accent-primary)',
+                                color: isRecording ? '#ef4444' : 'var(--accent-primary)',
+                                fontSize: '9px',
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                              className={`btn-press ${isRecording ? 'mic-pulse' : ''}`}
+                            >
+                              {isRecording ? <MicOff style={{ width: '12px', height: '12px' }} /> : <Mic style={{ width: '12px', height: '12px' }} />}
+                              {isRecording ? 'STOP DICTATION' : 'SPEAK RESPONSE'}
+                            </button>
+                          )}
+                        </div>
+
+                        <textarea
+                          rows={6}
+                          required
+                          value={typedAnswer}
+                          onChange={(e) => setTypedAnswer(e.target.value)}
+                          placeholder={activeConfig?.voiceMode ? "Click 'SPEAK RESPONSE' and begin drafting your answer orally..." : "Type your answer explaining technical parameters clearly..."}
+                          style={{
+                            width: '100%',
+                            backgroundColor: 'rgba(5, 10, 15, 0.4)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            color: '#fff',
+                            borderRadius: 'var(--radius-md)',
+                            padding: '12px',
+                            fontSize: '12px',
+                            outline: 'none',
+                            fontFamily: 'var(--font-body)',
+                            resize: 'none'
+                          }}
+                        />
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                          <button onClick={handleSkip} style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', backgroundColor: 'transparent' }} className="btn-press">
+                            Skip
+                          </button>
+                          <Button 
+                            variant="primary" 
+                            disabled={!typedAnswer.trim()} 
+                            onClick={() => handleSubmitAnswer(typedAnswer)}
+                            style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', fontSize: '10px' }}
+                          >
+                            Submit Answer Details
+                          </Button>
+                        </div>
+                      </div>
+
+                      {notesPanelOpen && (
+                        <div style={{ backgroundColor: 'rgba(10, 17, 26, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '8px' }}>
+                            <Clipboard style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />
+                            <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>INTERVIEW NOTES (LIVE EVALUATION)</span>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '11px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: 'rgba(255, 255, 255, 0.4)' }}>Word Count:</span>
+                              <span style={{ fontWeight: 600 }}>{textWordCount} words</span>
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <span style={{ color: 'rgba(255, 255, 255, 0.4)' }}>Matched Focus Keywords:</span>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', minHeight: '20px' }}>
+                                {matchedTopics.length > 0 ? (
+                                  matchedTopics.map(topic => (
+                                    <span key={topic} style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '4px', backgroundColor: 'rgba(0, 212, 170, 0.1)', color: 'var(--accent-primary)', border: '1px solid rgba(0, 212, 170, 0.2)', fontWeight: 600 }}>
+                                      ✓ {topic}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span style={{ color: 'rgba(255, 255, 255, 0.25)', fontStyle: 'italic', fontSize: '9px' }}>Awaiting match keywords...</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              <span style={{ color: 'var(--accent-secondary)', fontWeight: 600 }}>Call Assistant Hints:</span>
+                              <div style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.4, fontSize: '9.5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <div>• Format stories using the STAR structure (Situation, Task, Action, Result).</div>
+                                <div>• Ground your answers with numerical metrics where applicable.</div>
+                                <div>• Keep technical terms standard and professional.</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Main Interview Q&A Layout */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '32px' }} className="interview-split-layout">
-            <style dangerouslySetInnerHTML={{__html: `
-              @media (min-width: 1024px) {
-                .interview-split-layout {
-                  grid-template-columns: 8fr 4fr !important;
-                }
-              }
-            `}} />
+          {/* SECURE CALL ROOM BOTTOM CONTROL BAR */}
+          <div 
+            style={{
+              height: '80px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              backgroundColor: 'rgba(10, 17, 26, 0.95)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 32px',
+              zIndex: 10
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: 600 }}>
+                {currentQuestion ? `Round ${currentIdx + 1} of ${questions.length}` : ''}
+              </span>
+            </div>
 
-            {/* Left Column: Question Card & Code Editor / Text Area */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              
-              {/* Question Box */}
-              <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px' }}>
-                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Mock Question Prompt
-                </span>
-                <p style={{ fontSize: 'var(--text-md)', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                  {currentQuestion.text}
-                </p>
-                {currentQuestion.expectedTopics.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Focus Topics:</span>
-                    {currentQuestion.expectedTopics.map(topic => (
-                      <span 
-                        key={topic} 
-                        style={{
-                          fontSize: '9px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          backgroundColor: 'var(--bg-hover)',
-                          color: 'var(--text-secondary)',
-                          border: '1px solid var(--border-subtle)'
-                        }}
-                      >
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </Card>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <button
+                onClick={() => {
+                  if (!micMuted && isRecording) {
+                    stopDictation();
+                  }
+                  setMicMuted(!micMuted);
+                }}
+                title={micMuted ? "Unmute Microphone" : "Mute Microphone"}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: micMuted ? '#ef4444' : 'rgba(255, 255, 255, 0.05)',
+                  border: micMuted ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease'
+                }}
+                className="btn-press"
+              >
+                {micMuted ? <MicOff style={{ width: '18px', height: '18px' }} /> : <Mic style={{ width: '18px', height: '18px' }} />}
+              </button>
 
-              {/* Interactive Coding IDE Editor */}
-              {isCodingQuestion ? (
-                <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
-                  {/* IDE Toolbar */}
-                  <div 
-                    style={{
-                      padding: '12px 20px',
-                      backgroundColor: 'rgba(5, 10, 15, 0.3)',
-                      borderBottom: '1px solid var(--border-subtle)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <Code style={{ width: '16px', height: '16px', color: 'var(--accent-purple)' }} />
-                      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.05em' }}>LIVE CODING EDITOR</span>
-                      
-                      {/* Language picker */}
-                      <select 
-                        value={ideLanguage} 
-                        onChange={(e) => setIdeLanguage(e.target.value)}
-                        style={{
-                          padding: '4px 8px',
-                          fontSize: '10px',
-                          width: 'auto',
-                          borderRadius: '4px',
-                          backgroundColor: 'var(--bg-elevated)',
-                          border: '1px solid var(--border-subtle)'
-                        }}
-                      >
-                        <option value="javascript">JavaScript</option>
-                        <option value="python">Python</option>
-                        <option value="cpp">C++</option>
-                        <option value="java">Java</option>
-                      </select>
-                    </div>
+              <button
+                onClick={() => setCameraEnabled(!cameraEnabled)}
+                title={cameraEnabled ? "Stop Video Camera" : "Start Video Camera"}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: !cameraEnabled ? '#ef4444' : 'rgba(255, 255, 255, 0.05)',
+                  border: !cameraEnabled ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease'
+                }}
+                className="btn-press"
+              >
+                {cameraEnabled ? <Video style={{ width: '18px', height: '18px' }} /> : <VideoOff style={{ width: '18px', height: '18px' }} />}
+              </button>
 
-                    {/* Coding round timer */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: codingSeconds < 120 ? 'var(--accent-danger)' : 'var(--text-secondary)' }}>
-                      <Clock style={{ width: '14px', height: '14px' }} />
-                      <span style={{ fontSize: '10px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                        TIME REMAINING: {formatTime(codingSeconds)}
-                      </span>
-                    </div>
-                  </div>
+              <button
+                onClick={handleSpeechToggle}
+                title={isMuted ? "Unmute AI Voice Reciter" : "Mute AI Voice Reciter"}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: isMuted ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 212, 170, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: isMuted ? 'rgba(255,255,255,0.4)' : 'var(--accent-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease'
+                }}
+                className="btn-press"
+              >
+                {isMuted ? <VolumeX style={{ width: '18px', height: '18px' }} /> : <Volume2 style={{ width: '18px', height: '18px' }} />}
+              </button>
 
-                  {/* Code textarea container */}
-                  <div style={{ display: 'flex', backgroundColor: '#050A0F', minHeight: '260px', position: 'relative' }}>
-                    
-                    {/* Line numbers gutter */}
-                    <div 
-                      style={{
-                        width: '40px',
-                        padding: '16px 0',
-                        textAlign: 'right',
-                        paddingRight: '12px',
-                        color: 'rgba(255,255,255,0.2)',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '11px',
-                        lineHeight: '20px',
-                        borderRight: '1px solid rgba(255,255,255,0.05)',
-                        userSelect: 'none',
-                        backgroundColor: '#03060A'
-                      }}
-                    >
-                      {ideCode.split('\n').map((_, i) => (
-                        <div key={i}>{i + 1}</div>
-                      ))}
-                    </div>
+              {isCodingQuestion && sessionState === 'answering' && (
+                <button
+                  onClick={() => setIdePanelOpen(!idePanelOpen)}
+                  title={idePanelOpen ? "Close IDE editor split" : "Open IDE editor split"}
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    backgroundColor: idePanelOpen ? 'rgba(168, 85, 247, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    color: idePanelOpen ? 'var(--accent-purple)' : '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 200ms ease'
+                  }}
+                  className="btn-press"
+                >
+                  <Code style={{ width: '18px', height: '18px' }} />
+                </button>
+              )}
 
-                    {/* Code Input */}
-                    <textarea
-                      value={ideCode}
-                      onChange={(e) => setIdeCode(e.target.value)}
-                      style={{
-                        flexGrow: 1,
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        color: '#E2E8F0',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '11px',
-                        lineHeight: '20px',
-                        padding: '16px',
-                        resize: 'vertical',
-                        outline: 'none',
-                        boxShadow: 'none',
-                        borderRadius: 0,
-                        minHeight: '240px'
-                      }}
-                    />
-                  </div>
-
-                  {/* Mock Console output */}
-                  {consoleOutput && (
-                    <div 
-                      style={{
-                        padding: '16px 20px',
-                        backgroundColor: 'rgba(3, 6, 10, 0.95)',
-                        borderTop: '1px solid rgba(255,255,255,0.05)',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '10px',
-                        color: consoleOutput.includes('Passed') ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                        whiteSpace: 'pre-line',
-                        lineHeight: 1.5
-                      }}
-                    >
-                      {consoleOutput}
-                    </div>
-                  )}
-
-                  {/* IDE Action Bar */}
-                  <div 
-                    style={{
-                      padding: '12px 20px',
-                      backgroundColor: 'rgba(5, 10, 15, 0.3)',
-                      borderTop: '1px solid var(--border-subtle)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <button
-                      type="button"
-                      disabled={runningTests}
-                      onClick={runMockTests}
-                      style={{
-                        backgroundColor: 'var(--bg-elevated)',
-                        border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-primary)',
-                        padding: '8px 16px',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '11px',
-                        fontWeight: 600
-                      }}
-                      className="btn-press"
-                    >
-                      {runningTests ? 'Running...' : 'Run Sample Tests'}
-                    </button>
-
-                    <Button
-                      variant="primary"
-                      onClick={() => handleSubmitAnswer(ideCode)}
-                      style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)' }}
-                    >
-                      Submit Coding Solution
-                    </Button>
-                  </div>
-                </Card>
-              ) : (
-                /* Regular Text Answer box */
-                <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <label>Your Response Text</label>
-                    
-                    {activeConfig?.voiceMode && (
-                      <button
-                        type="button"
-                        onClick={isRecording ? stopDictation : startDictation}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: 'var(--radius-sm)',
-                          backgroundColor: isRecording ? 'rgba(244, 63, 94, 0.1)' : 'rgba(0, 212, 170, 0.1)',
-                          border: isRecording ? '1px solid var(--accent-danger)' : '1px solid var(--accent-primary)',
-                          color: isRecording ? 'var(--accent-danger)' : 'var(--accent-primary)',
-                          fontSize: '9px',
-                          fontWeight: 700,
-                          letterSpacing: '0.05em',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}
-                        className={`btn-press ${isRecording ? 'mic-pulse' : ''}`}
-                      >
-                        {isRecording ? <MicOff style={{ width: '12px', height: '12px' }} /> : <Mic style={{ width: '12px', height: '12px' }} />}
-                        {isRecording ? 'STOP DICTATION' : 'MICROPHONE DICTATE'}
-                      </button>
-                    )}
-                  </div>
-                  
-                  <textarea
-                    rows={8}
-                    required
-                    placeholder={activeConfig?.voiceMode ? "Click the microphone button and start speaking your answer clearly..." : "Type your answer explaining technical parameters clearly..."}
-                    value={typedAnswer}
-                    onChange={(e) => setTypedAnswer(e.target.value)}
-                    style={{ backgroundColor: 'var(--bg-elevated)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)' }}
-                  />
-
-                  {/* Actions bar */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <button
-                      onClick={handleSkip}
-                      style={{
-                        color: 'var(--text-muted)',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        backgroundColor: 'transparent'
-                      }}
-                      className="btn-press"
-                    >
-                      Skip Question
-                    </button>
-
-                    <Button
-                      variant="primary"
-                      disabled={!typedAnswer.trim()}
-                      onClick={() => handleSubmitAnswer(typedAnswer)}
-                      style={{ padding: '10px 20px', borderRadius: 'var(--radius-md)' }}
-                    >
-                      Log Response Details
-                    </Button>
-                  </div>
-                </Card>
+              {!isCodingQuestion && sessionState === 'answering' && (
+                <button
+                  onClick={() => setNotesPanelOpen(!notesPanelOpen)}
+                  title={notesPanelOpen ? "Close Notes Panel" : "Open Notes Panel"}
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    backgroundColor: notesPanelOpen ? 'rgba(0, 212, 170, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    color: notesPanelOpen ? 'var(--accent-primary)' : '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 200ms ease'
+                  }}
+                  className="btn-press"
+                >
+                  <Clipboard style={{ width: '18px', height: '18px' }} />
+                </button>
               )}
             </div>
 
-            {/* Right Column: Interviewer Notes Panel */}
             <div>
-              <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px', minHeight: '300px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--accent-primary)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
-                  <Clipboard style={{ width: '18px', height: '18px' }} />
-                  <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                    Interviewer Notes (Live)
-                  </h4>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {/* Word Count metric */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Response length:</span>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{textWordCount} words</span>
-                  </div>
-
-                  {/* Topics Covered metric */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>Matching Focus Topics:</span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {matchedTopics.length > 0 ? (
-                        matchedTopics.map(topic => (
-                          <span 
-                            key={topic} 
-                            style={{
-                              fontSize: '9px',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              backgroundColor: 'rgba(0, 212, 170, 0.1)',
-                              color: 'var(--accent-primary)',
-                              border: '1px solid rgba(0, 212, 170, 0.2)',
-                              fontWeight: 600
-                            }}
-                          >
-                            ✓ {topic}
-                          </span>
-                        ))
-                      ) : (
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                          Awaiting match points...
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Real-time structural feedback advice */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
-                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--accent-secondary)', fontWeight: 600 }}>
-                      Live Structural Hints:
-                    </span>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', lineHeight: 1.4, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {isCodingQuestion ? (
-                        <>
-                          <div>• Explain the optimal time and space complexity (e.g. O(N)) clearly.</div>
-                          <div>• Verify edge cases like empty inputs or negative values.</div>
-                        </>
-                      ) : (
-                        <>
-                          <div>• Format your story structure using the STAR framework.</div>
-                          <div>• Mention specific metrics or project outputs you delivered.</div>
-                        </>
-                      )}
-                      <div>• Keep your vocabulary aligned with professional criteria.</div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+              <button
+                onClick={() => setShowLeaveConfirm(true)}
+                style={{
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer'
+                }}
+                className="btn-press hover:bg-[#dc2626]"
+              >
+                <PhoneOff style={{ width: '14px', height: '14px' }} />
+                Leave Meeting
+              </button>
             </div>
           </div>
-
         </div>
-      )}
+      ) : (
+        /* STANDARD VIEW */
+        <>
+          {sessionState === 'setup' && (
+            <div>
+              <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
+                AI Interview Simulator
+              </h2>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Simulate realistic mock interviews with live video, voice synthesis, real-time feedback, and coding IDE integration.
+              </p>
+            </div>
+          )}
 
-      {/* Viewing Feedback State */}
-      {sessionState === 'viewing_feedback' && currentFeedback && !evaluatingAnswer && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-          <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
-            Response Scorecard
-          </h3>
-          <FeedbackPanel 
-            feedback={currentFeedback} 
-            onNext={handleNext} 
-            isLastQuestion={currentIdx === questions.length - 1} 
-          />
-        </div>
-      )}
+          {sessionState === 'setup' && (
+            <Card hoverable={false} style={{ maxWidth: '960px', margin: '0 auto', width: '100%', padding: '32px' }}>
+              <SetupForm onGenerate={handleGenerate} loading={loadingQuestions} />
+            </Card>
+          )}
 
-      {/* Summary Scorecard State */}
-      {sessionState === 'summary' && (
-        activeInterview ? (
-          <SessionSummary 
-            session={activeInterview} 
-            onRetry={handleRetry} 
-            onDashboard={handleDashboard} 
-          />
-        ) : (
-          answersList.length > 0 && activeConfig && (
-            <SessionSummary 
-              session={{
-                id: 'active',
-                timestamp: Date.now(),
-                config: activeConfig,
-                answers: answersList,
-                overallScore: parseFloat((answersList.reduce((acc, curr) => acc + curr.feedback.overallScore, 0) / questions.length).toFixed(1))
-              }}
-              onRetry={handleRetry}
-              onDashboard={handleDashboard}
-            />
-          )
-        )
+          {sessionState === 'summary' && (
+            activeInterview ? (
+              <SessionSummary 
+                session={activeInterview} 
+                onRetry={handleRetry} 
+                onDashboard={handleDashboard} 
+              />
+            ) : (
+              answersList.length > 0 && activeConfig && (
+                <SessionSummary 
+                  session={{
+                    id: 'active',
+                    timestamp: Date.now(),
+                    config: activeConfig,
+                    answers: answersList,
+                    overallScore: parseFloat((answersList.reduce((acc, curr) => acc + curr.feedback.overallScore, 0) / questions.length).toFixed(1))
+                  }}
+                  onRetry={handleRetry}
+                  onDashboard={handleDashboard}
+                />
+              )
+            )
+          )}
+        </>
       )}
-
-      {/* Wizard Setup Form */}
-      {sessionState === 'setup' && (
-        <Card hoverable={false} style={{ maxWidth: '960px', margin: '0 auto', width: '100%', padding: '32px' }}>
-          <SetupForm onGenerate={handleGenerate} loading={loadingQuestions} />
-        </Card>
-      )}
-
-      {/* General process errors */}
-      {(questionsError || evalError) && !evaluatingAnswer && !loadingQuestions && (
-        <Card hoverable={false} style={{ borderColor: 'var(--accent-danger)', display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px', marginTop: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--accent-danger)' }}>
-            <ShieldAlert style={{ width: '24px', height: '24px' }} />
-            <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Simulation Process Halted</h4>
-          </div>
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
-            {questionsError?.message || evalError?.message || 'Failed to reach generative endpoints. Check internet parameters and API configurations.'}
-          </p>
-          <Button variant="danger" onClick={handleRetry} style={{ width: 'fit-content' }}>
-            Return to Setup
-          </Button>
-        </Card>
-      )}
-
     </div>
   );
 };
