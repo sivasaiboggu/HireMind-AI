@@ -1,15 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Search, Bell, Sun, Moon, Award, Activity } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Search, Bell, Sun, Moon, Award, Activity, LogOut } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
 export const TopBar: React.FC = () => {
-  const { sidebarCollapsed, setSearchOpen, theme, toggleTheme } = useAppStore();
+  const navigate = useNavigate();
   const location = useLocation();
+  const menuRef = useRef<HTMLDivElement>(null);
+  
+  const { 
+    sidebarCollapsed, 
+    setSearchOpen, 
+    theme, 
+    toggleTheme,
+    user,
+    profile,
+    signOutUser
+  } = useAppStore();
 
+  const [menuOpen, setMenuOpen] = useState(false);
   const currentView = location.pathname.substring(1) || 'dashboard';
+
+  // Close dropdown menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    setMenuOpen(false);
+    await signOutUser();
+    navigate('/auth');
+  };
+
+  const getInitials = () => {
+    if (profile?.full_name) {
+      const parts = profile.full_name.trim().split(' ');
+      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return 'BS';
+  };
 
   // Dynamic titles
   const getPageTitle = () => {
@@ -204,26 +247,86 @@ export const TopBar: React.FC = () => {
           />
         </button>
 
-        {/* User initials circle */}
-        <div 
-          style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '50%',
-            backgroundColor: 'var(--bg-elevated)',
-            border: '1px solid var(--accent-primary)',
-            color: 'var(--accent-primary)',
-            fontSize: 'var(--text-sm)',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: 'var(--glow-primary)',
-            cursor: 'pointer'
-          }}
-          title="Boggu Sivasai"
-        >
-          BS
+        {/* User initials circle with Dropdown menu */}
+        <div style={{ position: 'relative' }} ref={menuRef}>
+          <div 
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--bg-elevated)',
+              border: '1px solid var(--accent-primary)',
+              color: 'var(--accent-primary)',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'var(--glow-primary)',
+              cursor: 'pointer',
+              userSelect: 'none'
+            }}
+            title={profile?.full_name || user?.email || "User Profile"}
+          >
+            {getInitials()}
+          </div>
+
+          {menuOpen && (
+            <div 
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: '46px',
+                width: '240px',
+                backgroundColor: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                zIndex: 100
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {profile?.full_name || 'Boggu Sivasai'}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user?.email || 'guest@hiremind.ai'}
+                </span>
+                {profile?.target_role && (
+                  <span style={{ fontSize: '10px', color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, marginTop: '4px' }}>
+                    {profile.target_role}
+                  </span>
+                )}
+              </div>
+              
+              <div style={{ height: '1px', backgroundColor: 'var(--border-subtle)' }} />
+
+              <button
+                onClick={handleSignOut}
+                className="btn-press"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: 'var(--accent-danger)',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  width: '100%',
+                  padding: '8px 4px',
+                  cursor: 'pointer',
+                  textAlign: 'left'
+                }}
+              >
+                <LogOut style={{ width: '15px', height: '15px' }} />
+                Sign Out Session
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
