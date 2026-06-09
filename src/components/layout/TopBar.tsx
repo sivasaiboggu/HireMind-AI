@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Sun, Moon, Award, Activity, LogOut } from 'lucide-react';
+import { Search, Bell, Sun, Moon, LogOut } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
@@ -144,55 +144,6 @@ export const TopBar: React.FC = () => {
 
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        {/* Real-time Status Badge */}
-        <div 
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: 'rgba(0, 212, 170, 0.05)',
-            border: '1px solid rgba(0, 212, 170, 0.15)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '4px 10px',
-            color: 'var(--accent-primary)',
-            fontSize: '10px',
-            fontWeight: 700,
-            letterSpacing: '0.05em'
-          }}
-          title="Gemini API endpoint synced in real time"
-        >
-          <span 
-            className="logo-pulse-dot"
-            style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--accent-primary)',
-              display: 'inline-block'
-            }}
-          />
-          API LIVE
-        </div>
-
-        {/* Pro Badge */}
-        <div 
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            border: '1px solid rgba(245, 158, 11, 0.2)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '4px 10px',
-            color: 'var(--accent-secondary)',
-            fontSize: '10px',
-            fontWeight: 700,
-            letterSpacing: '0.05em'
-          }}
-        >
-          <Award style={{ width: '12px', height: '12px' }} />
-          PRO
-        </div>
 
         {/* Theme Toggle Button */}
         <button 
