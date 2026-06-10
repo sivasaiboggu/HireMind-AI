@@ -12,7 +12,10 @@ import {
   ANSWER_EVALUATION_PROMPT, 
   ROADMAP_PROMPT,
   SYSTEM_INSTRUCTION,
-  QUIZ_PROMPT
+  QUIZ_PROMPT,
+  DSA_QUESTIONS_PROMPT,
+  THEMATIC_QUESTIONS_PROMPT,
+  AI_COMPILER_PROMPT
 } from './prompts';
 import { ResumeAnalysis, Question, AnswerFeedback, Roadmap, InterviewConfig, QuizQuestion } from '../types';
 
@@ -196,6 +199,90 @@ export class GeminiService {
       }));
     } catch (error: any) {
       return handleApiError(error, 'quiz generation');
+    }
+  };
+
+  /**
+   * Generate DSA questions
+   */
+  generateDsaQuestions = async (
+    role: string,
+    company: string,
+    count: number,
+    easyCount: number,
+    mediumCount: number,
+    hardCount: number
+  ): Promise<any[]> => {
+    try {
+      const ai = this.getClient();
+      const model = ai.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: SYSTEM_INSTRUCTION,
+        generationConfig: { responseMimeType: 'application/json' }
+      });
+
+      const prompt = DSA_QUESTIONS_PROMPT(role, company, count, easyCount, mediumCount, hardCount);
+      const response = await model.generateContent(prompt);
+      const responseText = response.response.text();
+      const parsed = parseGeminiJson<any>(responseText);
+      return Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.questions) ? parsed.questions : []);
+    } catch (error: any) {
+      return handleApiError(error, 'DSA questions generation');
+    }
+  };
+
+  /**
+   * Generate Technical, Behavioural, and HR questions
+   */
+  generateNonDsaQuestions = async (
+    role: string,
+    company: string,
+    count: number,
+    easyCount: number,
+    mediumCount: number,
+    hardCount: number
+  ): Promise<any[]> => {
+    try {
+      const ai = this.getClient();
+      const model = ai.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: SYSTEM_INSTRUCTION,
+        generationConfig: { responseMimeType: 'application/json' }
+      });
+
+      const prompt = THEMATIC_QUESTIONS_PROMPT(role, company, count, easyCount, mediumCount, hardCount);
+      const response = await model.generateContent(prompt);
+      const responseText = response.response.text();
+      const parsed = parseGeminiJson<any>(responseText);
+      return Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.questions) ? parsed.questions : []);
+    } catch (error: any) {
+      return handleApiError(error, 'interview questions generation');
+    }
+  };
+
+  /**
+   * Simulate a C++ or Java compiler run
+   */
+  simulateCompilerRun = async (
+    code: string,
+    language: string,
+    testCases: any[]
+  ): Promise<any> => {
+    try {
+      const ai = this.getClient();
+      const model = ai.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: SYSTEM_INSTRUCTION,
+        generationConfig: { responseMimeType: 'application/json' }
+      });
+
+      const prompt = AI_COMPILER_PROMPT(code, language, testCases);
+      const response = await model.generateContent(prompt);
+      const responseText = response.response.text();
+      const parsed = parseGeminiJson<any>(responseText);
+      return parsed;
+    } catch (error: any) {
+      return handleApiError(error, 'AI sandbox compiler execution');
     }
   };
 }

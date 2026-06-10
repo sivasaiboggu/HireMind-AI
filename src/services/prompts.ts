@@ -191,3 +191,110 @@ Your response MUST be a JSON array of objects with this EXACT structure:
 
 Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks.
 `;
+
+export const DSA_QUESTIONS_PROMPT = (role: string, company: string, count: number, easyCount: number, mediumCount: number, hardCount: number) => `
+Generate exactly ${count} distinct, highly challenging, and realistic algorithmic Coding (DSA) questions for a candidate preparing for a "${role}" position.
+Make sure the questions are fresh, diverse, and representative of real technical coding questions asked at ${company} previously.
+Ensure the questions cover different algorithms and datastructures (e.g. hash maps, graphs, tree traversals, dynamic programming) and are not repetitive.
+
+The distribution of difficulties MUST be:
+- ${easyCount} Easy questions
+- ${mediumCount} Medium questions
+- ${hardCount} Hard questions
+
+Each question must be a complete algorithmic coding problem. Do NOT generate multiple choice or fill-in-the-blank questions.
+Every question must contain:
+1. A clear problem statement with constraints and examples.
+2. Boilerplate starter code templates for JavaScript/Typescript.
+3. A set of exactly 4 test cases: 2 public test cases and 2 hidden (internal) test cases.
+Each test case must specify the input arguments (as an array "args" to be spread into the solution function) and the expected JSON-serializable output value ("expected").
+
+Your response MUST be a JSON array of objects matching this EXACT structure:
+[
+  {
+    "id": "string (unique question id, e.g. dsa-q-1)",
+    "text": "string (the problem description, including constraints and examples, markdown formatting is allowed)",
+    "title": "string (the title of the problem, e.g. 'Two Sum')",
+    "codeSnippet": "string (boilerplate JavaScript starter code like: 'function solve(arr, target) {\\n  // Write solution here\\n}')",
+    "pythonSnippet": "string (boilerplate Python starter code like: 'def solve(arr, target):\\n    # Write solution here\\n    pass')",
+    "cppSnippet": "string (boilerplate C++ starter code like: 'class Solution {\\npublic:\\n    vector<int> solve(vector<int>& arr, int target) {\\n        \\n    }\\n};')",
+    "javaSnippet": "string (boilerplate Java starter code like: 'class Solution {\\n    public int[] solve(int[] arr, int target) {\\n        \\n    }\\n}')",
+    "difficulty": "easy" | "medium" | "hard",
+    "category": "dsa",
+    "explanation": "string (detailed explanation of the optimal solution concept and complexity)",
+    "testCases": [
+      {
+        "args": ["array of JSON serializable values matching arguments of solve()"],
+        "expected": "JSON serializable expected return value (e.g. number, string, array, boolean, object)",
+        "inputLabel": "string (readable representation of arguments, e.g. 'nums = [2,7,11,15], target = 9')",
+        "hidden": boolean
+      }
+    ]
+  }
+]
+
+Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks (e.g., do not write \`\`\`json).
+`;
+
+export const THEMATIC_QUESTIONS_PROMPT = (role: string, company: string, count: number, easyCount: number, mediumCount: number, hardCount: number) => `
+Generate exactly ${count} fresh, unique, and highly challenging interview questions for the role: "${role}", covering a mix of:
+- Technical concepts / System design
+- Behavioral scenarios
+- HR / Cultural fit questions
+
+Target Company focus: ${company} (especially historical, real questions asked at ${company} previously).
+Ensure the questions are distinct, require in-depth thinking, and avoid basic or generic definitions.
+
+The distribution of difficulties MUST be:
+- ${easyCount} Easy questions
+- ${mediumCount} Medium questions
+- ${hardCount} Hard questions
+
+Every question must be an open-ended interview question requiring a text answer. Do NOT generate multiple choice or coding/compiler questions.
+
+Your response MUST be a JSON array of objects matching this EXACT structure:
+[
+  {
+    "id": "string (unique question id)",
+    "text": "string (the question prompt)",
+    "category": "technical" | "behavioral" | "hr",
+    "difficulty": "easy" | "medium" | "hard",
+    "expectedTopics": ["string expected topic 1", "string expected topic 2"],
+    "explanation": "string (detailed explanation of what a recruiter looks for in an optimal answer, key themes, and STAR structure)"
+  }
+]
+
+Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks.
+`;
+
+export const AI_COMPILER_PROMPT = (code: string, language: string, testCases: any[]) => `
+You are an AI compiler and execution sandbox. Your job is to compile and execute the following ${language} code.
+
+User Code:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Test Cases to run (each test case has input arguments "args" and expected output "expected"):
+${JSON.stringify(testCases, null, 2)}
+
+Please analyze the code for syntax correctness in ${language}. If there are syntax/compilation errors, return the compiler error logs.
+If it compiles successfully, run the function solve() (or the primary entry point equivalent class/method Solution.solve()) with the arguments for each testcase, and verify the return values.
+
+Return your response in this EXACT JSON structure:
+{
+  "compiled": boolean,
+  "compileErrors": "string or null",
+  "testCaseResults": [
+    {
+      "input": "string representation of input",
+      "expected": "string representation of expected output",
+      "actual": "string representation of actual output from code",
+      "passed": boolean,
+      "hidden": boolean,
+      "error": "string error message if this test case crashed, or null"
+    }
+  ]
+}
+Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks.
+`;
