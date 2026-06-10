@@ -7,34 +7,39 @@ Your tone is professional, analytical, direct, and constructive.
 Do not use emojis. Focus on quantifiable metrics and professional clarity.`;
 
 export const RESUME_ANALYSIS_PROMPT = (resumeText: string, jobDescription?: string) => `
-Analyze the following resume details and benchmark them for the target job role.
-${jobDescription ? `Target Job Description:\n${jobDescription}\n` : ''}
+You are an extremely strict, senior technical recruiter and professional resume auditor. Conduct a rigorous, brutally honest, and comprehensive ATS audit on the candidate's resume text below.
+Do not sugarcoat scores or feedback. If the section lacks impact, has weak verb usage, lacks metrics, or contains layout anomalies, grade it strictly and provide direct, actionable criticism.
+
+${jobDescription ? `Target Job Description to benchmark against:\n${jobDescription}\n` : ''}
 
 Resume Text Content:
 ---
 ${resumeText}
 ---
 
-Your response MUST be a JSON object with this EXACT structure (all scores are out of 100):
+Your response MUST be a JSON object with this EXACT structure:
 {
-  "atsScore": number,
-  "contentScore": number,
-  "formatScore": number,
-  "overallScore": number,
+  "atsScore": number (overall ATS parsing compatibility score, out of 100),
+  "contentScore": number (strength of descriptions and keywords, out of 100),
+  "formatScore": number (layout structure, section readability, out of 100),
+  "overallScore": number (average overall compatibility score, out of 100),
   "sections": [
     {
       "name": "Work Experience" | "Education" | "Skills" | "Summary" | "Projects",
-      "score": number,
+      "score": number (strict score for this section, out of 100),
       "status": "pass" | "warn" | "fail",
-      "feedback": ["concise feedback point (max 1 sentence)", "concise feedback point (max 1 sentence)"]
+      "feedback": [
+        "Brutally honest, detailed critique point identifying specific weaknesses, missing details, or soft phrasing in this section",
+        "Actionable improvement point outlining exactly what details or metrics are missing and how the candidate should structure the content"
+      ]
     }
   ],
   "recommendations": [
     {
       "id": "string-uuid-or-number",
       "priority": "HIGH" | "MED" | "LOW",
-      "title": "string action item title",
-      "description": "string description of the action item (concise, max 2 sentences)"
+      "title": "Action item title",
+      "description": "Detailed explanation of what the candidate needs to do, including specific examples and strategic reasoning"
     }
   ],
   "matchedKeywords": ["string", "string"],
@@ -45,7 +50,7 @@ Your response MUST be a JSON object with this EXACT structure (all scores are ou
   "rewrites": [
     {
       "original": "string original weak bullet point from the resume",
-      "improved": "string rewritten high-impact action-oriented bullet point using STAR method"
+      "improved": "string rewritten high-impact action-oriented bullet point using the STAR method (containing specific metrics and strong action verbs)"
     }
   ]
 }

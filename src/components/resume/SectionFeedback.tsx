@@ -96,7 +96,7 @@ export const SectionFeedback: React.FC<SectionFeedbackProps> = ({ sections }) =>
                     color: 'var(--text-primary)'
                   }}
                 >
-                  {sect.score}/10
+                  {sect.score}/100
                 </span>
                 {isExpanded ? (
                   <ChevronUp style={{ width: '18px', height: '18px', color: 'var(--text-secondary)' }} />

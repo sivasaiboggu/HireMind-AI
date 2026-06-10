@@ -96,7 +96,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
           }
         `}} />
 
-        {/* Left Column: Sections and Keywords */}
+        {/* Left Column: Sections, Keywords, and Rewrite Proposals */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {/* Section audits accordion */}
           <SectionFeedback sections={analysis.sections} />
@@ -106,9 +106,51 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
             matchedKeywords={analysis.matchedKeywords} 
             missingKeywords={analysis.missingKeywords} 
           />
+
+          {/* AI Rewrite Suggestions */}
+          <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <FileEdit style={{ width: '18px', height: '18px', color: 'var(--accent-primary)' }} />
+              <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>AI Rewrite Proposals</h3>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {analysis.rewrites.map((rewrite, idx) => (
+                <div 
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    padding: '16px',
+                    backgroundColor: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-danger)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                      Original (Weak Bullet)
+                    </div>
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.4 }}>
+                      "{rewrite.original}"
+                    </div>
+                  </div>
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                    <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                      Improved (STAR Framework)
+                    </div>
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.4 }}>
+                      "{rewrite.improved}"
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
 
-        {/* Right Column: Recommendations, Checklist, and Rewrites */}
+        {/* Right Column: Recommendations and Checklist */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
           {/* 1. Top Recommendations */}
@@ -132,7 +174,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                     borderRadius: 'var(--radius-md)'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {index + 1}. {rec.title}
                     </span>
@@ -179,48 +221,6 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                       <X style={{ width: '16px', height: '16px' }} />
                     </div>
                   )}
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* 3. AI Rewrite Suggestions */}
-          <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <FileEdit style={{ width: '18px', height: '18px', color: 'var(--accent-primary)' }} />
-              <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>AI Rewrite Proposals</h3>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {analysis.rewrites.map((rewrite, idx) => (
-                <div 
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                    padding: '16px',
-                    backgroundColor: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-md)'
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-danger)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
-                      Original (Weak Bullet)
-                    </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.4 }}>
-                      "{rewrite.original}"
-                    </div>
-                  </div>
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
-                    <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
-                      Improved (STAR Framework)
-                    </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.4 }}>
-                      "{rewrite.improved}"
-                    </div>
-                  </div>
                 </div>
               ))}
             </div>
