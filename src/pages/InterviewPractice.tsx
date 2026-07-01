@@ -30,7 +30,8 @@ import {
   PhoneOff,
   VideoOff,
   Lock,
-  RefreshCw
+  RefreshCw,
+  Send
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/globals.css';
@@ -345,7 +346,6 @@ export const InterviewPractice: React.FC = () => {
     
     stopDictation();
     setIsAiResponding(true);
-    setIsSpeaking(true);
     try {
       const interviewer = getInterviewer(questions[currentIdx]?.category || 'technical');
       const aiResponse = await gemini.converseWithCandidate(
@@ -356,6 +356,7 @@ export const InterviewPractice: React.FC = () => {
       );
       
       const utterance = new SpeechSynthesisUtterance(aiResponse);
+      utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => {
         setIsSpeaking(false);
         setIsAiResponding(false);
@@ -1952,6 +1953,34 @@ export const InterviewPractice: React.FC = () => {
               className="btn-press"
             >
               {isMuted ? <VolumeX style={{ width: '18px', height: '18px' }} /> : <Volume2 style={{ width: '18px', height: '18px' }} />}
+            </button>
+
+            {/* Submit Response Button */}
+            <button
+              onClick={handleVoiceSubmit}
+              disabled={!typedAnswer.trim()}
+              title="Submit Answer Response"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '0 20px',
+                height: '40px',
+                borderRadius: '20px',
+                backgroundColor: typedAnswer.trim() ? 'var(--accent-primary)' : 'var(--bg-elevated)',
+                border: 'none',
+                color: typedAnswer.trim() ? '#fff' : 'var(--text-muted)',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                cursor: typedAnswer.trim() ? 'pointer' : 'not-allowed',
+                transition: 'all 200ms ease'
+              }}
+              className="btn-press"
+            >
+              <Send style={{ width: '12px', height: '12px' }} />
+              Submit Answer
             </button>
 
             <button

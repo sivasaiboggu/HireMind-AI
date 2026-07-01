@@ -71,9 +71,10 @@ export const WebGLBackground: React.FC = () => {
         vec3 glowColor = mix(vec3(0.54, 0.36, 0.96), vec3(1.0, 0.42, 0.33), uv.y);
         float glowIntensity = exp(-dist * 2.0) * 0.08;
         
-        // Base dark space color (#09090E)
-        vec3 baseColor = vec3(0.035, 0.035, 0.055);
-        vec3 finalColor = baseColor + glowColor * glowIntensity + glowColor * gridLine;
+        // Base light sand color (#F4F1EA)
+        vec3 baseColor = vec3(0.95, 0.94, 0.91);
+        vec3 gridColor = vec3(0.78, 0.74, 0.65);
+        vec3 finalColor = mix(baseColor + glowColor * glowIntensity * 0.4, gridColor, gridLine);
         
         gl_FragColor = vec4(finalColor, 1.0);
       }
