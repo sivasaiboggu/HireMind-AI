@@ -243,7 +243,15 @@ export const InterviewPractice: React.FC = () => {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      // Auto-start dictation in video call or hands-free voice mode for non-coding questions
+      if ((activeConfig?.videoMode || activeConfig?.voiceMode) && !isCodingQuestion) {
+        setTimeout(() => {
+          startDictation();
+        }, 200);
+      }
+    };
     utterance.onerror = () => setIsSpeaking(false);
 
     const voices = window.speechSynthesis.getVoices();
@@ -486,6 +494,11 @@ export const InterviewPractice: React.FC = () => {
     }
   };
 
+  const handleVoiceSubmit = () => {
+    stopDictation();
+    handleSubmitAnswer(typedAnswer);
+  };
+
   const handleSkip = () => {
     if (currentIdx >= questions.length || !activeConfig) return;
     
@@ -561,7 +574,14 @@ export const InterviewPractice: React.FC = () => {
 
   const currentProgress = questions.length > 0 ? ((currentIdx) / questions.length) * 100 : 0;
   const currentQuestion = questions[currentIdx];
-  const isCodingQuestion = currentQuestion && (currentQuestion.category === 'coding' || currentQuestion.text.toLowerCase().includes('write a') || currentQuestion.text.toLowerCase().includes('implement'));
+  const isCodingQuestion = currentQuestion && (
+    currentQuestion.category === 'coding' || 
+    currentQuestion.category === 'dsa' || 
+    currentQuestion.text.toLowerCase().includes('write a') || 
+    currentQuestion.text.toLowerCase().includes('implement') || 
+    currentQuestion.text.toLowerCase().includes('write code') ||
+    currentQuestion.text.toLowerCase().includes('coding challenge')
+  );
     const textWordCount = typedAnswer ? typedAnswer.trim().split(/\s+/).length : 0;
   const matchedTopics = currentQuestion ? currentQuestion.expectedTopics.filter(topic => 
     typedAnswer.toLowerCase().includes(topic.toLowerCase())
@@ -842,13 +862,42 @@ export const InterviewPractice: React.FC = () => {
       position: fixed;
       inset: 0;
       z-index: 99999;
-      background-color: #060b11;
+      background-color: #030712;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 32px 32px;
       color: #f3f4f6;
       display: flex;
       flex-direction: column;
       font-family: var(--font-body);
       overflow: hidden;
       animation: fadeIn 200ms ease;
+    }
+    .neuform-card {
+      background: rgba(10, 15, 25, 0.7) !important;
+      backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.05) !important;
+      border-radius: var(--radius-lg) !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      position: relative !important;
+      overflow: hidden !important;
+    }
+    .neuform-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border: 1px solid transparent;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), transparent, rgba(139, 92, 246, 0.2)) border-box;
+      mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      opacity: 0.4;
+      transition: opacity 0.3s ease;
+    }
+    .neuform-card:hover::after {
+      opacity: 1;
     }
     @keyframes rotateCw {
       from { transform: rotate(0deg); }
@@ -954,7 +1003,6 @@ export const InterviewPractice: React.FC = () => {
           position: 'fixed',
           inset: 0,
           zIndex: 99999,
-          backgroundColor: '#060b11',
           color: '#f3f4f6',
           display: 'flex',
           flexDirection: 'column',
@@ -1112,7 +1160,11 @@ export const InterviewPractice: React.FC = () => {
             style={{
               flexGrow: 1,
               display: 'grid',
-              gridTemplateColumns: (isCodingQuestion && idePanelOpen && sessionState === 'answering') ? '1.1fr 0.9fr' : '1fr',
+              gridTemplateColumns: (isCodingQuestion && idePanelOpen && sessionState === 'answering') 
+                ? '1.1fr 0.9fr' 
+                : (activeConfig?.videoMode && sessionState === 'answering') 
+                  ? '1fr' 
+                  : '1.2fr 0.8fr',
               gap: '24px',
               padding: '24px',
               overflow: 'hidden'
@@ -1184,17 +1236,15 @@ export const InterviewPractice: React.FC = () => {
                 >
                   {/* Left Grid: AI Recruiter Avatar Feed */}
                   <div 
+                    className="neuform-card"
                     style={{
-                      backgroundColor: '#0a111a',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: 'var(--radius-lg)',
                       overflow: 'hidden',
                       position: 'relative',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minHeight: '300px'
+                      minHeight: '320px'
                     }}
                   >
                     <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(0,0,0,0.4)', padding: '4px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)', zIndex: 5 }}>
@@ -1251,17 +1301,15 @@ export const InterviewPractice: React.FC = () => {
 
                   {/* Right Grid: Candidate Video webcam Feed */}
                   <div 
+                    className="neuform-card"
                     style={{
-                      backgroundColor: '#0a111a',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: 'var(--radius-lg)',
                       overflow: 'hidden',
                       position: 'relative',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minHeight: '300px'
+                      minHeight: '320px'
                     }}
                   >
                     {activeConfig?.videoMode && (
@@ -1324,8 +1372,81 @@ export const InterviewPractice: React.FC = () => {
                 </div>
               )}
 
+              {/* Real-time Voice Transcript / Captions Box (Only shown in video/voice mode for standard questions) */}
+              {(activeConfig?.videoMode || activeConfig?.voiceMode) && !isCodingQuestion && sessionState === 'answering' && (
+                <div 
+                  className="neuform-card"
+                  style={{ 
+                    padding: '24px', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '16px',
+                    borderLeft: '4px solid var(--accent-primary)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="live-pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: isRecording ? '#ef4444' : '#6b7280', display: 'inline-block', animation: isRecording ? 'breath 1s infinite alternate' : 'none' }} />
+                      <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {isRecording ? 'LIVE AUDIO CAPTIONS (SPEAK NOW)' : 'DICTATION INACTIVE'}
+                      </span>
+                    </div>
+                    {isRecording ? (
+                      <span style={{ fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        Sophia is listening...
+                      </span>
+                    ) : (
+                      <button
+                        onClick={startDictation}
+                        style={{
+                          fontSize: '9px',
+                          color: 'var(--accent-primary)',
+                          backgroundColor: 'rgba(0, 212, 170, 0.1)',
+                          border: '1px solid var(--accent-primary)',
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontWeight: 600
+                        }}
+                        className="btn-press"
+                      >
+                        RESTART MICROPHONE
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div 
+                    style={{ 
+                      minHeight: '70px', 
+                      maxHeight: '140px',
+                      overflowY: 'auto',
+                      fontSize: 'var(--text-sm)', 
+                      color: typedAnswer ? '#fff' : 'var(--text-muted)', 
+                      lineHeight: 1.6,
+                      fontStyle: typedAnswer ? 'normal' : 'italic'
+                    }}
+                  >
+                    {typedAnswer || "Begin speaking now to dictate your interview answer orally..."}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+                    <Button 
+                      variant="primary" 
+                      onClick={() => handleVoiceSubmit()}
+                      disabled={!typedAnswer.trim()}
+                      style={{ padding: '8px 24px', fontSize: '11px', borderRadius: 'var(--radius-md)' }}
+                    >
+                      STOP SPEAKING & SUBMIT RESPONSE
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Bottom Row: Current Question Prompt details */}
-              <div style={{ backgroundColor: 'rgba(10, 17, 26, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div 
+                className="neuform-card"
+                style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Question {currentIdx + 1} of {questions.length} Prompt
@@ -1351,7 +1472,7 @@ export const InterviewPractice: React.FC = () => {
             </div>
 
             {/* Right Workspace Panel: Code Editor OR Text Answer and Notes */}
-            {sessionState === 'answering' && (
+            {sessionState === 'answering' && (isCodingQuestion || (!activeConfig?.videoMode && !activeConfig?.voiceMode)) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto' }}>
                 {isCodingQuestion && idePanelOpen ? (
                   <div style={{ display: 'flex', flexDirection: 'column', height: '100%', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', backgroundColor: '#050a0f', minHeight: '380px' }}>

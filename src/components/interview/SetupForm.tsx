@@ -413,8 +413,8 @@ export const SetupForm: React.FC<SetupFormProps> = ({
             >
               <Mic style={{ width: '18px', height: '18px', color: voiceMode ? 'var(--accent-primary)' : 'var(--text-secondary)' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)' }}>Voice Input Dictation</span>
-                <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Use microphone to dictate response</span>
+                <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)' }}>Hands-free Voice Mode</span>
+                <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Speak response naturally without writing text</span>
               </div>
             </div>
           </div>
