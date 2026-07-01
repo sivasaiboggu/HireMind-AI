@@ -241,6 +241,25 @@ export const InterviewPractice: React.FC = () => {
     };
   }, [sessionState, currentIdx, questions, activeConfig?.videoMode, isMuted]);
 
+  // Synchronize dictation engine reactively with mic state & meeting speech overlays
+  useEffect(() => {
+    if (sessionState === 'answering') {
+      if (!micMuted && !isSpeaking && !isAiResponding) {
+        if (!isRecording) {
+          startDictation();
+        }
+      } else {
+        if (isRecording) {
+          stopDictation();
+        }
+      }
+    } else {
+      if (isRecording) {
+        stopDictation();
+      }
+    }
+  }, [micMuted, sessionState, isSpeaking, isAiResponding, isRecording]);
+
   // Coding round timer effect
   useEffect(() => {
     const isCodingRound = questions.length > 0 && (questions[currentIdx].category === 'coding' || questions[currentIdx].text.toLowerCase().includes('write a') || questions[currentIdx].text.toLowerCase().includes('implement'));
@@ -1868,9 +1887,6 @@ export const InterviewPractice: React.FC = () => {
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
             <button
               onClick={() => {
-                if (!micMuted && isRecording) {
-                  stopDictation();
-                }
                 setMicMuted(!micMuted);
               }}
               title={micMuted ? "Unmute Microphone" : "Mute Microphone"}
