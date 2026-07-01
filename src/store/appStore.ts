@@ -242,105 +242,128 @@ export const useAppStore = create<AppState>((set, get) => ({
     // Subscribe to auth state updates
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       set({ authLoading: true });
-      const currentUser = session?.user || null;
+      try {
+        const currentUser = session?.user || null;
+        cleanRealtimeSubscriptions();
 
-      cleanRealtimeSubscriptions();
+        if (currentUser) {
+          // Logged In -> Fetch User Data from Supabase database safely
+          let userProfile = null;
+          let resumes: any[] = [];
+          let interviews: any[] = [];
+          let roadmaps: any[] = [];
 
-      if (currentUser) {
-        // Logged In -> Fetch User Data from Supabase database
-        const userProfile = await supabaseService.getProfile(currentUser.id);
-        const resumes = await supabaseService.fetchResumes(currentUser.id);
-        const interviews = await supabaseService.fetchInterviews(currentUser.id);
-        const roadmaps = await supabaseService.fetchRoadmaps(currentUser.id);
+          try {
+            userProfile = await supabaseService.getProfile(currentUser.id);
+            resumes = await supabaseService.fetchResumes(currentUser.id);
+            interviews = await supabaseService.fetchInterviews(currentUser.id);
+            roadmaps = await supabaseService.fetchRoadmaps(currentUser.id);
+          } catch (dbErr) {
+            console.error("Supabase Database fetch failed:", dbErr);
+          }
 
-        localStorage.setItem('hiremind_guest_v9', 'false');
-        set({
-          user: currentUser,
-          profile: userProfile,
-          credits: userProfile?.credits ?? 100,
-          resumeHistory: resumes,
-          activeResume: resumes.length > 0 ? resumes[0] : null,
-          interviewHistory: interviews,
-          activeInterview: interviews.length > 0 ? interviews[0] : null,
-          roadmapHistory: roadmaps,
-          activeRoadmap: roadmaps.length > 0 ? roadmaps[0] : null,
-          guestMode: false,
-          authLoading: false
-        });
+          localStorage.setItem('hiremind_guest_v9', 'false');
+          set({
+            user: currentUser,
+            profile: userProfile,
+            credits: userProfile?.credits ?? 100,
+            resumeHistory: resumes,
+            activeResume: resumes.length > 0 ? resumes[0] : null,
+            interviewHistory: interviews,
+            activeInterview: interviews.length > 0 ? interviews[0] : null,
+            roadmapHistory: roadmaps,
+            activeRoadmap: roadmaps.length > 0 ? roadmaps[0] : null,
+            guestMode: false,
+            authLoading: false
+          });
 
-        // Register table-level realtime database changes for the authenticated candidate
-        profileChannel = supabase
-          .channel(`profile-db-sync-${currentUser.id}`)
-          .on(
-            'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${currentUser.id}` },
-            (payload) => {
-              const updatedProfile = payload.new as UserProfile;
-              if (updatedProfile && get().credits !== updatedProfile.credits) {
-                set({
-                  profile: updatedProfile,
-                  credits: updatedProfile.credits ?? 100
-                });
-                get().addToast('success', `Real-time Sync: AI Credits updated to ${updatedProfile.credits}`);
-              }
-            }
-          )
-          .subscribe();
+          // Register table-level realtime database changes for the authenticated candidate
+          try {
+            profileChannel = supabase
+              .channel(`profile-db-sync-${currentUser.id}`)
+              .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${currentUser.id}` },
+                (payload) => {
+                  const updatedProfile = payload.new as UserProfile;
+                  if (updatedProfile && get().credits !== updatedProfile.credits) {
+                    set({
+                      profile: updatedProfile,
+                      credits: updatedProfile.credits ?? 100
+                    });
+                    get().addToast('success', `Real-time Sync: AI Credits updated to ${updatedProfile.credits}`);
+                  }
+                }
+              )
+              .subscribe();
 
-        resumeChannel = supabase
-          .channel(`resumes-db-sync-${currentUser.id}`)
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'saved_resumes', filter: `user_id=eq.${currentUser.id}` },
-            async () => {
-              const res = await supabaseService.fetchResumes(currentUser.id);
-              set({ resumeHistory: res, activeResume: res.length > 0 ? res[0] : null });
-              get().addToast('info', 'Real-time Sync: Resumes history updated');
-            }
-          )
-          .subscribe();
+            resumeChannel = supabase
+              .channel(`resumes-db-sync-${currentUser.id}`)
+              .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'saved_resumes', filter: `user_id=eq.${currentUser.id}` },
+                async () => {
+                  try {
+                    const res = await supabaseService.fetchResumes(currentUser.id);
+                    set({ resumeHistory: res, activeResume: res.length > 0 ? res[0] : null });
+                    get().addToast('info', 'Real-time Sync: Resumes history updated');
+                  } catch (err) {}
+                }
+              )
+              .subscribe();
 
-        interviewChannel = supabase
-          .channel(`interviews-db-sync-${currentUser.id}`)
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'saved_interviews', filter: `user_id=eq.${currentUser.id}` },
-            async () => {
-              const ints = await supabaseService.fetchInterviews(currentUser.id);
-              set({ interviewHistory: ints, activeInterview: ints.length > 0 ? ints[0] : null });
-              get().addToast('info', 'Real-time Sync: Mock Interviews updated');
-            }
-          )
-          .subscribe();
+            interviewChannel = supabase
+              .channel(`interviews-db-sync-${currentUser.id}`)
+              .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'saved_interviews', filter: `user_id=eq.${currentUser.id}` },
+                async () => {
+                  try {
+                    const ints = await supabaseService.fetchInterviews(currentUser.id);
+                    set({ interviewHistory: ints, activeInterview: ints.length > 0 ? ints[0] : null });
+                    get().addToast('info', 'Real-time Sync: Mock Interviews updated');
+                  } catch (err) {}
+                }
+              )
+              .subscribe();
 
-        roadmapChannel = supabase
-          .channel(`roadmaps-db-sync-${currentUser.id}`)
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'saved_roadmaps', filter: `user_id=eq.${currentUser.id}` },
-            async () => {
-              const rds = await supabaseService.fetchRoadmaps(currentUser.id);
-              set({ roadmapHistory: rds, activeRoadmap: rds.length > 0 ? rds[0] : null });
-              get().addToast('info', 'Real-time Sync: Learning Roadmaps updated');
-            }
-          )
-          .subscribe();
+            roadmapChannel = supabase
+              .channel(`roadmaps-db-sync-${currentUser.id}`)
+              .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'saved_roadmaps', filter: `user_id=eq.${currentUser.id}` },
+                async () => {
+                  try {
+                    const rds = await supabaseService.fetchRoadmaps(currentUser.id);
+                    set({ roadmapHistory: rds, activeRoadmap: rds.length > 0 ? rds[0] : null });
+                    get().addToast('info', 'Real-time Sync: Learning Roadmaps updated');
+                  } catch (err) {}
+                }
+              )
+              .subscribe();
+          } catch (syncErr) {
+            console.error("Supabase Realtime subscription initialization failed:", syncErr);
+          }
 
-      } else {
-        // Logged Out -> Read from Guest localStorage mode if guestMode is true, otherwise empty
-        const isGuest = getSavedJson<boolean>('hiremind_guest_v9', false);
-        set({
-          user: null,
-          profile: null,
-          credits: getSavedJson<number>(KEYS.CREDITS, 85),
-          resumeHistory: isGuest ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []) : [],
-          activeResume: isGuest && getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []).length > 0 ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, [])[0] : null,
-          interviewHistory: isGuest ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []) : [],
-          activeInterview: isGuest && getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []).length > 0 ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, [])[0] : null,
-          roadmapHistory: isGuest ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []) : [],
-          activeRoadmap: isGuest && getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []).length > 0 ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, [])[0] : null,
-          authLoading: false
-        });
+        } else {
+          // Logged Out -> Read from Guest localStorage mode if guestMode is true, otherwise empty
+          const isGuest = getSavedJson<boolean>('hiremind_guest_v9', false);
+          set({
+            user: null,
+            profile: null,
+            credits: getSavedJson<number>(KEYS.CREDITS, 85),
+            resumeHistory: isGuest ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []) : [],
+            activeResume: isGuest && getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []).length > 0 ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, [])[0] : null,
+            interviewHistory: isGuest ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []) : [],
+            activeInterview: isGuest && getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []).length > 0 ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, [])[0] : null,
+            roadmapHistory: isGuest ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []) : [],
+            activeRoadmap: isGuest && getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []).length > 0 ? getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, [])[0] : null,
+            authLoading: false
+          });
+        }
+      } catch (err) {
+        console.error("Failed executing AuthStateChange listener:", err);
+        set({ authLoading: false });
       }
     });
 
