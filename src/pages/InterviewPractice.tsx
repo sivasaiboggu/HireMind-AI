@@ -41,7 +41,7 @@ type SessionState = 'setup' | 'loading_questions' | 'lobby' | 'answering' | 'vie
 
 export const InterviewPractice: React.FC = () => {
   const navigate = useNavigate();
-  const { addInterviewSession, activeInterview, setActiveInterview, addToast, activeResume } = useAppStore();
+  const { addInterviewSession, activeInterview, setActiveInterview, addToast, activeResume, profile } = useAppStore();
   const { execute: getQuestions, loading: loadingQuestions, error: questionsError, reset: resetQuestions } = useGemini(gemini.generateInterviewQuestions, 10);
   const { execute: evaluateAns, loading: evaluatingAnswer, error: evalError, reset: resetEval } = useGemini(gemini.evaluateAnswer, 5);
 
@@ -100,6 +100,7 @@ export const InterviewPractice: React.FC = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isAiResponding, setIsAiResponding] = useState(false);
+  const [aiSpeechText, setAiSpeechText] = useState('');
 
   // STT Speech Recognition State
   const [isRecording, setIsRecording] = useState(false);
@@ -242,12 +243,16 @@ export const InterviewPractice: React.FC = () => {
         speakQuestion(questions[currentIdx].text);
       }
     }
+  }, [sessionState, currentIdx, questions, activeConfig?.videoMode, isMuted]);
+
+  // Clean up speech synthesis when component is completely unmounted
+  useEffect(() => {
     return () => {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
     };
-  }, [sessionState, currentIdx, questions, activeConfig?.videoMode, isMuted]);
+  }, []);
 
   // Synchronize dictation engine reactively with mic state & meeting speech overlays
   useEffect(() => {
@@ -292,6 +297,7 @@ export const InterviewPractice: React.FC = () => {
 
   const speakQuestion = (text: string) => {
     if (!('speechSynthesis' in window)) return;
+    setAiSpeechText(text);
     window.speechSynthesis.resume();
     window.speechSynthesis.cancel();
 
@@ -381,7 +387,7 @@ export const InterviewPractice: React.FC = () => {
         activeConfig?.jobRole || 'Software Engineer',
         interviewer.name
       );
-      
+      setAiSpeechText(aiResponse);
       const utterance = new SpeechSynthesisUtterance(aiResponse);
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => {
@@ -1194,6 +1200,22 @@ export const InterviewPractice: React.FC = () => {
     desc: 'Expert in frontend, databases, and algorithms.'
   };
 
+  const candidateName = profile?.full_name ? profile.full_name.split(' ')[0] : 'Sivasai';
+
+  let showCaptions = false;
+  let captionSender = '';
+  let captionText = '';
+
+  if (isSpeaking) {
+    showCaptions = true;
+    captionSender = currentInterviewer.name;
+    captionText = aiSpeechText || (currentQuestion ? currentQuestion.text : '');
+  } else if (isRecording && (typedAnswer || interimSpeech)) {
+    showCaptions = true;
+    captionSender = candidateName;
+    captionText = typedAnswer + (interimSpeech ? (typedAnswer ? ' ' : '') + interimSpeech : '');
+  }
+
   if (sessionState === 'answering' || sessionState === 'viewing_feedback' || sessionState === 'loading_questions' || sessionState === 'lobby' || evaluatingAnswer) {
     return createPortal(
       <div 
@@ -1761,7 +1783,7 @@ export const InterviewPractice: React.FC = () => {
                   </div>
 
                   {/* Google Meet Captions Overlay inside the Video Grid */}
-                  {isRecording && (typedAnswer || interimSpeech) && (
+                  {showCaptions && (
                     <div style={{
                       position: 'absolute',
                       bottom: '24px',
@@ -1780,8 +1802,8 @@ export const InterviewPractice: React.FC = () => {
                       zIndex: 100,
                       boxShadow: 'var(--shadow-depth-2)'
                     }}>
-                      <span style={{ color: 'var(--accent-primary)', fontWeight: 700, marginRight: '8px' }}>Captions:</span>
-                      {typedAnswer + (interimSpeech ? (typedAnswer ? ' ' : '') + interimSpeech : '')}
+                      <span style={{ color: 'var(--accent-primary)', fontWeight: 700, marginRight: '8px' }}>{captionSender}:</span>
+                      {captionText}
                     </div>
                   )}
 
