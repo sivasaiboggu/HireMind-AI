@@ -15,4 +15,6 @@
 - [x] Integrate reactive SpeechRecognition state machine hook syncing microphone state, active speech, and thinking states
 - [x] Build Google Meet Green Room Lobby layout with camera/mic settings and synchronous voice autoplay bindings
 - [x] Display Mock IDE code editor panel strictly when DSA/coding question category is active, hiding it on standard oral rounds
+- [x] Separate SpeechSynthesis cleanup hooks from state transitions to prevent race condition silent AI bug
+- [x] Implement name-labeled Meet captions showing Candidate and Interviewer tags during voice synthesis and user dictation
 - [x] Compile and build project to verify correctness
