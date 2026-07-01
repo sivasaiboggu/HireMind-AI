@@ -1194,7 +1194,7 @@ export const InterviewPractice: React.FC = () => {
     desc: 'Expert in frontend, databases, and algorithms.'
   };
 
-  if (sessionState === 'answering' || sessionState === 'viewing_feedback' || sessionState === 'loading_questions' || evaluatingAnswer) {
+  if (sessionState === 'answering' || sessionState === 'viewing_feedback' || sessionState === 'loading_questions' || sessionState === 'lobby' || evaluatingAnswer) {
     return createPortal(
       <div 
         className="secure-call-room"
