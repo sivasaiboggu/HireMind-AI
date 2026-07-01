@@ -265,8 +265,8 @@ export const InterviewPractice: React.FC = () => {
 
   const speakQuestion = (text: string) => {
     if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
     window.speechSynthesis.resume();
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.onstart = () => setIsSpeaking(true);
@@ -395,8 +395,10 @@ export const InterviewPractice: React.FC = () => {
       
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
+      utterance.volume = 1.0;
       
       window.speechSynthesis.resume();
+      window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
       
     } catch (err) {
@@ -1031,12 +1033,12 @@ export const InterviewPractice: React.FC = () => {
       position: fixed;
       inset: 0;
       z-index: 99999;
-      background-color: #030712;
+      background-color: var(--bg-base);
       background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
       background-size: 32px 32px;
-      color: #f3f4f6;
+      color: var(--text-primary);
       display: flex;
       flex-direction: column;
       font-family: var(--font-body);
@@ -1044,9 +1046,9 @@ export const InterviewPractice: React.FC = () => {
       animation: fadeIn 200ms ease;
     }
     .neuform-card {
-      background: rgba(10, 15, 25, 0.7) !important;
+      background: var(--bg-surface) !important;
       backdrop-filter: blur(12px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid var(--border-subtle) !important;
       border-radius: var(--radius-lg) !important;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
       position: relative !important;
@@ -1256,12 +1258,12 @@ export const InterviewPractice: React.FC = () => {
         <div 
           style={{
             height: '64px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            borderBottom: '1px solid var(--border-subtle)',
             padding: '0 24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: 'rgba(10, 17, 26, 0.95)',
+            backgroundColor: 'var(--bg-surface)',
             zIndex: 10
           }}
         >
@@ -1275,31 +1277,31 @@ export const InterviewPractice: React.FC = () => {
                 animation: 'breath 1s infinite alternate'
               }}
             />
-            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: '#f3f4f6', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--text-primary)', textTransform: 'uppercase' }}>
               {sessionState === 'loading_questions' ? 'DIALING MEETING ROOM...' : 'LIVE SECURE INTERVIEW ROOM'}
             </span>
-            <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
-            <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.6)', fontWeight: 500 }}>
+            <span style={{ color: 'var(--border-subtle)' }}>|</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 500 }}>
               {activeConfig?.jobRole} Practice Lab
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.03)', padding: '6px 16px', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'var(--bg-elevated)', padding: '6px 16px', borderRadius: '20px', border: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
               {currentQuestion ? `ROUND: ${currentQuestion.category.replace('-', ' ')}` : 'ESTABLISHING...'}
             </span>
-            <span style={{ color: 'rgba(255, 255, 255, 0.15)' }}>•</span>
-            <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ color: 'var(--text-muted)' }}>•</span>
+            <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
               {currentQuestion ? `Difficulty: ${currentQuestion.difficulty}` : ''}
             </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Lock style={{ width: '10px', height: '10px' }} />
               Proctored Environment
             </span>
-            <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
+            <span style={{ color: 'var(--border-subtle)' }}>|</span>
             <span style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
               CALL TIME: {formatTime(seconds)}
             </span>
@@ -1344,26 +1346,26 @@ export const InterviewPractice: React.FC = () => {
               
               {/* Scorecard Screen Share View */}
               {sessionState === 'viewing_feedback' && currentFeedback && !evaluatingAnswer ? (
-                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'rgba(10, 17, 26, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'relative' }}>
+                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'relative' }}>
                   
                   {/* Presentation Top bar with Mini feeds */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '12px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)' }} />
-                      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>
                         {currentInterviewer.name} is sharing: Performance Scorecard
                       </span>
                     </div>
 
                     {/* Conference Mini Feeds row */}
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 8px', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 8px', backgroundColor: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                         <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)' }} />
-                        <span style={{ fontSize: '9px', fontWeight: 600 }}>{currentInterviewer.name}</span>
+                        <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-primary)' }}>{currentInterviewer.name}</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 8px', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: cameraEnabled ? 'var(--accent-primary)' : 'rgba(255,255,255,0.2)' }} />
-                        <span style={{ fontSize: '9px', fontWeight: 600 }}>You</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 8px', backgroundColor: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: cameraEnabled ? 'var(--accent-primary)' : 'var(--text-muted)' }} />
+                        <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-primary)' }}>You</span>
                       </div>
                     </div>
                   </div>
@@ -1378,15 +1380,15 @@ export const InterviewPractice: React.FC = () => {
                 </div>
               ) : evaluatingAnswer ? (
                 /* Analyzing/Thinking Screen inside the meeting */
-                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px', backgroundColor: 'rgba(10, 17, 26, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '24px' }}>
+                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '24px' }}>
                   <Terminal className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
                   <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-purple)', letterSpacing: '0.05em' }}>
                     {currentInterviewer.name} IS GRADUATING YOUR CODE...
                   </div>
-                  <p style={{ fontSize: 'var(--text-xs)', color: 'rgba(255, 255, 255, 0.6)', maxWidth: '400px', textAlign: 'center', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', maxWidth: '400px', textAlign: 'center', lineHeight: 1.5 }}>
                     Auditing core tech accuracy, clarity scores, keyword loops, and structure patterns.
                   </p>
-                  <div style={{ width: '100%', maxWidth: '400px', height: '4px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', maxWidth: '400px', height: '4px', backgroundColor: 'var(--bg-elevated)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', backgroundColor: 'var(--accent-purple)', width: '40%', animation: 'voicePulse 1.2s infinite ease-in-out' }} />
                   </div>
                 </div>
@@ -1419,7 +1421,7 @@ export const InterviewPractice: React.FC = () => {
                       border: '1px solid rgba(255, 255, 255, 0.08)'
                     }}
                   >
-                    <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(9, 9, 14, 0.8)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', zIndex: 5 }}>
+                    <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--bg-elevated)', padding: '6px 12px', borderRadius: '20px', border: '1px solid var(--border-subtle)', zIndex: 5 }}>
                       <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {currentInterviewer.name} (AI Interviewer)
                       </span>
@@ -1429,11 +1431,11 @@ export const InterviewPractice: React.FC = () => {
                       <span style={{
                         fontSize: '9px', 
                         fontWeight: 700, 
-                        color: isSpeaking ? 'var(--accent-primary)' : 'rgba(255,255,255,0.4)',
+                        color: isSpeaking ? 'var(--accent-primary)' : 'var(--text-secondary)',
                         padding: '4px 10px',
                         borderRadius: '16px',
-                        backgroundColor: isSpeaking ? 'rgba(255, 106, 85, 0.1)' : 'rgba(255,255,255,0.05)',
-                        border: isSpeaking ? '1px solid rgba(255, 106, 85, 0.2)' : '1px solid transparent',
+                        backgroundColor: isSpeaking ? 'rgba(255, 106, 85, 0.1)' : 'var(--bg-elevated)',
+                        border: isSpeaking ? '1px solid rgba(255, 106, 85, 0.2)' : '1px solid var(--border-subtle)',
                         letterSpacing: '0.05em'
                       }}>
                         {isAiResponding ? '• THINKING' : (isSpeaking ? '• SPEAKING' : '• LISTENING')}
@@ -1443,10 +1445,10 @@ export const InterviewPractice: React.FC = () => {
                     {renderAvatarSVG(currentInterviewer.avatarType, isSpeaking, evaluatingAnswer)}
 
                     <div style={{ position: 'absolute', bottom: '16px', left: '16px', display: 'flex', flexDirection: 'column', zIndex: 5 }}>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#f3f4f6' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {currentInterviewer.name}
                       </span>
-                      <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
                         {currentInterviewer.title}
                       </span>
                     </div>
@@ -1506,9 +1508,9 @@ export const InterviewPractice: React.FC = () => {
                           width: '64px',
                           height: '64px',
                           borderRadius: '50%',
-                          background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.08))',
-                          color: 'rgba(255,255,255,0.4)',
-                          border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'var(--bg-elevated)',
+                          color: 'var(--text-secondary)',
+                          border: '1px solid var(--border-subtle)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -1517,7 +1519,7 @@ export const InterviewPractice: React.FC = () => {
                         }}>
                           YOU
                         </div>
-                        <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
+                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>
                           {!cameraEnabled ? 'CAMERA MUTED' : 'WEBCAM INACTIVE'}
                         </span>
                       </div>
@@ -1525,7 +1527,7 @@ export const InterviewPractice: React.FC = () => {
 
                     <div style={{ position: 'absolute', bottom: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#f3f4f6' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           You (Candidate)
                         </span>
                         <span style={{ fontSize: '10px', color: micMuted ? 'var(--accent-danger)' : 'var(--accent-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -1535,9 +1537,9 @@ export const InterviewPractice: React.FC = () => {
                       </div>
                     </div>
 
-                    <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(9, 9, 14, 0.8)', padding: '4px 10px', borderRadius: '16px', zIndex: 5 }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: (isRecording && !micMuted) ? '#ef4444' : 'rgba(255,255,255,0.2)', display: 'inline-block' }} />
-                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>
+                    <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--bg-elevated)', padding: '4px 10px', borderRadius: '16px', border: '1px solid var(--border-subtle)', zIndex: 5 }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: (isRecording && !micMuted) ? '#ef4444' : 'var(--text-muted)', display: 'inline-block' }} />
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-secondary)' }}>
                         {(isRecording && !micMuted) ? 'SPEAKING' : 'IDLE'}
                       </span>
                     </div>
@@ -1550,18 +1552,18 @@ export const InterviewPractice: React.FC = () => {
                       bottom: '24px',
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      backgroundColor: 'rgba(9, 9, 14, 0.85)',
-                      color: '#fff',
+                      backgroundColor: 'var(--bg-elevated)',
+                      color: 'var(--text-primary)',
                       padding: '10px 24px',
                       borderRadius: '24px',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      border: '1px solid var(--border-subtle)',
                       maxWidth: '85%',
                       textAlign: 'center',
                       fontSize: '13px',
                       fontWeight: 500,
                       backdropFilter: 'blur(8px)',
                       zIndex: 100,
-                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+                      boxShadow: 'var(--shadow-depth-2)'
                     }}>
                       <span style={{ color: 'var(--accent-primary)', fontWeight: 700, marginRight: '8px' }}>Captions:</span>
                       {typedAnswer + (interimSpeech ? (typedAnswer ? ' ' : '') + interimSpeech : '')}
@@ -1602,18 +1604,18 @@ export const InterviewPractice: React.FC = () => {
                   <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Active Prompt: Question {currentIdx + 1} of {questions.length}
                   </span>
-                  <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>
                     Section: {currentQuestion?.category}
                   </span>
                 </div>
-                <p style={{ fontSize: '13px', fontWeight: 500, color: '#f3f4f6', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.5 }}>
                   {currentQuestion?.text}
                 </p>
                 {currentQuestion?.expectedTopics && currentQuestion.expectedTopics.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
-                    <span style={{ fontSize: '9px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 700 }}>Expected Coverage:</span>
+                    <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: 700 }}>Expected Coverage:</span>
                     {currentQuestion.expectedTopics.map(topic => (
-                      <span key={topic} style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <span key={topic} style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>
                         {topic}
                       </span>
                     ))}
@@ -1626,11 +1628,11 @@ export const InterviewPractice: React.FC = () => {
             {sessionState === 'answering' && (isCodingQuestion || (!activeConfig?.videoMode && !activeConfig?.voiceMode)) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto' }}>
                 {isCodingQuestion && idePanelOpen ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', backgroundColor: '#050a0f', minHeight: '380px' }}>
-                    <div style={{ padding: '12px 20px', backgroundColor: '#091017', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', backgroundColor: 'var(--bg-surface)', minHeight: '380px' }}>
+                    <div style={{ padding: '12px 20px', backgroundColor: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Code style={{ width: '16px', height: '16px', color: 'var(--accent-primary)' }} />
-                        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em' }}>MOCK CODING TERMINAL</span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--text-primary)' }}>MOCK CODING TERMINAL</span>
                         <select 
                           value={ideLanguage} 
                           onChange={(e) => setIdeLanguage(e.target.value)}
@@ -1638,9 +1640,9 @@ export const InterviewPractice: React.FC = () => {
                             padding: '2px 6px',
                             fontSize: '9px',
                             borderRadius: '4px',
-                            backgroundColor: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            color: '#fff',
+                            backgroundColor: 'var(--bg-surface)',
+                            border: '1px solid var(--border-subtle)',
+                            color: 'var(--text-primary)',
                             width: 'auto'
                           }}
                         >
@@ -1650,18 +1652,18 @@ export const InterviewPractice: React.FC = () => {
                           <option value="sql">SQL</option>
                         </select>
                       </div>
-                      <span style={{ fontSize: '9px', color: codingSeconds < 120 ? 'var(--accent-danger)' : 'rgba(255, 255, 255, 0.4)', fontFamily: 'var(--font-mono)' }}>
+                      <span style={{ fontSize: '9px', color: codingSeconds < 120 ? 'var(--accent-danger)' : 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
                         TIMER: {formatTime(codingSeconds)}
                       </span>
                     </div>
                     
-                    <div style={{ display: 'flex', flexGrow: 1, backgroundColor: '#03060a', position: 'relative', minHeight: '220px' }}>
+                    <div style={{ display: 'flex', flexGrow: 1, backgroundColor: 'var(--bg-surface)', position: 'relative', minHeight: '220px' }}>
                       <div 
                         id="ide-gutter"
                         style={{
                           width: '36px',
-                          borderRight: '1px solid rgba(255,255,255,0.04)',
-                          color: 'rgba(255,255,255,0.15)',
+                          borderRight: '1px solid var(--border-subtle)',
+                          color: 'var(--text-muted)',
                           textAlign: 'right',
                           paddingRight: '8px',
                           fontFamily: 'var(--font-mono)',
@@ -1686,7 +1688,7 @@ export const InterviewPractice: React.FC = () => {
                         style={{
                           flexGrow: 1,
                           backgroundColor: 'transparent',
-                          color: '#fff',
+                          color: 'var(--text-primary)',
                           border: 'none',
                           fontFamily: 'var(--font-mono)',
                           fontSize: '11px',
@@ -1702,16 +1704,16 @@ export const InterviewPractice: React.FC = () => {
                     </div>
 
                     {consoleOutput && (
-                      <div style={{ padding: '12px 20px', backgroundColor: '#020406', borderTop: '1px solid rgba(255,255,255,0.05)', color: '#00d4aa', fontSize: '9px', fontFamily: 'var(--font-mono)', lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
+                      <div style={{ padding: '12px 20px', backgroundColor: 'var(--bg-elevated)', borderTop: '1px solid var(--border-subtle)', color: 'var(--accent-primary)', fontSize: '9px', fontFamily: 'var(--font-mono)', lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
                         {consoleOutput}
                       </div>
                     )}
 
-                    <div style={{ padding: '12px 20px', backgroundColor: '#091017', borderTop: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ padding: '12px 20px', backgroundColor: 'var(--bg-elevated)', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <button 
                         onClick={runMockTests}
                         disabled={runningTests}
-                        style={{ fontSize: '10px', padding: '6px 12px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px', cursor: 'pointer' }}
+                        style={{ fontSize: '10px', padding: '6px 12px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer' }}
                         className="btn-press"
                       >
                         {runningTests ? 'Compiling...' : 'Run Test Cases'}
@@ -1728,9 +1730,9 @@ export const InterviewPractice: React.FC = () => {
                 ) : (
                   /* Standard Response and Notes */
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
-                    <div style={{ backgroundColor: 'rgba(10, 17, 26, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>Draft response detail</span>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>Draft response detail</span>
                         {activeConfig?.voiceMode && (
                           <button
                             type="button"
@@ -1766,9 +1768,9 @@ export const InterviewPractice: React.FC = () => {
                         placeholder={activeConfig?.voiceMode ? "Click 'SPEAK RESPONSE' and begin drafting your answer orally..." : "Type your answer explaining technical parameters clearly..."}
                         style={{
                           width: '100%',
-                          backgroundColor: 'rgba(5, 10, 15, 0.4)',
-                          border: '1px solid rgba(255,255,255,0.08)',
-                          color: '#fff',
+                          backgroundColor: 'var(--bg-elevated)',
+                          border: '1px solid var(--border-subtle)',
+                          color: 'var(--text-primary)',
                           borderRadius: 'var(--radius-md)',
                           padding: '12px',
                           fontSize: '12px',
@@ -1779,7 +1781,7 @@ export const InterviewPractice: React.FC = () => {
                       />
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                        <button onClick={handleSkip} style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', backgroundColor: 'transparent' }} className="btn-press">
+                        <button onClick={handleSkip} style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', backgroundColor: 'transparent' }} className="btn-press">
                           Skip
                         </button>
                         <Button 
@@ -1794,20 +1796,20 @@ export const InterviewPractice: React.FC = () => {
                     </div>
 
                     {notesPanelOpen && (
-                      <div style={{ backgroundColor: 'rgba(10, 17, 26, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '8px' }}>
+                      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
                           <Clipboard style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />
                           <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>INTERVIEW NOTES (LIVE EVALUATION)</span>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '11px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: 'rgba(255, 255, 255, 0.4)' }}>Word Count:</span>
-                            <span style={{ fontWeight: 600 }}>{textWordCount} words</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>Word Count:</span>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{textWordCount} words</span>
                           </div>
                           
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <span style={{ color: 'rgba(255, 255, 255, 0.4)' }}>Matched Focus Keywords:</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>Matched Focus Keywords:</span>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', minHeight: '20px' }}>
                               {matchedTopics.length > 0 ? (
                                 matchedTopics.map(topic => (
@@ -1816,14 +1818,14 @@ export const InterviewPractice: React.FC = () => {
                                   </span>
                                 ))
                               ) : (
-                                <span style={{ color: 'rgba(255, 255, 255, 0.25)', fontStyle: 'italic', fontSize: '9px' }}>Awaiting match keywords...</span>
+                                <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '9px' }}>Awaiting match keywords...</span>
                               )}
                             </div>
                           </div>
 
-                          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <span style={{ color: 'var(--accent-secondary)', fontWeight: 600 }}>Call Assistant Hints:</span>
-                            <div style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.4, fontSize: '9.5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ color: 'var(--text-secondary)', lineHeight: 1.4, fontSize: '9.5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               <div>• Format stories using the STAR structure (Situation, Task, Action, Result).</div>
                               <div>• Ground your answers with numerical metrics where applicable.</div>
                               <div>• Keep technical terms standard and professional.</div>
@@ -1843,8 +1845,8 @@ export const InterviewPractice: React.FC = () => {
         <div 
           style={{
             height: '80px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            backgroundColor: '#0A0A10',
+            borderTop: '1px solid var(--border-subtle)',
+            backgroundColor: 'var(--bg-surface)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -1854,11 +1856,11 @@ export const InterviewPractice: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ fontSize: '12px', color: '#fff', fontWeight: 600 }}>
+            <span style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>
               Mock Call with {currentInterviewer.name}
             </span>
-            <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
-            <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ color: 'var(--border-subtle)' }}>|</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
               {formatTime(seconds)}
             </span>
           </div>
@@ -1876,8 +1878,8 @@ export const InterviewPractice: React.FC = () => {
                 width: '40px',
                 height: '40px',
                 borderRadius: '50%',
-                backgroundColor: micMuted ? '#ea4335' : '#202124',
-                color: '#fff',
+                backgroundColor: micMuted ? '#ea4335' : 'var(--bg-elevated)',
+                color: micMuted ? '#fff' : 'var(--text-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1897,8 +1899,8 @@ export const InterviewPractice: React.FC = () => {
                 width: '40px',
                 height: '40px',
                 borderRadius: '50%',
-                backgroundColor: !cameraEnabled ? '#ea4335' : '#202124',
-                color: '#fff',
+                backgroundColor: !cameraEnabled ? '#ea4335' : 'var(--bg-elevated)',
+                color: !cameraEnabled ? '#fff' : 'var(--text-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1919,8 +1921,8 @@ export const InterviewPractice: React.FC = () => {
                   width: '40px',
                   height: '40px',
                   borderRadius: '50%',
-                  backgroundColor: '#202124',
-                  color: '#fff',
+                  backgroundColor: 'var(--bg-elevated)',
+                  color: 'var(--text-primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1941,9 +1943,9 @@ export const InterviewPractice: React.FC = () => {
                 width: '40px',
                 height: '40px',
                 borderRadius: '50%',
-                backgroundColor: isMuted ? '#202124' : 'rgba(255, 106, 85, 0.1)',
+                backgroundColor: isMuted ? 'var(--bg-elevated)' : 'rgba(255, 106, 85, 0.1)',
                 border: isMuted ? 'none' : '1px solid rgba(255, 106, 85, 0.2)',
-                color: isMuted ? 'rgba(255,255,255,0.4)' : 'var(--accent-primary)',
+                color: isMuted ? 'var(--text-muted)' : 'var(--accent-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
