@@ -150,6 +150,23 @@ export const InterviewPractice: React.FC = () => {
     };
   }, [isSpeaking]);
 
+  // Pre-load voices on mount to avoid async empty list issues
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+    }
+  }, []);
+
+  // Workaround for Chrome SpeechSynthesis pausing after 15s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isSpeaking && 'speechSynthesis' in window) {
+        window.speechSynthesis.resume();
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isSpeaking]);
+
 
   // General Timer Effect
   useEffect(() => {
@@ -198,6 +215,11 @@ export const InterviewPractice: React.FC = () => {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
+      if (stream && cameraEnabled) {
+        videoRef.current.play().catch(err => {
+          console.warn("Failed to play video stream:", err);
+        });
+      }
     }
     if (stream) {
       stream.getVideoTracks().forEach(track => {
@@ -258,15 +280,27 @@ export const InterviewPractice: React.FC = () => {
     };
     utterance.onerror = () => setIsSpeaking(false);
 
-    const voices = window.speechSynthesis.getVoices();
-    let voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('google'));
-    if (!voice) voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('natural'));
-    if (!voice) voice = voices.find(v => v.lang.startsWith('en-'));
-    if (!voice && voices.length > 0) voice = voices[0];
-    
+    const getBestVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      let voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('google'));
+      if (!voice) voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('natural'));
+      if (!voice) voice = voices.find(v => v.lang.startsWith('en-'));
+      if (!voice && voices.length > 0) voice = voices[0];
+      return voice;
+    };
+
+    const voice = getBestVoice();
     if (voice) {
       utterance.voice = voice;
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        const fallbackVoice = getBestVoice();
+        if (fallbackVoice) {
+          utterance.voice = fallbackVoice;
+        }
+      };
     }
+    
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     window.speechSynthesis.speak(utterance);
@@ -337,12 +371,26 @@ export const InterviewPractice: React.FC = () => {
         }, 300);
       };
       
-      const voices = window.speechSynthesis.getVoices();
-      let voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('google'));
-      if (!voice) voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('natural'));
-      if (!voice) voice = voices.find(v => v.lang.startsWith('en-'));
-      if (!voice && voices.length > 0) voice = voices[0];
-      if (voice) utterance.voice = voice;
+      const getBestVoice = () => {
+        const voices = window.speechSynthesis.getVoices();
+        let voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('google'));
+        if (!voice) voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('natural'));
+        if (!voice) voice = voices.find(v => v.lang.startsWith('en-'));
+        if (!voice && voices.length > 0) voice = voices[0];
+        return voice;
+      };
+
+      const voice = getBestVoice();
+      if (voice) {
+        utterance.voice = voice;
+      } else {
+        window.speechSynthesis.onvoiceschanged = () => {
+          const fallbackVoice = getBestVoice();
+          if (fallbackVoice) {
+            utterance.voice = fallbackVoice;
+          }
+        };
+      }
       
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
