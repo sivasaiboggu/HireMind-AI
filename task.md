@@ -12,4 +12,5 @@
 - [x] Refactor secure call room portal headers, sidebars, bottoms, and text elements to use CSS variable light theme colors
 - [x] Add dynamic "Submit Answer" button to the center controls bar in InterviewPractice.tsx
 - [x] Sync interviewer avatar mouth shape animations to onstart trigger for custom queries
+- [x] Integrate reactive SpeechRecognition state machine hook syncing microphone state, active speech, and thinking states
 - [x] Compile and build project to verify correctness
