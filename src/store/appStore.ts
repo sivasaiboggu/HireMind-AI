@@ -247,17 +247,25 @@ export const useAppStore = create<AppState>((set, get) => ({
         cleanRealtimeSubscriptions();
 
         if (currentUser) {
-          // Logged In -> Fetch User Data from Supabase database safely
+          // Logged In -> Fetch User Data from Supabase database safely with 6s timeout
+          const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 6000): Promise<T> =>
+            Promise.race([
+              promise,
+              new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
+            ]);
+
           let userProfile = null;
           let resumes: any[] = [];
           let interviews: any[] = [];
           let roadmaps: any[] = [];
 
           try {
-            userProfile = await supabaseService.getProfile(currentUser.id);
-            resumes = await supabaseService.fetchResumes(currentUser.id);
-            interviews = await supabaseService.fetchInterviews(currentUser.id);
-            roadmaps = await supabaseService.fetchRoadmaps(currentUser.id);
+            [userProfile, resumes, interviews, roadmaps] = await Promise.all([
+              withTimeout(supabaseService.getProfile(currentUser.id), null),
+              withTimeout(supabaseService.fetchResumes(currentUser.id), []),
+              withTimeout(supabaseService.fetchInterviews(currentUser.id), []),
+              withTimeout(supabaseService.fetchRoadmaps(currentUser.id), [])
+            ]);
           } catch (dbErr) {
             console.error("Supabase Database fetch failed:", dbErr);
           }
