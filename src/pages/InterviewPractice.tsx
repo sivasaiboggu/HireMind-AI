@@ -297,14 +297,24 @@ export const InterviewPractice: React.FC = () => {
 
   const speakQuestion = (text: string) => {
     if (!('speechSynthesis' in window)) return;
+    
+    // Clear previous responses and set isSpeaking synchronously to prevent voice synthesis overlap capture
+    setTypedAnswer('');
+    setInterimSpeech('');
+    setIsSpeaking(true);
     setAiSpeechText(text);
+
     window.speechSynthesis.resume();
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      setMouthShapeIdx(1);
+    };
     utterance.onend = () => {
       setIsSpeaking(false);
+      setMouthShapeIdx(0);
       // Auto-start dictation in video call or hands-free voice mode for non-coding questions
       if ((activeConfig?.videoMode || activeConfig?.voiceMode) && !isCodingQuestion) {
         setTimeout(() => {
@@ -312,7 +322,10 @@ export const InterviewPractice: React.FC = () => {
         }, 300);
       }
     };
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setMouthShapeIdx(0);
+    };
 
     const getBestVoice = () => {
       const voices = window.speechSynthesis.getVoices();
@@ -387,12 +400,20 @@ export const InterviewPractice: React.FC = () => {
         activeConfig?.jobRole || 'Software Engineer',
         interviewer.name
       );
+      // Clear candidate transcript now that AI has processed it and is speaking
+      setTypedAnswer('');
+      setInterimSpeech('');
+      setIsSpeaking(true);
       setAiSpeechText(aiResponse);
       const utterance = new SpeechSynthesisUtterance(aiResponse);
-      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        setMouthShapeIdx(1);
+      };
       utterance.onend = () => {
         setIsSpeaking(false);
         setIsAiResponding(false);
+        setMouthShapeIdx(0);
         setTimeout(() => {
           startDictation();
         }, 300);
@@ -400,6 +421,7 @@ export const InterviewPractice: React.FC = () => {
       utterance.onerror = () => {
         setIsSpeaking(false);
         setIsAiResponding(false);
+        setMouthShapeIdx(0);
         setTimeout(() => {
           startDictation();
         }, 300);
