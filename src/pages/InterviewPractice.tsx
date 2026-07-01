@@ -106,6 +106,7 @@ export const InterviewPractice: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [typedAnswer, setTypedAnswer] = useState('');
+  const typedAnswerRef = useRef(''); // Ref-tracked value for STT closures to avoid stale state
   const [interimSpeech, setInterimSpeech] = useState('');
 
   // Code Editor IDE State
@@ -299,7 +300,7 @@ export const InterviewPractice: React.FC = () => {
     if (!('speechSynthesis' in window)) return;
     
     // Clear previous responses and set isSpeaking synchronously to prevent voice synthesis overlap capture
-    setTypedAnswer('');
+    typedAnswerRef.current = ''; setTypedAnswer('');
     setInterimSpeech('');
     setIsSpeaking(true);
     setAiSpeechText(text);
@@ -348,8 +349,10 @@ export const InterviewPractice: React.FC = () => {
       };
     }
     
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
+    // Natural, human-like voice settings
+    utterance.rate = 0.92;  // Slightly slower = more thoughtful interviewer pace
+    utterance.pitch = 1.05; // Slightly warm, natural pitch
+    utterance.volume = 1.0;
     window.speechSynthesis.speak(utterance);
   };
 
@@ -401,7 +404,7 @@ export const InterviewPractice: React.FC = () => {
         interviewer.name
       );
       // Clear candidate transcript now that AI has processed it and is speaking
-      setTypedAnswer('');
+      typedAnswerRef.current = ''; setTypedAnswer('');
       setInterimSpeech('');
       setIsSpeaking(true);
       setAiSpeechText(aiResponse);
@@ -448,8 +451,9 @@ export const InterviewPractice: React.FC = () => {
         };
       }
       
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
+      // Natural conversational response voice settings
+      utterance.rate = 0.95;  // Slightly slower for a more natural conversational tone
+      utterance.pitch = 1.08; // Slightly higher pitch for warmth in conversational replies
       utterance.volume = 1.0;
       
       window.speechSynthesis.resume();
@@ -492,8 +496,10 @@ export const InterviewPractice: React.FC = () => {
         }
       }
 
+      // Show interim speech immediately in captions (no wait for final)
       if (interimResult) {
         setInterimSpeech(interimResult);
+        setIsRecording(true); // Ensure caption shows when mic is active
       }
 
       if (finalResult) {
@@ -501,7 +507,7 @@ export const InterviewPractice: React.FC = () => {
         const spokenLower = finalResult.toLowerCase().trim();
         if (spokenLower === 'repeat' || spokenLower.includes('repeat the question') || spokenLower.includes('please repeat')) {
           stopDictation();
-          setTypedAnswer('');
+          typedAnswerRef.current = ''; setTypedAnswer('');
           if (questions.length > 0) {
             speakQuestion(questions[currentIdx].text);
           }
@@ -514,7 +520,10 @@ export const InterviewPractice: React.FC = () => {
           return;
         }
         
-        setTypedAnswer(prev => prev + (prev.endsWith(' ') || prev === '' ? '' : ' ') + finalResult);
+        // Append to both state and ref so captions and submissions always have the latest text
+        const separator = typedAnswerRef.current.endsWith(' ') || typedAnswerRef.current === '' ? '' : ' ';
+        typedAnswerRef.current = typedAnswerRef.current + separator + finalResult;
+        setTypedAnswer(typedAnswerRef.current);
       }
     };
 
@@ -588,7 +597,7 @@ export const InterviewPractice: React.FC = () => {
       setCurrentIdx(0);
       setAnswersList([]);
       setSeconds(0);
-      setTypedAnswer('');
+      typedAnswerRef.current = ''; setTypedAnswer('');
       setConsoleOutput(null);
       spokenFirstQuestionRef.current = false;
       setSessionState('lobby');
@@ -723,7 +732,7 @@ export const InterviewPractice: React.FC = () => {
 
   const handleVoiceSubmit = () => {
     stopDictation();
-    handleSubmitAnswer(typedAnswer);
+    handleSubmitAnswer(typedAnswerRef.current);
   };
 
   const handleSkip = () => {
@@ -747,7 +756,7 @@ export const InterviewPractice: React.FC = () => {
     
     setAnswersList(prev => [...prev, record]);
     setCurrentIdx(prev => prev + 1);
-    setTypedAnswer('');
+    typedAnswerRef.current = ''; setTypedAnswer('');
     setConsoleOutput(null);
     setSessionState('answering');
   };
@@ -759,7 +768,7 @@ export const InterviewPractice: React.FC = () => {
     if (nextIndex < questions.length) {
       setCurrentIdx(nextIndex);
       setCurrentFeedback(null);
-      setTypedAnswer('');
+      typedAnswerRef.current = ''; setTypedAnswer('');
       setConsoleOutput(null);
       setSessionState('answering');
     } else {
@@ -790,7 +799,7 @@ export const InterviewPractice: React.FC = () => {
     setActiveConfig(null);
     setActiveInterview(null);
     setSeconds(0);
-    setTypedAnswer('');
+    typedAnswerRef.current = ''; setTypedAnswer('');
     setConsoleOutput(null);
     setSessionState('setup');
   };
