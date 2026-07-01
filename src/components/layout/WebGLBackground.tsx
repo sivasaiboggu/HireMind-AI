@@ -2,164 +2,189 @@ import React, { useEffect, useRef } from 'react';
 
 export const WebGLBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mouseRef = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
+  const mouseRef = useRef({ x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') as WebGLRenderingContext | null;
+    if (!gl) {
+      console.warn("WebGL not supported in browser, no background shader will be loaded");
+      return;
+    }
 
-    let animationId: number;
+    // Set canvas dimensions
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
-    // Sparse anchor dots
-    const numAnchors = 28;
-    const anchors: Array<{
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      radius: number;
-      color: string;
-    }> = [];
+    // Vertex shader source
+    const vsSource = `
+      attribute vec2 position;
+      void main() {
+        gl_Position = vec4(position, 0.0, 1.0);
+      }
+    `;
 
-    for (let i = 0; i < numAnchors; i++) {
-      anchors.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.2,
-        vy: (Math.random() - 0.5) * 0.2,
-        radius: Math.random() * 1.5 + 0.5,
-        color: Math.random() > 0.6 ? '#FF6A55' : '#8B5CF6'
-      });
+    // Fragment shader source
+    const fsSource = `
+      precision mediump float;
+      uniform vec2 u_resolution;
+      uniform vec2 u_mouse;
+      uniform float u_time;
+
+      void main() {
+        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+        
+        // Pointer reactive drift (parallax)
+        vec2 mouseDrift = (u_mouse - vec2(0.5)) * 0.08;
+        vec2 coord = uv + mouseDrift;
+        
+        // Slow breathing pulse
+        float breathe = sin(u_time * 0.5) * 0.12 + 0.88;
+        
+        // Perspective coordinate mapping (horizon around 0.45)
+        float horizonY = 0.45;
+        float distToHorizon = coord.y - horizonY;
+        
+        // Only draw perspective grid below horizon
+        float gridLine = 0.0;
+        if (distToHorizon < 0.0) {
+          float perspective = 1.0 / (abs(distToHorizon) + 0.02);
+          
+          float gridX = sin((coord.x - 0.5) * perspective * 35.0);
+          float gridY = sin(perspective * 18.0 * breathe + u_time * 0.4);
+          
+          // Fine line lattice thickness
+          float lineX = smoothstep(0.96, 0.99, abs(gridX));
+          float lineY = smoothstep(0.96, 0.99, abs(gridY));
+          gridLine = max(lineX, lineY);
+          
+          // Fade grid near horizon and borders
+          float horizonFade = smoothstep(0.0, 0.35, abs(distToHorizon));
+          gridLine *= horizonFade * 0.14;
+        }
+        
+        // Violet/Coral gradient glow
+        vec2 glowCenter = vec2(0.5) + mouseDrift * 0.4;
+        float dist = length(uv - glowCenter);
+        vec3 glowColor = mix(vec3(0.54, 0.36, 0.96), vec3(1.0, 0.42, 0.33), uv.y);
+        float glowIntensity = exp(-dist * 2.0) * 0.08;
+        
+        // Base dark space color (#09090E)
+        vec3 baseColor = vec3(0.035, 0.035, 0.055);
+        vec3 finalColor = baseColor + glowColor * glowIntensity + glowColor * gridLine;
+        
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    `;
+
+    // Helper: Compile shader
+    const compileShader = (source: string, type: number): WebGLShader | null => {
+      const shader = gl.createShader(type);
+      if (!shader) return null;
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error("Shader compile error:", gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    };
+
+    const vs = compileShader(vsSource, gl.VERTEX_SHADER);
+    const fs = compileShader(fsSource, gl.FRAGMENT_SHADER);
+    if (!vs || !fs) return;
+
+    // Create & link program
+    const program = gl.createProgram();
+    if (!program) return;
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error("Program link error:", gl.getProgramInfoLog(program));
+      return;
     }
+
+    gl.useProgram(program);
+
+    // Look up uniforms and attributes
+    const positionLoc = gl.getAttribLocation(program, 'position');
+    const resolutionLoc = gl.getUniformLocation(program, 'u_resolution');
+    const mouseLoc = gl.getUniformLocation(program, 'u_mouse');
+    const timeLoc = gl.getUniformLocation(program, 'u_time');
+
+    // Create fullscreen quad buffer
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    const vertices = new Float32Array([
+      -1.0, -1.0,
+       1.0, -1.0,
+      -1.0,  1.0,
+      -1.0,  1.0,
+       1.0, -1.0,
+       1.0,  1.0,
+    ]);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+    gl.enableVertexAttribArray(positionLoc);
+    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
 
     const handleResize = () => {
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
+      gl.viewport(0, 0, width, height);
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouseRef.current.tx = e.clientX;
-      mouseRef.current.ty = e.clientY;
+      mouseRef.current.tx = e.clientX / window.innerWidth;
+      mouseRef.current.ty = 1.0 - (e.clientY / window.innerHeight);
     };
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('mousemove', handleMouseMove);
 
-    // Initialize mouse positions
-    mouseRef.current.x = window.innerWidth / 2;
-    mouseRef.current.y = window.innerHeight / 2;
-    mouseRef.current.tx = window.innerWidth / 2;
-    mouseRef.current.ty = window.innerHeight / 2;
+    // Render loop variables
+    let animationId: number;
+    let startTime = Date.now();
 
-    let pulseTime = 0;
-
-    const render = () => {
-      ctx.fillStyle = '#09090E';
-      ctx.fillRect(0, 0, width, height);
-
-      // Smooth pointer parallax drift
+    const renderLoop = () => {
+      const elapsedSeconds = (Date.now() - startTime) / 1000.0;
+      
+      // Interpolate mouse coordinates for smooth drift parallax
       const mouse = mouseRef.current;
       mouse.x += (mouse.tx - mouse.x) * 0.05;
       mouse.y += (mouse.ty - mouse.y) * 0.05;
 
-      // Draw subtle shader gradient glow behind elements
-      const radialGlow = ctx.createRadialGradient(
-        mouse.x,
-        mouse.y,
-        10,
-        mouse.x,
-        mouse.y,
-        Math.max(width, height) * 0.6
-      );
-      radialGlow.addColorStop(0, 'rgba(139, 92, 246, 0.05)'); // Violet core
-      radialGlow.addColorStop(0.4, 'rgba(255, 106, 85, 0.025)'); // Coral glow edge
-      radialGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = radialGlow;
-      ctx.fillRect(0, 0, width, height);
+      // Bind program and set uniforms
+      gl.useProgram(program);
+      gl.uniform2f(resolutionLoc, width, height);
+      gl.uniform2f(mouseLoc, mouse.x, mouse.y);
+      gl.uniform1f(timeLoc, elapsedSeconds);
 
-      // Animate breathing pulse
-      pulseTime += 0.008;
-      const breathe = Math.sin(pulseTime) * 0.15 + 0.85;
+      // Draw quad
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-      // Draw perspective grid
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
-      ctx.lineWidth = 0.8;
-
-      const horizonY = height * 0.45;
-      const numLines = 24;
-      for (let i = 0; i < numLines; i++) {
-        const ratio = i / numLines;
-        const gridY = horizonY + (height - horizonY) * Math.pow(ratio, 2.5) * breathe;
-        ctx.beginPath();
-        ctx.moveTo(0, gridY);
-        ctx.lineTo(width, gridY);
-        ctx.stroke();
-      }
-
-      const horizonX = width / 2 + (mouse.x - width / 2) * -0.05;
-      const numVLines = 36;
-      for (let i = 0; i <= numVLines; i++) {
-        const angleRatio = (i / numVLines) - 0.5;
-        const targetX = width / 2 + angleRatio * width * 2.5;
-        ctx.beginPath();
-        ctx.moveTo(horizonX, horizonY);
-        ctx.lineTo(targetX, height);
-        ctx.stroke();
-      }
-
-      // Draw line lattice and floating anchors
-      ctx.lineWidth = 0.5;
-      
-      for (let i = 0; i < anchors.length; i++) {
-        const a1 = anchors[i];
-        a1.x += a1.vx;
-        a1.y += a1.vy;
-
-        if (a1.x < 0 || a1.x > width) a1.vx *= -1;
-        if (a1.y < 0 || a1.y > height) a1.vy *= -1;
-
-        const dx = mouse.x - width / 2;
-        const dy = mouse.y - height / 2;
-        const px = a1.x + dx * 0.015;
-        const py = a1.y + dy * 0.015;
-
-        for (let j = i + 1; j < anchors.length; j++) {
-          const a2 = anchors[j];
-          const pax2 = a2.x + dx * 0.015;
-          const pay2 = a2.y + dy * 0.015;
-          
-          const dist = Math.hypot(px - pax2, py - pay2);
-          if (dist < 180) {
-            const alpha = (1 - dist / 180) * 0.07;
-            ctx.strokeStyle = `rgba(169, 163, 181, ${alpha})`;
-            ctx.beginPath();
-            ctx.moveTo(px, py);
-            ctx.lineTo(pax2, pay2);
-            ctx.stroke();
-          }
-        }
-
-        ctx.fillStyle = a1.color;
-        ctx.beginPath();
-        ctx.arc(px, py, a1.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      animationId = requestAnimationFrame(render);
+      animationId = requestAnimationFrame(renderLoop);
     };
 
-    render();
+    gl.viewport(0, 0, width, height);
+    renderLoop();
 
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
+      
+      // Clean up buffers and program
+      gl.deleteBuffer(buffer);
+      gl.deleteShader(vs);
+      gl.deleteShader(fs);
+      gl.deleteProgram(program);
     };
   }, []);
 
@@ -171,7 +196,9 @@ export const WebGLBackground: React.FC = () => {
         inset: 0,
         zIndex: -2,
         pointerEvents: 'none',
-        display: 'block'
+        display: 'block',
+        width: '100vw',
+        height: '100vh'
       }}
     />
   );

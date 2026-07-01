@@ -103,6 +103,7 @@ export const InterviewPractice: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [typedAnswer, setTypedAnswer] = useState('');
+  const [interimSpeech, setInterimSpeech] = useState('');
 
   // Code Editor IDE State
   const [ideLanguage, setIdeLanguage] = useState('javascript');
@@ -374,14 +375,24 @@ export const InterviewPractice: React.FC = () => {
     rec.lang = 'en-US';
 
     rec.onresult = (event: any) => {
-      let currentResult = '';
+      let finalResult = '';
+      let interimResult = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          currentResult += event.results[i][0].transcript;
+          finalResult += transcript;
+        } else {
+          interimResult += transcript;
         }
       }
-      if (currentResult) {
-        const spokenLower = currentResult.toLowerCase().trim();
+
+      if (interimResult) {
+        setInterimSpeech(interimResult);
+      }
+
+      if (finalResult) {
+        setInterimSpeech('');
+        const spokenLower = finalResult.toLowerCase().trim();
         if (spokenLower === 'repeat' || spokenLower.includes('repeat the question') || spokenLower.includes('please repeat')) {
           stopDictation();
           setTypedAnswer('');
@@ -392,17 +403,28 @@ export const InterviewPractice: React.FC = () => {
         }
         
         // Check if candidate is asking the AI interviewer a question
-        if (isCandidateAskingQuestion(currentResult)) {
-          handleCandidateQuery(currentResult);
+        if (isCandidateAskingQuestion(finalResult)) {
+          handleCandidateQuery(finalResult);
           return;
         }
         
-        setTypedAnswer(prev => prev + (prev.endsWith(' ') || prev === '' ? '' : ' ') + currentResult);
+        setTypedAnswer(prev => prev + (prev.endsWith(' ') || prev === '' ? '' : ' ') + finalResult);
       }
     };
 
     rec.onend = () => {
       setIsRecording(false);
+      // Restart speech recognition automatically to maintain continuous listening
+      if (sessionState === 'answering' && !micMuted && !isSpeaking && !isAiResponding && !isMuted) {
+        try {
+          rec.start();
+          setIsRecording(true);
+        } catch (err) {
+          setTimeout(() => {
+            if (sessionState === 'answering') startDictation();
+          }, 300);
+        }
+      }
     };
 
     rec.onerror = (e: any) => {
@@ -1325,7 +1347,7 @@ export const InterviewPractice: React.FC = () => {
                   style={{
                     flexGrow: 1,
                     display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                     gap: '20px',
                     alignItems: 'stretch',
                     minHeight: '340px',
@@ -1473,7 +1495,7 @@ export const InterviewPractice: React.FC = () => {
                   </div>
 
                   {/* Google Meet Captions Overlay inside the Video Grid */}
-                  {isRecording && typedAnswer && (
+                  {isRecording && (typedAnswer || interimSpeech) && (
                     <div style={{
                       position: 'absolute',
                       bottom: '24px',
@@ -1493,7 +1515,7 @@ export const InterviewPractice: React.FC = () => {
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
                     }}>
                       <span style={{ color: 'var(--accent-primary)', fontWeight: 700, marginRight: '8px' }}>Captions:</span>
-                      {typedAnswer}
+                      {typedAnswer + (interimSpeech ? (typedAnswer ? ' ' : '') + interimSpeech : '')}
                     </div>
                   )}
 
@@ -1773,21 +1795,26 @@ export const InterviewPractice: React.FC = () => {
           style={{
             height: '80px',
             borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            backgroundColor: 'rgba(10, 17, 26, 0.95)',
+            backgroundColor: '#0A0A10',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0 32px',
-            zIndex: 10
+            zIndex: 10,
+            position: 'relative'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: 600 }}>
-              {currentQuestion ? `Round ${currentIdx + 1} of ${questions.length}` : ''}
+            <span style={{ fontSize: '12px', color: '#fff', fontWeight: 600 }}>
+              Mock Call with {currentInterviewer.name}
+            </span>
+            <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'var(--font-mono)' }}>
+              {formatTime(seconds)}
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
             <button
               onClick={() => {
                 if (!micMuted && isRecording) {
@@ -1797,17 +1824,17 @@ export const InterviewPractice: React.FC = () => {
               }}
               title={micMuted ? "Unmute Microphone" : "Mute Microphone"}
               style={{
-                width: '44px',
-                height: '44px',
+                width: '40px',
+                height: '40px',
                 borderRadius: '50%',
-                backgroundColor: micMuted ? '#ef4444' : 'rgba(255, 255, 255, 0.05)',
-                border: micMuted ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: micMuted ? '#ea4335' : '#202124',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 200ms ease'
+                transition: 'all 200ms ease',
+                border: 'none'
               }}
               className="btn-press"
             >
@@ -1818,32 +1845,55 @@ export const InterviewPractice: React.FC = () => {
               onClick={() => setCameraEnabled(!cameraEnabled)}
               title={cameraEnabled ? "Stop Video Camera" : "Start Video Camera"}
               style={{
-                width: '44px',
-                height: '44px',
+                width: '40px',
+                height: '40px',
                 borderRadius: '50%',
-                backgroundColor: !cameraEnabled ? '#ef4444' : 'rgba(255, 255, 255, 0.05)',
-                border: !cameraEnabled ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: !cameraEnabled ? '#ea4335' : '#202124',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 200ms ease'
+                transition: 'all 200ms ease',
+                border: 'none'
               }}
               className="btn-press"
             >
               {cameraEnabled ? <Video style={{ width: '18px', height: '18px' }} /> : <VideoOff style={{ width: '18px', height: '18px' }} />}
             </button>
 
+            {currentQuestion && (
+              <button
+                onClick={() => speakQuestion(currentQuestion.text)}
+                title="Repeat Question"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  backgroundColor: '#202124',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease',
+                  border: 'none'
+                }}
+                className="btn-press"
+              >
+                <RefreshCw style={{ width: '18px', height: '18px' }} />
+              </button>
+            )}
+
             <button
               onClick={handleSpeechToggle}
-              title={isMuted ? "Unmute AI Voice Reciter" : "Mute AI Voice Reciter"}
+              title={isMuted ? "Unmute AI Voice" : "Mute AI Voice"}
               style={{
-                width: '44px',
-                height: '44px',
+                width: '40px',
+                height: '40px',
                 borderRadius: '50%',
-                backgroundColor: isMuted ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 212, 170, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: isMuted ? '#202124' : 'rgba(255, 106, 85, 0.1)',
+                border: isMuted ? 'none' : '1px solid rgba(255, 106, 85, 0.2)',
                 color: isMuted ? 'rgba(255,255,255,0.4)' : 'var(--accent-primary)',
                 display: 'flex',
                 alignItems: 'center',
@@ -1856,40 +1906,39 @@ export const InterviewPractice: React.FC = () => {
               {isMuted ? <VolumeX style={{ width: '18px', height: '18px' }} /> : <Volume2 style={{ width: '18px', height: '18px' }} />}
             </button>
 
-            {/* Repeat Question Button */}
-            {currentQuestion && (
-              <button
-                onClick={() => speakQuestion(currentQuestion.text)}
-                title="Repeat Recruiter Question"
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 200ms ease'
-                }}
-                className="btn-press"
-              >
-                <RefreshCw style={{ width: '18px', height: '18px' }} />
-              </button>
-            )}
+            <button
+              onClick={() => setShowLeaveConfirm(true)}
+              title="Leave Call"
+              style={{
+                width: '56px',
+                height: '40px',
+                borderRadius: '20px',
+                backgroundColor: '#ea4335',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 200ms ease',
+                border: 'none'
+              }}
+              className="btn-press hover:bg-[#dc2626]"
+            >
+              <PhoneOff style={{ width: '18px', height: '18px' }} />
+            </button>
+          </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {isCodingQuestion && sessionState === 'answering' && (
               <button
                 onClick={() => setIdePanelOpen(!idePanelOpen)}
-                title={idePanelOpen ? "Close IDE editor split" : "Open IDE editor split"}
+                title={idePanelOpen ? "Close IDE Editor" : "Open IDE Editor"}
                 style={{
-                  width: '44px',
-                  height: '44px',
+                  width: '40px',
+                  height: '40px',
                   borderRadius: '50%',
-                  backgroundColor: idePanelOpen ? 'rgba(168, 85, 247, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backgroundColor: idePanelOpen ? 'rgba(139, 92, 246, 0.15)' : '#202124',
+                  border: idePanelOpen ? '1px solid rgba(139, 92, 246, 0.3)' : 'none',
                   color: idePanelOpen ? 'var(--accent-purple)' : '#fff',
                   display: 'flex',
                   alignItems: 'center',
@@ -1903,16 +1952,16 @@ export const InterviewPractice: React.FC = () => {
               </button>
             )}
 
-            {!isCodingQuestion && sessionState === 'answering' && (
+            {sessionState === 'answering' && (
               <button
                 onClick={() => setNotesPanelOpen(!notesPanelOpen)}
                 title={notesPanelOpen ? "Close Notes Panel" : "Open Notes Panel"}
                 style={{
-                  width: '44px',
-                  height: '44px',
+                  width: '40px',
+                  height: '40px',
                   borderRadius: '50%',
-                  backgroundColor: notesPanelOpen ? 'rgba(0, 212, 170, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backgroundColor: notesPanelOpen ? 'rgba(255, 106, 85, 0.15)' : '#202124',
+                  border: notesPanelOpen ? '1px solid rgba(255, 106, 85, 0.3)' : 'none',
                   color: notesPanelOpen ? 'var(--accent-primary)' : '#fff',
                   display: 'flex',
                   alignItems: 'center',
@@ -1925,29 +1974,6 @@ export const InterviewPractice: React.FC = () => {
                 <Clipboard style={{ width: '18px', height: '18px' }} />
               </button>
             )}
-          </div>
-
-          <div>
-            <button
-              onClick={() => setShowLeaveConfirm(true)}
-              style={{
-                backgroundColor: '#ef4444',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--text-xs)',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer'
-              }}
-              className="btn-press hover:bg-[#dc2626]"
-            >
-              <PhoneOff style={{ width: '14px', height: '14px' }} />
-              Leave Meeting
-            </button>
           </div>
         </div>
       </div>,

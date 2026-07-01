@@ -168,29 +168,7 @@ export const TopBar: React.FC = () => {
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 
-        {/* Theme Toggle Button */}
-        <button 
-          onClick={toggleTheme}
-          style={{
-            color: 'var(--text-secondary)',
-            padding: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '50%',
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            cursor: 'pointer'
-          }}
-          className="btn-press"
-          title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          {theme === 'dark' ? (
-            <Sun style={{ width: '18px', height: '18px', color: 'var(--accent-secondary)' }} />
-          ) : (
-            <Moon style={{ width: '18px', height: '18px', color: 'var(--accent-purple)' }} />
-          )}
-        </button>
+
 
         {/* Notification Bell Dropdown Container */}
         <div style={{ position: 'relative' }} ref={bellRef}>
