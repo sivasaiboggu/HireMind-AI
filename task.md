@@ -8,6 +8,8 @@
 - [x] Fix SpeechSynthesis voice async loading and add Chrome TTS resume keep-alive ticks
 - [x] Fix candidate camera display by triggering play() on track changes
 - [x] Redesign theme variables in globals.css and WebGLBackground.tsx to support a premium, clean light sand and white aesthetic
+- [x] Swap SpeechSynthesis cancel/resume execution sequence to prevent queue freeze bugs
+- [x] Refactor secure call room portal headers, sidebars, bottoms, and text elements to use CSS variable light theme colors
 - [x] Add dynamic "Submit Answer" button to the center controls bar in InterviewPractice.tsx
 - [x] Sync interviewer avatar mouth shape animations to onstart trigger for custom queries
 - [x] Compile and build project to verify correctness
