@@ -268,7 +268,7 @@ export const Auth: React.FC = () => {
       color: #0f172a;
       font-family: 'DM Sans', sans-serif;
       position: relative;
-      overflow: hidden;
+      overflow-y: auto;
       margin: 0;
       padding: 0;
     }
@@ -314,7 +314,7 @@ export const Auth: React.FC = () => {
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 60px 80px;
+      padding: 40px 60px;
       border-right: 1px solid #e2e8f0;
       position: relative;
       background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
@@ -326,7 +326,7 @@ export const Auth: React.FC = () => {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px;
+      padding: 40px 24px;
       position: relative;
       z-index: 1;
       background-color: transparent;
@@ -345,17 +345,17 @@ export const Auth: React.FC = () => {
       letter-spacing: 0.08em;
       padding: 6px 12px;
       border-radius: 100px;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
     }
 
     .showcase-title {
       font-family: 'Clash Display', 'Syne', sans-serif;
-      font-size: 42px;
+      font-size: 38px;
       font-weight: 600;
       line-height: 1.15;
       letter-spacing: -0.02em;
       color: #0f172a;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     .showcase-title span {
@@ -365,28 +365,28 @@ export const Auth: React.FC = () => {
     }
 
     .showcase-desc {
-      font-size: 15px;
+      font-size: 14px;
       color: #475569;
-      line-height: 1.6;
+      line-height: 1.5;
       max-width: 520px;
-      margin-bottom: 40px;
+      margin-bottom: 24px;
     }
 
     .features-stack {
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      margin-bottom: 40px;
+      gap: 16px;
+      margin-bottom: 24px;
     }
 
     .feature-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
-      border-radius: 20px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 16px;
       display: flex;
-      gap: 18px;
+      gap: 16px;
       align-items: flex-start;
       transition: all 300ms ease;
     }
@@ -398,9 +398,9 @@ export const Auth: React.FC = () => {
     }
 
     .feature-icon-wrapper {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -426,16 +426,16 @@ export const Auth: React.FC = () => {
     }
 
     .feature-details h4 {
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 600;
       color: #0f172a;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .feature-details p {
-      font-size: 12.5px;
+      font-size: 12px;
       color: #475569;
-      line-height: 1.5;
+      line-height: 1.4;
     }
 
     .avatar-pill {
@@ -443,13 +443,13 @@ export const Auth: React.FC = () => {
       align-items: center;
       gap: 6px;
       background: #f8fafc;
-      padding: 4px 8px;
+      padding: 3px 8px;
       border-radius: 100px;
       border: 1px solid #e2e8f0;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 500;
       color: #334155;
-      margin-top: 8px;
+      margin-top: 6px;
       display: inline-flex;
     }
     .avatar-dot {
@@ -461,7 +461,7 @@ export const Auth: React.FC = () => {
     }
 
     .showcase-footer {
-      font-size: 12px;
+      font-size: 11.5px;
       color: #64748b;
       display: flex;
       align-items: center;
@@ -473,8 +473,8 @@ export const Auth: React.FC = () => {
       max-width: 460px;
       background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 28px;
-      padding: 40px;
+      border-radius: 24px;
+      padding: 32px 36px;
       box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 10px 10px -5px rgba(15, 23, 42, 0.02);
       transition: all 300ms ease;
     }
