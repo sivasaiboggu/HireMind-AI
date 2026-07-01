@@ -13,4 +13,6 @@
 - [x] Add dynamic "Submit Answer" button to the center controls bar in InterviewPractice.tsx
 - [x] Sync interviewer avatar mouth shape animations to onstart trigger for custom queries
 - [x] Integrate reactive SpeechRecognition state machine hook syncing microphone state, active speech, and thinking states
+- [x] Build Google Meet Green Room Lobby layout with camera/mic settings and synchronous voice autoplay bindings
+- [x] Display Mock IDE code editor panel strictly when DSA/coding question category is active, hiding it on standard oral rounds
 - [x] Compile and build project to verify correctness
