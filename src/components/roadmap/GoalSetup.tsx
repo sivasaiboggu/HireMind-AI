@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Compass, Plus, X, Import } from 'lucide-react';
+import { Compass, Plus, X, Import, Zap, Trophy } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { useAppStore } from '../../store/appStore';
@@ -23,6 +23,7 @@ export const GoalSetup: React.FC<GoalSetupProps> = ({
   const [level, setLevel] = useState('1-2yr');
   const [timeline, setTimeline] = useState('6 months');
 
+  // Adds a skill to the state array, preventing duplicates
   const addSkill = (skill: string) => {
     const trimmed = skill.trim();
     if (trimmed && !skills.includes(trimmed)) {
@@ -31,6 +32,7 @@ export const GoalSetup: React.FC<GoalSetupProps> = ({
     setSkillInput('');
   };
 
+  // Removes a skill from the checklist state
   const removeSkill = (skill: string) => {
     setSkills(skills.filter(s => s !== skill));
   };
@@ -42,7 +44,7 @@ export const GoalSetup: React.FC<GoalSetupProps> = ({
     }
   };
 
-  // Premium feature: auto-import skills from the last analyzed resume!
+  // Automatically imports keywords/roles extracted from the candidate's last uploaded PDF resume
   const handleAutoImportSkills = () => {
     if (resumeHistory.length === 0) return;
     const lastResume = resumeHistory[0];
@@ -216,34 +218,41 @@ export const GoalSetup: React.FC<GoalSetupProps> = ({
           </div>
         </Card>
 
-        {/* Timeline Radio cards */}
+        {/* Timeline selection utilizing vector icons */}
         <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <label>Timeline Goal</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {[
-              { id: '3 months', label: '⚡ Rapid Upskill (3 Months)' },
-              { id: '6 months', label: '🧭 Strategic Growth (6 Months)' },
-              { id: '1 year', label: '🏆 Career Transition (1 Year)' }
-            ].map(time => (
-              <button
-                key={time.id}
-                type="button"
-                onClick={() => setTimeline(time.id)}
-                style={{
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  border: timeline === time.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                  backgroundColor: timeline === time.id ? 'var(--bg-hover)' : 'var(--bg-elevated)',
-                  color: timeline === time.id ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                  fontSize: 'var(--text-xs)',
-                  fontWeight: 600,
-                  textAlign: 'left'
-                }}
-                className="btn-press"
-              >
-                {time.label}
-              </button>
-            ))}
+              { id: '3 months', label: 'Rapid Upskill (3 Months)', icon: Zap, color: 'var(--accent-primary)' },
+              { id: '6 months', label: 'Strategic Growth (6 Months)', icon: Compass, color: 'var(--accent-secondary)' },
+              { id: '1 year', label: 'Career Transition (1 Year)', icon: Trophy, color: 'var(--accent-purple)' }
+            ].map(time => {
+              const TimeIcon = time.icon;
+              return (
+                <button
+                  key={time.id}
+                  type="button"
+                  onClick={() => setTimeline(time.id)}
+                  style={{
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    border: timeline === time.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                    backgroundColor: timeline === time.id ? 'var(--bg-hover)' : 'var(--bg-elevated)',
+                    color: timeline === time.id ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    fontSize: 'var(--text-xs)',
+                    fontWeight: 600,
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}
+                  className="btn-press"
+                >
+                  <TimeIcon style={{ width: '14px', height: '14px', color: time.color }} />
+                  <span>{time.label}</span>
+                </button>
+              );
+            })}
           </div>
         </Card>
       </div>

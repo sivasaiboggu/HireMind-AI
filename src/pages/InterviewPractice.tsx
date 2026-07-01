@@ -6,9 +6,10 @@ import { SessionSummary } from '../components/interview/SessionSummary';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Button } from '../components/ui/Button';
+import { ProgressiveLoader } from '../components/ui/ProgressiveLoader';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
-import { useAppStore } from '../store/appStore';
+import { useAppStore, generateId } from '../store/appStore';
 import { Question, AnswerRecord, SavedInterview, InterviewConfig } from '../types';
 import { 
   Activity, 
@@ -27,7 +28,8 @@ import {
   Compass, 
   UserCheck,
   PhoneOff,
-  VideoOff
+  VideoOff,
+  Lock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/globals.css';
@@ -37,7 +39,7 @@ type SessionState = 'setup' | 'loading_questions' | 'answering' | 'viewing_feedb
 
 export const InterviewPractice: React.FC = () => {
   const navigate = useNavigate();
-  const { addInterviewSession, activeInterview, setActiveInterview, addToast } = useAppStore();
+  const { addInterviewSession, activeInterview, setActiveInterview, addToast, activeResume } = useAppStore();
   const { execute: getQuestions, loading: loadingQuestions, error: questionsError, reset: resetQuestions } = useGemini(gemini.generateInterviewQuestions, 10);
   const { execute: evaluateAns, loading: evaluatingAnswer, error: evalError, reset: resetEval } = useGemini(gemini.evaluateAnswer, 5);
 
@@ -55,6 +57,7 @@ export const InterviewPractice: React.FC = () => {
   // Webcam media stream
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   // Locked Meeting Room UI States
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
@@ -165,25 +168,40 @@ export const InterviewPractice: React.FC = () => {
       navigator.mediaDevices.getUserMedia({ video: true, audio: false })
         .then(s => {
           setStream(s);
+          streamRef.current = s;
           if (videoRef.current) {
             videoRef.current.srcObject = s;
           }
         })
         .catch(err => {
           console.warn("Camera access blocked or unavailable:", err);
+          addToast('error', 'Camera access blocked or unavailable. Please check your browser webcam permissions.');
         });
     } else {
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
-        setStream(null);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
       }
+      setStream(null);
+      streamRef.current = null;
     }
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
       }
     };
   }, [sessionState, activeConfig?.videoMode]);
+
+  // Synchronize stream and tracks state
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+    if (stream) {
+      stream.getVideoTracks().forEach(track => {
+        track.enabled = cameraEnabled;
+      });
+    }
+  }, [stream, cameraEnabled]);
 
   // TTS speech execution on new question
   useEffect(() => {
@@ -312,10 +330,25 @@ export const InterviewPractice: React.FC = () => {
   };
 
   const handleGenerate = async (config: InterviewConfig) => {
-    setActiveConfig(config);
+    let candidateBackground = '';
+    if (activeResume) {
+      candidateBackground = `Candidate's Resume/Background Details:\n`;
+      candidateBackground += `- Job Role: ${activeResume.jobRole}\n`;
+      candidateBackground += `- Experience Level: ${activeResume.experienceLevel}\n`;
+      candidateBackground += `- Overall ATS compatibility Score: ${activeResume.overallScore}/100\n`;
+      if (activeResume.matchedKeywords && activeResume.matchedKeywords.length > 0) {
+        candidateBackground += `- Target Profile Keywords Matched: ${activeResume.matchedKeywords.slice(0, 10).join(', ')}\n`;
+      }
+      if (activeResume.missingKeywords && activeResume.missingKeywords.length > 0) {
+        candidateBackground += `- Core skills missing/weak spots to probe: ${activeResume.missingKeywords.slice(0, 10).join(', ')}\n`;
+      }
+    }
+
+    const finalConfig = { ...config, candidateBackground };
+    setActiveConfig(finalConfig);
     setSessionState('loading_questions');
     
-    const questionsRes = await getQuestions(config);
+    const questionsRes = await getQuestions(finalConfig);
     if (questionsRes && questionsRes.length > 0) {
       setQuestions(questionsRes);
       setCurrentIdx(0);
@@ -399,7 +432,7 @@ export const InterviewPractice: React.FC = () => {
         const t1 = performance.now();
         const execTime = (t1 - t0).toFixed(2);
         
-        const finalLogs = logs.join('\n') || 'Execution complete: Code ran successfully but yielded no stdout logs.\n💡 Use console.log() to output results.';
+        const finalLogs = logs.join('\n') || 'Execution complete: Code ran successfully but yielded no stdout logs.\nUse console.log() to output results.';
         setConsoleOutput(`${finalLogs}\n\n[System Info: Completed execution in ${execTime}ms]`);
       } catch (err: any) {
         setConsoleOutput(`Syntax/Compile Error: ${err.message}`);
@@ -495,7 +528,7 @@ export const InterviewPractice: React.FC = () => {
       const overallAvg = parseFloat((totalScore / questions.length).toFixed(1));
 
       const savedSession: SavedInterview = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         timestamp: Date.now(),
         config: activeConfig,
         answers: answersList,
@@ -1045,8 +1078,9 @@ export const InterviewPractice: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
-              🔒 Proctored Environment
+            <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Lock style={{ width: '10px', height: '10px' }} />
+              Proctored Environment
             </span>
             <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
             <span style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
@@ -1057,15 +1091,19 @@ export const InterviewPractice: React.FC = () => {
 
         {/* SECURE CALL ROOM SUB-COMPONENTS */}
         {sessionState === 'loading_questions' ? (
-          <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px', padding: '40px', textAlign: 'center' }}>
-            <Activity className="rotating-brain" style={{ width: '56px', height: '56px', color: 'var(--accent-primary)' }} />
-            <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600 }}>
-              Connecting to Secure Call Panel...
-            </h3>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'rgba(255, 255, 255, 0.6)', maxWidth: '440px', lineHeight: 1.6 }}>
-              Establishing video handshake and calibrating round criteria questions for the {activeConfig?.jobRole} profile. Please keep webcam and microphone permissions allowed.
-            </p>
-            <div style={{ width: '100%', maxWidth: '400px', height: '4px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '2px', overflow: 'hidden', marginTop: '12px' }}>
+          <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px', padding: '40px', textAlign: 'center', width: '100%' }}>
+            <ProgressiveLoader
+              messages={[
+                "ESTABLISHING SECURE HANDSHAKE SIGNAL...",
+                "CALIBRATING AI INTERVIEWER MODEL CRITERIA...",
+                "BENCHMARKING QUESTIONS TO CANDIDATE RESUME PROFILE...",
+                "GENERATING ALGORITHMIC CODING CHALLENGES...",
+                "INITIALIZING SECURE MEETING ROOM GRAPHICS PANEL..."
+              ]}
+              subtitle={`Connecting secure call feed for the ${activeConfig?.jobRole} profile. Please ensure camera/microphone permissions are allowed.`}
+              iconColor="var(--accent-primary)"
+            />
+            <div style={{ width: '100%', maxWidth: '400px', height: '4px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '2px', overflow: 'hidden', marginTop: '-20px', zIndex: 10 }}>
               <div style={{ height: '100%', backgroundColor: 'var(--accent-primary)', width: '60%', animation: 'voicePulse 1.5s infinite ease-in-out' }} />
             </div>
           </div>
@@ -1226,7 +1264,7 @@ export const InterviewPractice: React.FC = () => {
                       minHeight: '300px'
                     }}
                   >
-                    {activeConfig?.videoMode && cameraEnabled && stream ? (
+                    {activeConfig?.videoMode && (
                       <video 
                         ref={videoRef} 
                         autoPlay 
@@ -1236,10 +1274,12 @@ export const InterviewPractice: React.FC = () => {
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
-                          transform: 'scaleX(-1)'
+                          transform: 'scaleX(-1)',
+                          display: (cameraEnabled && stream) ? 'block' : 'none'
                         }}
                       />
-                    ) : (
+                    )}
+                    {activeConfig?.videoMode && !(cameraEnabled && stream) && (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                         <div style={{
                           width: '64px',
@@ -1267,8 +1307,9 @@ export const InterviewPractice: React.FC = () => {
                         <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#f3f4f6' }}>
                           You (Candidate)
                         </span>
-                        <span style={{ fontSize: '9px', color: micMuted ? 'var(--accent-danger)' : 'var(--accent-primary)', fontWeight: 600 }}>
-                          {micMuted ? '🎙 MIC MUTED' : '🎙 MIC ACTIVE'}
+                        <span style={{ fontSize: '9px', color: micMuted ? 'var(--accent-danger)' : 'var(--accent-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          {micMuted ? <MicOff style={{ width: '10px', height: '10px' }} /> : <Mic style={{ width: '10px', height: '10px' }} />}
+                          {micMuted ? 'MIC MUTED' : 'MIC ACTIVE'}
                         </span>
                       </div>
                     </div>
@@ -1693,13 +1734,10 @@ export const InterviewPractice: React.FC = () => {
   return (
     <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       
-      {/* Title */}
+      {/* Title Description */}
       {sessionState === 'setup' && (
         <div>
-          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
-            AI Interview Simulator
-          </h2>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
             Simulate realistic mock interviews with live video, voice synthesis, real-time feedback, and coding IDE integration.
           </p>
         </div>

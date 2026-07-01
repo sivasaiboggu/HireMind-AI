@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { useAppStore, AppView, Toast } from '../../store/appStore';
@@ -269,13 +270,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       )}
 
-      {/* Global Toast Notifications */}
       <div
         style={{
           position: 'fixed',
           bottom: isMobile ? '80px' : '24px',
           right: '24px',
-          zIndex: 9999,
+          zIndex: 999999,
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
@@ -283,79 +283,86 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           width: 'calc(100% - 48px)'
         }}
       >
-        {toasts.map((toast: Toast) => {
-          let Icon = Info;
-          let color = 'var(--accent-primary)';
-          let border = '1px solid var(--border-subtle)';
-          
-          if (toast.type === 'success') {
-            Icon = CheckCircle;
-            color = 'var(--accent-primary)';
-            border = '1px solid rgba(0, 212, 170, 0.3)';
-          } else if (toast.type === 'error') {
-            Icon = X;
-            color = 'var(--accent-danger)';
-            border = '1px solid rgba(244, 63, 94, 0.3)';
-          } else if (toast.type === 'info') {
-            Icon = AlertTriangle;
-            color = 'var(--accent-secondary)';
-            border = '1px solid rgba(245, 158, 11, 0.3)';
-          }
+        <AnimatePresence>
+          {toasts.map((toast: Toast) => {
+            let Icon = Info;
+            let color = 'var(--accent-primary)';
+            let border = '1px solid var(--border-subtle)';
+            
+            if (toast.type === 'success') {
+              Icon = CheckCircle;
+              color = 'var(--accent-primary)';
+              border = '1px solid rgba(0, 212, 170, 0.3)';
+            } else if (toast.type === 'error') {
+              Icon = X;
+              color = 'var(--accent-danger)';
+              border = '1px solid rgba(244, 63, 94, 0.3)';
+            } else if (toast.type === 'info') {
+              Icon = AlertTriangle;
+              color = 'var(--accent-secondary)';
+              border = '1px solid rgba(245, 158, 11, 0.3)';
+            }
 
-          return (
-            <div
-              key={toast.id}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '12px',
-                padding: '16px',
-                borderRadius: 'var(--radius-md)',
-                border,
-                backgroundColor: 'var(--bg-surface)',
-                backdropFilter: 'blur(8px)',
-                color: 'var(--text-primary)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-                transform: 'translateY(0)',
-                animation: 'slideInRight 350ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              {/* Toast Left Accent indicator */}
-              <div 
+            return (
+              <motion.div
+                key={toast.id}
+                initial={{ opacity: 0, y: 50, scale: 0.9, rotateX: -15 }}
+                animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+                exit={{ opacity: 0, scale: 0.85, y: -20, transition: { duration: 0.2 } }}
+                transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                 style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: '4px',
-                  backgroundColor: color
-                }}
-              />
-
-              <Icon style={{ width: '18px', height: '18px', color, flexShrink: 0, marginTop: '2px' }} />
-              
-              <div style={{ flexGrow: 1, fontSize: 'var(--text-sm)', fontWeight: 500, lineHeight: 1.4, paddingRight: '12px' }}>
-                {toast.message}
-              </div>
-
-              <button 
-                onClick={() => removeToast(toast.id)}
-                style={{
-                  color: 'var(--text-muted)',
-                  padding: '2px',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'transparent'
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  padding: '16px',
+                  borderRadius: 'var(--radius-md)',
+                  border,
+                  backgroundColor: 'var(--bg-surface)',
+                  backdropFilter: 'blur(8px)',
+                  color: 'var(--text-primary)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
               >
-                <X style={{ width: '14px', height: '14px' }} />
-              </button>
-            </div>
-          );
-        })}
+                {/* Toast Left Accent indicator */}
+                <div 
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: '4px',
+                    backgroundColor: color
+                  }}
+                />
+
+                <Icon style={{ width: '18px', height: '18px', color, flexShrink: 0, marginTop: '2px' }} />
+                
+                <div style={{ flexGrow: 1, fontSize: 'var(--text-sm)', fontWeight: 500, lineHeight: 1.4, paddingRight: '12px' }}>
+                  {toast.message}
+                </div>
+
+                <button 
+                  onClick={() => removeToast(toast.id)}
+                  style={{
+                    color: 'var(--text-muted)',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <X style={{ width: '14px', height: '14px' }} />
+                </button>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
       {/* Ctrl+K Global Search / Command Palette Modal */}

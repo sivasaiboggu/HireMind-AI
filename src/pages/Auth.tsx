@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store/appStore';
 import { supabase, hasSupabaseConfig } from '../services/supabase';
 import { 
-  Shield, Mail, Lock, User, Briefcase, AlertCircle, Sparkles, 
+  Shield, Mail, Lock, User, Briefcase, AlertCircle, 
   ArrowRight, Brain, Code2, FileText, CheckCircle2, LockKeyhole, Eye, EyeOff, KeyRound, ChevronLeft 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -737,7 +737,7 @@ export const Auth: React.FC = () => {
           </div>
 
           <div className="showcase-badge">
-            <Sparkles style={{ width: '12px', height: '12px' }} />
+            <Shield style={{ width: '12px', height: '12px' }} />
             AI-Proctored Ecosystem
           </div>
 
@@ -1142,7 +1142,7 @@ export const Auth: React.FC = () => {
                 onClick={handleGuestMode}
                 className="offline-guest-btn"
               >
-                <Sparkles style={{ width: '14px', height: '14px', color: '#4f46e5' }} />
+                <User style={{ width: '14px', height: '14px', color: '#4f46e5' }} />
                 Use Offline Guest Mode (Local Storage)
               </button>
             </>

@@ -142,11 +142,17 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               borderRadius: 'var(--radius-md)',
               fontSize: 'var(--text-xs)',
               lineHeight: 1.5,
-              color: 'var(--accent-primary)'
+              color: 'var(--accent-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
             }}
             className="fade-in"
           >
-            <strong>💡 Focus Areas:</strong> Consider explaining: {question.expectedTopics.join(', ')}
+            <Lightbulb style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+            <span>
+              <strong>Focus Areas:</strong> Consider explaining: {question.expectedTopics.join(', ')}
+            </span>
           </div>
         )}
 

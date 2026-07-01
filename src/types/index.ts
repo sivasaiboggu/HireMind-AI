@@ -115,6 +115,7 @@ export interface InterviewConfig {
   videoMode?: boolean;
   voiceMode?: boolean;
   targetCompany?: string;
+  candidateBackground?: string;
 }
 
 export interface QuizQuestion {

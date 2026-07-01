@@ -3,10 +3,11 @@ import { GoalSetup } from '../components/roadmap/GoalSetup';
 import { RoadmapTimeline } from '../components/roadmap/RoadmapTimeline';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
+import { ProgressiveLoader } from '../components/ui/ProgressiveLoader';
 import { Button } from '../components/ui/Button';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
-import { useAppStore } from '../store/appStore';
+import { useAppStore, generateId } from '../store/appStore';
 import { SavedRoadmap } from '../types';
 import { Compass, Activity, Terminal, Clock, Award, AlertTriangle, ArrowLeft } from 'lucide-react';
 import '../styles/globals.css';
@@ -33,7 +34,7 @@ export const LearningRoadmap: React.FC = () => {
     if (result) {
       const savedRoadmap: SavedRoadmap = {
         ...result,
-        id: crypto.randomUUID(),
+        id: generateId(),
         timestamp: Date.now(),
         experienceLevel: level,
         currentSkills: skills,
@@ -68,13 +69,10 @@ export const LearningRoadmap: React.FC = () => {
   return (
     <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       
-      {/* Header */}
+      {/* Header Description */}
       {!loading && !displayRoadmap && (
         <div>
-          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
-            AI Learning Planner
-          </h2>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
             Map out a personalized learning path with resources based on current market demands and targets.
           </p>
         </div>
@@ -82,15 +80,19 @@ export const LearningRoadmap: React.FC = () => {
 
       {/* Loading Skeletons */}
       {loading && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center', justifyContent: 'center', padding: '60px 0', textAlign: 'center' }}>
-          <Activity className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
-          <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-purple)', letterSpacing: '0.05em' }}>
-            CUSTOMIZING LEARNING TOPICS & CURATING STUDY MATERIALS...
-          </div>
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
-            Evaluating prerequisite knowledge, technical dependencies, and industry demand spikes.
-          </p>
-          <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '20px' }}>
+        <div style={{ width: '100%' }}>
+          <ProgressiveLoader 
+            messages={[
+              "MAPPING OUT CAREER PATHWAYS & TARGET MILESTONES...",
+              "IDENTIFYING HIGH-DEMAND TECHNICAL SKILL GAPS...",
+              "SOURCING PREMIUM LEARNING ARTICLES & CHALLENGES...",
+              "ASSEMBLING CUSTOM WEEK-BY-WEEK TIMELINES...",
+              "FINALIZING DYNAMIC STRATEGIC ROADMAP GUIDE..."
+            ]}
+            subtitle="Structuring technical dependencies, prerequisites, and resource links mapped to your experience level."
+            iconColor="var(--accent-purple)"
+          />
+          <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '20px' }}>
             <Skeleton height={60} />
             <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: '24px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

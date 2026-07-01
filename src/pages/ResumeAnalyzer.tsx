@@ -3,11 +3,12 @@ import { ResumeUploader } from '../components/resume/ResumeUploader';
 import { ATSScoreCard } from '../components/resume/ATSScoreCard';
 import { ResumeAnalysis } from '../components/resume/ResumeAnalysis';
 import { Skeleton } from '../components/ui/Skeleton';
+import { ProgressiveLoader } from '../components/ui/ProgressiveLoader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
-import { useAppStore } from '../store/appStore';
+import { useAppStore, generateId } from '../store/appStore';
 import { SavedResumeAnalysis } from '../types';
 import { Activity, Terminal, ShieldCheck } from 'lucide-react';
 import '../styles/globals.css';
@@ -29,7 +30,7 @@ export const ResumeAnalyzer: React.FC = () => {
     if (result) {
       const savedAnalysis: SavedResumeAnalysis = {
         ...result,
-        id: crypto.randomUUID(),
+        id: generateId(),
         timestamp: Date.now(),
         jobRole,
         experienceLevel
@@ -50,13 +51,10 @@ export const ResumeAnalyzer: React.FC = () => {
   return (
     <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       
-      {/* Page Title */}
+      {/* Page description */}
       {!loading && !displayAnalysis && (
         <div>
-          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
-            AI Resume Analyzer
-          </h2>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
             Check your resume against ATS requirements and optimize bullet points instantly using AI.
           </p>
         </div>
@@ -66,28 +64,16 @@ export const ResumeAnalyzer: React.FC = () => {
       {loading && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', width: '100%' }}>
           {/* Thinking overlay */}
-          <div 
-            style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              padding: '60px 0',
-              textAlign: 'center',
-              gap: '16px'
-            }}
-          >
-            <Activity className="rotating-brain" style={{ width: '48px', height: '48px' }} />
-            <div 
-              className="typing-cursor"
-              style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-primary)', letterSpacing: '0.05em' }}
-            >
-              ANALYZING RESUME & MATCHING ATS KEYWORDS...
-            </div>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
-              Evaluating structural compliance, key verbs, and industry benchmark standards.
-            </p>
-          </div>
+          <ProgressiveLoader 
+            messages={[
+              "DECONSTRUCTING RESUME DOCUMENT & PARSING LAYOUT...",
+              "MATCHING CANDIDATE PROFILE AGAINST INDUSTRY BENCHMARKS...",
+              "ANALYZING WORD CHOICE AND STRUCTURAL VERB IMPACT...",
+              "EVALUATING ATS COMPLIANCE KEYWORDS & REQUIREMENTS...",
+              "FORMULATING ACTIONABLE CRITIQUES & REWRITE SUGGESTIONS..."
+            ]}
+            subtitle="Benchmarking formatting parameters, structural checklists, and industry keywords against dream recruiter standards."
+          />
 
           {/* Core Skeletons */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>

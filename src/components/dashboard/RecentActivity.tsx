@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Mic, Map, Calendar, AlertCircle, Award } from 'lucide-react';
+import { FileText, Mic, Map, Calendar, AlertCircle, Award, Zap } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { Card } from '../ui/Card';
 import '../../styles/globals.css';
@@ -158,11 +158,18 @@ export const RecentActivity: React.FC = () => {
               color: 'var(--accent-primary)',
               fontWeight: 700,
               textTransform: 'uppercase',
-              letterSpacing: '0.05em'
+              letterSpacing: '0.05em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer'
             }}
             className="btn-press"
           >
-            ⚡ Analyze a Resume to Start
+            <Zap style={{ width: '12px', height: '12px' }} />
+            Analyze a Resume to Start
           </button>
         </div>
       )}

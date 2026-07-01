@@ -6,7 +6,7 @@ import { QuickActions } from '../components/dashboard/QuickActions';
 import { Card } from '../components/ui/Card';
 import { useAppStore, AppView } from '../store/appStore';
 import { supabaseService } from '../services/supabase';
-import { Search, Trash2, Calendar, FileText, Mic, Map, Briefcase, Sparkles, Award, ArrowRight } from 'lucide-react';
+import { Search, Trash2, Calendar, FileText, Mic, Map, Briefcase, Award, ArrowRight } from 'lucide-react';
 import '../styles/globals.css';
 import '../styles/animations.css';
 
@@ -161,10 +161,10 @@ export const Dashboard: React.FC = () => {
           <div style={{
             width: '100%',
             maxWidth: '450px',
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--bg-surface)',
             borderRadius: '24px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             padding: '36px',
             display: 'flex',
             flexDirection: 'column',
@@ -175,26 +175,26 @@ export const Dashboard: React.FC = () => {
                 width: '46px',
                 height: '46px',
                 borderRadius: '14px',
-                backgroundColor: 'rgba(13, 148, 136, 0.06)',
-                border: '1px solid rgba(13, 148, 136, 0.15)',
+                backgroundColor: 'rgba(0, 212, 170, 0.08)',
+                border: '1px solid rgba(0, 212, 170, 0.15)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: '16px'
               }}>
-                <Sparkles style={{ width: '20px', height: '20px', color: '#0d9488' }} />
+                <Briefcase style={{ width: '20px', height: '20px', color: 'var(--accent-primary)' }} />
               </div>
-              <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#0f172a', fontFamily: 'Clash Display, Syne, sans-serif' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'Clash Display, Syne, sans-serif' }}>
                 Personalize Your Hub
               </h3>
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.4, marginTop: '4px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>
                 Welcome to HireMind AI! Help us configure your target roles for recruiters, sandboxes, and resume matching.
               </p>
             </div>
 
             <form onSubmit={handleOnboardingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Your Full Name</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Your Full Name</label>
                 <input
                   type="text"
                   required
@@ -203,19 +203,19 @@ export const Dashboard: React.FC = () => {
                   onChange={(e) => setOnboardingName(e.target.value)}
                   style={{
                     width: '100%',
-                    backgroundColor: '#f8fafc',
-                    border: '1px solid #cbd5e1',
+                    backgroundColor: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '11px 14px',
                     fontSize: '13.5px',
-                    color: '#0f172a',
+                    color: 'var(--text-primary)',
                     outline: 'none'
                   }}
                 />
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Target Job Role</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Target Job Role</label>
                 <input
                   type="text"
                   required
@@ -224,12 +224,12 @@ export const Dashboard: React.FC = () => {
                   onChange={(e) => setOnboardingRole(e.target.value)}
                   style={{
                     width: '100%',
-                    backgroundColor: '#f8fafc',
-                    border: '1px solid #cbd5e1',
+                    backgroundColor: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '11px 14px',
                     fontSize: '13.5px',
-                    color: '#0f172a',
+                    color: 'var(--text-primary)',
                     outline: 'none'
                   }}
                 />
@@ -245,9 +245,9 @@ export const Dashboard: React.FC = () => {
                         fontSize: '11px',
                         padding: '6px 12px',
                         borderRadius: '100px',
-                        backgroundColor: onboardingRole === role ? 'rgba(13, 148, 136, 0.08)' : '#f1f5f9',
-                        border: onboardingRole === role ? '1px solid #0d9488' : '1px solid #e2e8f0',
-                        color: onboardingRole === role ? '#0d9488' : '#475569',
+                        backgroundColor: onboardingRole === role ? 'rgba(0, 212, 170, 0.1)' : 'var(--bg-elevated)',
+                        border: onboardingRole === role ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                        color: onboardingRole === role ? 'var(--accent-primary)' : 'var(--text-secondary)',
                         fontWeight: 500,
                         cursor: 'pointer',
                         transition: 'all 150ms ease'
@@ -264,7 +264,7 @@ export const Dashboard: React.FC = () => {
                 disabled={submitting}
                 style={{
                   width: '100%',
-                  background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                  background: 'linear-gradient(135deg, var(--accent-primary) 0%, #00b38f 100%)',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '12px',
@@ -276,7 +276,7 @@ export const Dashboard: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.15)',
+                  boxShadow: '0 4px 12px rgba(0, 212, 170, 0.15)',
                   marginTop: '10px',
                   transition: 'all 200ms ease'
                 }}
@@ -292,7 +292,7 @@ export const Dashboard: React.FC = () => {
       {/* Hero Greeting */}
       <div>
         <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 600, fontFamily: 'var(--font-display)', lineHeight: 1.2 }}>
-          {getGreeting()}, {getDisplayName()} 👋
+          {getGreeting()}, {getDisplayName()}
         </h2>
         <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
           Your career intelligence hub is ready. Optimize your profile and practice key roles.

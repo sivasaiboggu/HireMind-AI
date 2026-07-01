@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, AlertCircle, Zap } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Define PDFjs worker
+// Configure the worker CDN source for PDF.js client-side text parsing
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://esm.sh/pdfjs-dist@4.10.38/build/pdf.worker.mjs';
 
 interface ResumeUploaderProps {
@@ -27,11 +27,13 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Extract text from PDF using pdfjs-dist
+  // Extract raw text from PDF blocks using pdfjs-dist in the browser
   const extractTextFromPdf = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     let fullText = '';
+    
+    // Iterate through pages to pull token strings sequentially
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
@@ -250,6 +252,7 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
         />
       </div>
 
+      {/* Target Job description field */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <label>Target Job Description (Optional, for precise keyword audit)</label>
         <textarea
@@ -261,14 +264,16 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
         />
       </div>
 
+      {/* Clean button using Lucide icon prop instead of raw emoji */}
       <Button
         type="submit"
         variant="primary"
         loading={loading}
         disabled={loading || parsing || (!resumeText.trim() && !fileName)}
+        icon={<Zap style={{ width: '16px', height: '16px' }} />}
         style={{ width: '100%', padding: '16px 20px', borderRadius: 'var(--radius-md)' }}
       >
-        ⚡ Initiate Career Document Audit
+        Initiate Career Document Audit
       </Button>
     </form>
   );

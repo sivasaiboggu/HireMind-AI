@@ -3,6 +3,7 @@ import { Zap, Plus, X, Video, Mic, Briefcase, ListFilter, HelpCircle, CheckCircl
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { InterviewConfig } from '../../types';
+import { useAppStore } from '../../store/appStore';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
@@ -15,7 +16,10 @@ export const SetupForm: React.FC<SetupFormProps> = ({
   onGenerate,
   loading
 }) => {
-  const [jobRole, setJobRole] = useState('');
+  const { profile } = useAppStore();
+  const [jobRole, setJobRole] = useState(() => {
+    return profile?.target_role || localStorage.getItem('hiremind_guest_role') || '';
+  });
   const [techStack, setTechStack] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Senior'>('Intermediate');

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import '../../styles/globals.css';
 
 interface KeywordCloudProps {
@@ -47,10 +48,11 @@ export const KeywordCloud: React.FC<KeywordCloudProps> = ({
         </div>
       </div>
 
-      {/* Matched Keywords */}
+      {/* Matched Keywords with Lucide Check Icon */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          ✅ Matched Keywords ({matchedKeywords.length})
+        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <CheckCircle2 style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />
+          Matched Keywords ({matchedKeywords.length})
         </span>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {matchedKeywords.length > 0 ? (
@@ -65,10 +67,11 @@ export const KeywordCloud: React.FC<KeywordCloudProps> = ({
         </div>
       </div>
 
-      {/* Missing Keywords */}
+      {/* Missing Keywords with Lucide Cross Icon */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          ❌ Missing Keywords ({missingKeywords.length})
+        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <XCircle style={{ width: '14px', height: '14px', color: 'var(--accent-danger)' }} />
+          Missing Keywords ({missingKeywords.length})
         </span>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {missingKeywords.length > 0 ? (

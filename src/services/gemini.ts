@@ -113,7 +113,8 @@ export class GeminiService {
         config.difficulty,
         config.interviewType,
         config.questionCount,
-        config.targetCompany
+        config.targetCompany,
+        config.candidateBackground || ''
       );
       
       const response = await model.generateContent(prompt);

@@ -101,6 +101,13 @@ const getSavedJson = <T>(key: string, defaultValue: T): T => {
   }
 };
 
+export const generateId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+};
+
 export const useAppStore = create<AppState>((set, get) => ({
   sidebarCollapsed: getSavedJson<boolean>(KEYS.COLLAPSED, false),
   searchOpen: false,
@@ -150,7 +157,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSearchOpen: (searchOpen) => set({ searchOpen }),
   
   addToast: (type, message) => {
-    const id = crypto.randomUUID();
+    const id = generateId();
     set((state) => ({
       toasts: [...state.toasts, { id, type, message }]
     }));
@@ -168,6 +175,40 @@ export const useAppStore = create<AppState>((set, get) => ({
    * Auth Initialization Subscriber
    */
   initializeAuth: () => {
+    // 1. Cross-tab LocalStorage synchronization listener
+    const handleStorageChange = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (e.key === KEYS.CREDITS) {
+        const val = getSavedJson<number>(KEYS.CREDITS, 85);
+        if (get().credits !== val) {
+          set({ credits: val });
+          get().addToast('info', 'Sync: Credits updated');
+        }
+      } else if (e.key === KEYS.RESUMES) {
+        const val = getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []);
+        set({
+          resumeHistory: val,
+          activeResume: val.length > 0 ? val[0] : null
+        });
+        get().addToast('info', 'Sync: Resumes updated');
+      } else if (e.key === KEYS.INTERVIEWS) {
+        const val = getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []);
+        set({
+          interviewHistory: val,
+          activeInterview: val.length > 0 ? val[0] : null
+        });
+        get().addToast('info', 'Sync: Interviews updated');
+      } else if (e.key === KEYS.ROADMAPS) {
+        const val = getSavedJson<SavedRoadmap[]>(KEYS.ROADMAPS, []);
+        set({
+          roadmapHistory: val,
+          activeRoadmap: val.length > 0 ? val[0] : null
+        });
+        get().addToast('info', 'Sync: Roadmaps updated');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
     if (!hasSupabaseConfig) {
       // Offline mode - Load Guest historical records from localStorage immediately
       set({
@@ -180,13 +221,30 @@ export const useAppStore = create<AppState>((set, get) => ({
         guestMode: true,
         authLoading: false
       });
-      return () => {};
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+      };
     }
+
+    // Real-time Supabase Database listeners reference variables
+    let profileChannel: any = null;
+    let resumeChannel: any = null;
+    let interviewChannel: any = null;
+    let roadmapChannel: any = null;
+
+    const cleanRealtimeSubscriptions = () => {
+      if (profileChannel) supabase.removeChannel(profileChannel);
+      if (resumeChannel) supabase.removeChannel(resumeChannel);
+      if (interviewChannel) supabase.removeChannel(interviewChannel);
+      if (roadmapChannel) supabase.removeChannel(roadmapChannel);
+    };
 
     // Subscribe to auth state updates
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       set({ authLoading: true });
       const currentUser = session?.user || null;
+
+      cleanRealtimeSubscriptions();
 
       if (currentUser) {
         // Logged In -> Fetch User Data from Supabase database
@@ -209,6 +267,65 @@ export const useAppStore = create<AppState>((set, get) => ({
           guestMode: false,
           authLoading: false
         });
+
+        // Register table-level realtime database changes for the authenticated candidate
+        profileChannel = supabase
+          .channel(`profile-db-sync-${currentUser.id}`)
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${currentUser.id}` },
+            (payload) => {
+              const updatedProfile = payload.new as UserProfile;
+              if (updatedProfile && get().credits !== updatedProfile.credits) {
+                set({
+                  profile: updatedProfile,
+                  credits: updatedProfile.credits ?? 100
+                });
+                get().addToast('success', `Real-time Sync: AI Credits updated to ${updatedProfile.credits}`);
+              }
+            }
+          )
+          .subscribe();
+
+        resumeChannel = supabase
+          .channel(`resumes-db-sync-${currentUser.id}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'saved_resumes', filter: `user_id=eq.${currentUser.id}` },
+            async () => {
+              const res = await supabaseService.fetchResumes(currentUser.id);
+              set({ resumeHistory: res, activeResume: res.length > 0 ? res[0] : null });
+              get().addToast('info', 'Real-time Sync: Resumes history updated');
+            }
+          )
+          .subscribe();
+
+        interviewChannel = supabase
+          .channel(`interviews-db-sync-${currentUser.id}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'saved_interviews', filter: `user_id=eq.${currentUser.id}` },
+            async () => {
+              const ints = await supabaseService.fetchInterviews(currentUser.id);
+              set({ interviewHistory: ints, activeInterview: ints.length > 0 ? ints[0] : null });
+              get().addToast('info', 'Real-time Sync: Mock Interviews updated');
+            }
+          )
+          .subscribe();
+
+        roadmapChannel = supabase
+          .channel(`roadmaps-db-sync-${currentUser.id}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'saved_roadmaps', filter: `user_id=eq.${currentUser.id}` },
+            async () => {
+              const rds = await supabaseService.fetchRoadmaps(currentUser.id);
+              set({ roadmapHistory: rds, activeRoadmap: rds.length > 0 ? rds[0] : null });
+              get().addToast('info', 'Real-time Sync: Learning Roadmaps updated');
+            }
+          )
+          .subscribe();
+
       } else {
         // Logged Out -> Read from Guest localStorage mode if guestMode is true, otherwise empty
         const isGuest = getSavedJson<boolean>('hiremind_guest_v9', false);
@@ -228,7 +345,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
 
     return () => {
+      window.removeEventListener('storage', handleStorageChange);
       subscription.unsubscribe();
+      cleanRealtimeSubscriptions();
     };
   },
 

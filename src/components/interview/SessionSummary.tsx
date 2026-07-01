@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, RefreshCw, Archive, ArrowRight, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Award, RefreshCw, Archive, ArrowRight, ShieldCheck, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { ProgressRing } from '../ui/ProgressRing';
@@ -170,8 +170,9 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
           
           {/* Areas needing focus */}
           <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-secondary)' }}>
-              ⚠️ Top Focus Areas
+            <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <AlertTriangle style={{ width: '16px', height: '16px' }} />
+              Top Focus Areas
             </h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

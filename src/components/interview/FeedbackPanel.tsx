@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Award, Check, AlertTriangle, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { Award, Check, AlertTriangle, ChevronDown, ChevronUp, ArrowRight, Lightbulb } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { ScoreBar } from '../ui/ScoreBar';
@@ -116,8 +116,9 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                 userSelect: 'none'
               }}
             >
-              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                💡 View Model Reference Answer
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Lightbulb style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />
+                View Model Reference Answer
               </span>
               {modelOpen ? (
                 <ChevronUp style={{ width: '16px', height: '16px', color: 'var(--text-secondary)' }} />

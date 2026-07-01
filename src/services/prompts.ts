@@ -58,12 +58,14 @@ Your response MUST be a JSON object with this EXACT structure:
 Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks (e.g. do not write \`\`\`json).
 `;
 
-export const INTERVIEW_QUESTIONS_PROMPT = (role: string, stack: string[], difficulty: string, type: string, count: number, company: string = 'General') => `
+export const INTERVIEW_QUESTIONS_PROMPT = (role: string, stack: string[], difficulty: string, type: string, count: number, company: string = 'General', candidateBackground: string = '') => `
 Generate exactly ${count} mock interview questions for the role: "${role}".
 Target Stack: ${stack.join(', ')}
 Seniority Level: ${difficulty}
 Interview Focus Type: ${type} (can be 'technical', 'behavioral', 'system-design', 'hr', 'dsa', or 'full')
 Target Company: ${company}
+
+${candidateBackground ? `\nCRITICAL CANDIDATE BACKGROUND (Read the candidate's resume/skills info to tailer questions, targeting growth areas and strengths):\n${candidateBackground}\n` : ''}
 
 ${company && company.toLowerCase() !== 'general' ? `Ensure that several interview questions are tailored and specific to the known recruitment process, technical screens, or values of "${company}".` : ''}
 

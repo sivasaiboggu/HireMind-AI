@@ -35,7 +35,7 @@ import {
   BookOpen,
   Trophy,
   Flame,
-  Sparkles
+  Lightbulb
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/globals.css';
@@ -570,10 +570,7 @@ json.dumps(result)
       {quizState === 'setup' && (
         <div className="page-enter" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Cpu className="text-cyan animate-pulse" /> HireMind AI Practice Workspace
-            </h2>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
               Prepare for elite software engineering and corporate interviews with structured compiler sandboxes and AI evaluations.
             </p>
           </div>
@@ -616,7 +613,7 @@ json.dumps(result)
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', justifyContent: 'center', padding: '100px 0', textAlign: 'center' }} className="page-enter">
           <div className="relative" style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="absolute inset-0 rounded-full border-4 border-cyan-subtle border-t-cyan animate-spin" style={{ borderTopColor: 'var(--accent-primary)' }} />
-            <Sparkles className="text-cyan" style={{ width: '32px', height: '32px' }} />
+            <BookOpen className="text-cyan" style={{ width: '32px', height: '32px' }} />
           </div>
           <div className="typing-cursor" style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--accent-primary)', letterSpacing: '0.05em' }}>
             TAILORING INTERVIEW EXPERIENCES...
@@ -989,7 +986,12 @@ json.dumps(result)
                     {/* Console View contents */}
                     <div style={{ padding: '16px', minHeight: '120px', maxHeight: '180px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#E2E8F0', whiteSpace: 'pre-wrap' }}>
                       {compilerTab === 'console' ? (
-                        consoleOutput || '💡 Click "Run Code" to compile and execute current code.'
+                        consoleOutput || (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
+                            <Lightbulb style={{ width: '14px', height: '14px', color: 'var(--accent-primary)', flexShrink: 0 }} />
+                            Click "Run Code" to compile and execute current code.
+                          </span>
+                        )
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           {testCaseResults.length === 0 ? (
@@ -1122,14 +1124,20 @@ json.dumps(result)
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div style={{ padding: '16px', backgroundColor: 'rgba(0, 212, 170, 0.01)', border: '1px solid rgba(0, 212, 170, 0.05)', borderRadius: 'var(--radius-md)' }}>
-                      <h5 style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 700, marginBottom: '8px' }}>✓ STRENGTHS</h5>
+                      <h5 style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <CheckCircle2 style={{ width: '13px', height: '13px' }} />
+                        STRENGTHS
+                      </h5>
                       <ul style={{ paddingLeft: '16px', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {aiEvaluation.strengths?.map((str: string, idx: number) => <li key={idx}>{str}</li>)}
                       </ul>
                     </div>
 
                     <div style={{ padding: '16px', backgroundColor: 'rgba(245, 158, 11, 0.01)', border: '1px solid rgba(245, 158, 11, 0.05)', borderRadius: 'var(--radius-md)' }}>
-                      <h5 style={{ fontSize: '11px', color: 'var(--accent-secondary)', fontWeight: 700, marginBottom: '8px' }}>⚠ AREAS TO IMPROVE</h5>
+                      <h5 style={{ fontSize: '11px', color: 'var(--accent-secondary)', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <AlertTriangle style={{ width: '13px', height: '13px' }} />
+                        AREAS TO IMPROVE
+                      </h5>
                       <ul style={{ paddingLeft: '16px', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {aiEvaluation.improvements?.map((imp: string, idx: number) => <li key={idx}>{imp}</li>)}
                       </ul>

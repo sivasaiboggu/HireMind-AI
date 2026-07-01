@@ -9,6 +9,7 @@ export const TopBar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const menuRef = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLDivElement>(null);
   
   const { 
     sidebarCollapsed, 
@@ -17,17 +18,24 @@ export const TopBar: React.FC = () => {
     toggleTheme,
     user,
     profile,
-    signOutUser
+    signOutUser,
+    getRecentActivity
   } = useAppStore();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const currentView = location.pathname.substring(1) || 'dashboard';
+  
+  const recentActivities = getRecentActivity ? getRecentActivity() : [];
 
-  // Close dropdown menu when clicking outside
+  // Close dropdown menus when clicking outside their containers
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
+      }
+      if (bellRef.current && !bellRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -35,6 +43,19 @@ export const TopBar: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Helper to display time relative to the current timestamp
+  const formatTime = (timestamp: number) => {
+    const diff = Date.now() - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  };
 
   const handleSignOut = async () => {
     setMenuOpen(false);
@@ -171,34 +192,110 @@ export const TopBar: React.FC = () => {
           )}
         </button>
 
-        {/* Notification Bell */}
-        <button 
-          style={{
-            position: 'relative',
-            color: 'var(--text-secondary)',
-            padding: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '50%',
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)'
-          }}
-          className="btn-press"
-        >
-          <Bell style={{ width: '18px', height: '18px' }} />
-          <span 
-            style={{
-              position: 'absolute',
-              top: '2px',
-              right: '2px',
-              width: '6px',
-              height: '6px',
-              backgroundColor: 'var(--accent-primary)',
-              borderRadius: '50%'
+        {/* Notification Bell Dropdown Container */}
+        <div style={{ position: 'relative' }} ref={bellRef}>
+          <button 
+            onClick={() => {
+              setNotificationsOpen(!notificationsOpen);
+              setMenuOpen(false);
             }}
-          />
-        </button>
+            style={{
+              position: 'relative',
+              color: 'var(--text-secondary)',
+              padding: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              cursor: 'pointer'
+            }}
+            className="btn-press"
+            title="Real-time Notifications"
+          >
+            <Bell style={{ width: '18px', height: '18px' }} />
+            {recentActivities.length > 0 && (
+              <span 
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '2px',
+                  width: '6px',
+                  height: '6px',
+                  backgroundColor: 'var(--accent-primary)',
+                  borderRadius: '50%'
+                }}
+              />
+            )}
+          </button>
+
+          {notificationsOpen && (
+            <div 
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: '46px',
+                width: '320px',
+                backgroundColor: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                zIndex: 100
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Notifications Hub
+                </span>
+                <span style={{ fontSize: '9px', color: 'var(--accent-primary)', fontWeight: 600 }}>
+                  Real-time Active
+                </span>
+              </div>
+              
+              <div style={{ height: '1px', backgroundColor: 'var(--border-subtle)' }} />
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
+                {recentActivities.length > 0 ? (
+                  recentActivities.slice(0, 5).map((act) => (
+                    <div 
+                      key={act.id} 
+                      style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: '2px', 
+                        padding: '8px 10px', 
+                        borderRadius: 'var(--radius-sm)', 
+                        backgroundColor: 'var(--bg-elevated)',
+                        borderLeft: `3px solid ${act.type === 'resume' ? 'var(--accent-secondary)' : act.type === 'interview' ? 'var(--accent-primary)' : 'var(--accent-purple)'}`
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {act.title}
+                        </span>
+                        <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>
+                          {formatTime(act.timestamp)}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
+                        {act.subtitle}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                    No notifications recorded.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* User initials circle with Dropdown menu */}
         <div style={{ position: 'relative' }} ref={menuRef}>
