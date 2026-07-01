@@ -37,7 +37,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/globals.css';
 import '../styles/animations.css';
 
-type SessionState = 'setup' | 'loading_questions' | 'answering' | 'viewing_feedback' | 'summary';
+type SessionState = 'setup' | 'loading_questions' | 'lobby' | 'answering' | 'viewing_feedback' | 'summary';
 
 export const InterviewPractice: React.FC = () => {
   const navigate = useNavigate();
@@ -55,6 +55,7 @@ export const InterviewPractice: React.FC = () => {
   // Time & Video Tracking
   const [seconds, setSeconds] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const spokenFirstQuestionRef = useRef(false);
   
   // Webcam media stream
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -185,7 +186,7 @@ export const InterviewPractice: React.FC = () => {
 
   // Webcam activation effect
   useEffect(() => {
-    if (sessionState === 'answering' && activeConfig?.videoMode) {
+    if ((sessionState === 'answering' || sessionState === 'lobby') && activeConfig?.videoMode) {
       navigator.mediaDevices.getUserMedia({ video: true, audio: false })
         .then(s => {
           setStream(s);
@@ -232,7 +233,14 @@ export const InterviewPractice: React.FC = () => {
   // TTS speech execution on new question
   useEffect(() => {
     if (sessionState === 'answering' && activeConfig?.videoMode && questions.length > 0 && !isMuted) {
-      speakQuestion(questions[currentIdx].text);
+      if (currentIdx === 0) {
+        if (!spokenFirstQuestionRef.current) {
+          speakQuestion(questions[currentIdx].text);
+          spokenFirstQuestionRef.current = true;
+        }
+      } else {
+        speakQuestion(questions[currentIdx].text);
+      }
     }
     return () => {
       if ('speechSynthesis' in window) {
@@ -554,7 +562,8 @@ export const InterviewPractice: React.FC = () => {
       setSeconds(0);
       setTypedAnswer('');
       setConsoleOutput(null);
-      setSessionState('answering');
+      spokenFirstQuestionRef.current = false;
+      setSessionState('lobby');
     } else {
       setSessionState('setup');
     }
@@ -1345,13 +1354,200 @@ export const InterviewPractice: React.FC = () => {
               <div style={{ height: '100%', backgroundColor: 'var(--accent-primary)', width: '60%', animation: 'voicePulse 1.5s infinite ease-in-out' }} />
             </div>
           </div>
+        ) : sessionState === 'lobby' ? (
+          /* Render Google Meet Green Room Lobby */
+          <div 
+            style={{ 
+              flexGrow: 1, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              padding: '40px', 
+              gap: '48px', 
+              width: '100%', 
+              maxWidth: '1200px', 
+              margin: '0 auto', 
+              height: 'calc(100vh - 144px)',
+              overflowY: 'auto'
+            }}
+          >
+            {/* Left: Video Preview */}
+            <div 
+              className="neuform-card"
+              style={{
+                flex: '1 1 55%',
+                height: '420px',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '16px',
+                border: '1px solid var(--border-subtle)',
+                overflow: 'hidden'
+              }}
+            >
+              {activeConfig?.videoMode && (
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    transform: 'scaleX(-1)',
+                    display: (cameraEnabled && stream) ? 'block' : 'none'
+                  }}
+                />
+              )}
+              {(!cameraEnabled || !stream) && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '72px',
+                    height: '72px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--bg-elevated)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: '24px'
+                  }}>
+                    YOU
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {!cameraEnabled ? 'Camera is muted' : 'Camera is starting...'}
+                  </span>
+                </div>
+              )}
+
+              {/* Lobby Camera and Mic Floating toggles */}
+              <div style={{ position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '16px', zIndex: 10 }}>
+                <button
+                  onClick={() => setMicMuted(!micMuted)}
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    backgroundColor: micMuted ? '#ea4335' : 'rgba(255,255,255,0.15)',
+                    color: '#fff',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(8px)',
+                    transition: 'all 200ms ease'
+                  }}
+                  className="btn-press"
+                >
+                  {micMuted ? <MicOff style={{ width: '20px', height: '20px' }} /> : <Mic style={{ width: '20px', height: '20px' }} />}
+                </button>
+                <button
+                  onClick={() => setCameraEnabled(!cameraEnabled)}
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    backgroundColor: !cameraEnabled ? '#ea4335' : 'rgba(255,255,255,0.15)',
+                    color: '#fff',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(8px)',
+                    transition: 'all 200ms ease'
+                  }}
+                  className="btn-press"
+                >
+                  {cameraEnabled ? <Video style={{ width: '20px', height: '20px' }} /> : <VideoOff style={{ width: '20px', height: '20px' }} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Joining Panel */}
+            <div 
+              style={{
+                flex: '1 1 40%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                gap: '24px',
+                textAlign: 'left'
+              }}
+            >
+              <div>
+                <h1 style={{ fontSize: '32px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+                  Ready to join?
+                </h1>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  Sophia is waiting in the secure meeting room. Please ensure your microphone and camera settings look correct before entering.
+                </p>
+              </div>
+
+              <div 
+                style={{ 
+                  padding: '16px 20px', 
+                  backgroundColor: 'var(--bg-surface)', 
+                  border: '1px solid var(--border-subtle)', 
+                  borderRadius: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}
+              >
+                <span style={{ fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Proctored Job Role Context
+                </span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {activeConfig?.jobRole}
+                </span>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (questions.length > 0) {
+                    speakQuestion(questions[currentIdx].text);
+                    spokenFirstQuestionRef.current = true;
+                  }
+                  setSessionState('answering');
+                }}
+                style={{
+                  alignSelf: 'flex-start',
+                  padding: '14px 32px',
+                  borderRadius: '30px',
+                  backgroundColor: 'var(--accent-primary)',
+                  color: '#fff',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: 'var(--glow-amber)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  transition: 'all 200ms ease'
+                }}
+                className="btn-press"
+              >
+                <Play style={{ width: '16px', height: '16px' }} />
+                Join Interview Call
+              </button>
+            </div>
+          </div>
         ) : (
           <div 
             style={{
               flexGrow: 1,
               display: 'grid',
-              gridTemplateColumns: (sessionState === 'answering' && (idePanelOpen || notesPanelOpen)) 
-                ? '1fr 380px' 
+              gridTemplateColumns: (sessionState === 'answering' && isCodingQuestion && idePanelOpen) 
+                ? '1fr 500px' 
                 : '1fr',
               gap: '24px',
               padding: '24px',
@@ -1643,218 +1839,108 @@ export const InterviewPractice: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Workspace Panel: Code Editor OR Text Answer and Notes */}
-            {sessionState === 'answering' && (isCodingQuestion || (!activeConfig?.videoMode && !activeConfig?.voiceMode)) && (
+            {/* Right Workspace Panel: Code Editor (Only display for Coding/DSA Questions) */}
+            {sessionState === 'answering' && isCodingQuestion && idePanelOpen && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto' }}>
-                {isCodingQuestion && idePanelOpen ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', backgroundColor: 'var(--bg-surface)', minHeight: '380px' }}>
-                    <div style={{ padding: '12px 20px', backgroundColor: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Code style={{ width: '16px', height: '16px', color: 'var(--accent-primary)' }} />
-                        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--text-primary)' }}>MOCK CODING TERMINAL</span>
-                        <select 
-                          value={ideLanguage} 
-                          onChange={(e) => setIdeLanguage(e.target.value)}
-                          style={{
-                            padding: '2px 6px',
-                            fontSize: '9px',
-                            borderRadius: '4px',
-                            backgroundColor: 'var(--bg-surface)',
-                            border: '1px solid var(--border-subtle)',
-                            color: 'var(--text-primary)',
-                            width: 'auto'
-                          }}
-                        >
-                          <option value="javascript">JavaScript</option>
-                          <option value="typescript">TypeScript</option>
-                          <option value="python">Python</option>
-                          <option value="sql">SQL</option>
-                        </select>
-                      </div>
-                      <span style={{ fontSize: '9px', color: codingSeconds < 120 ? 'var(--accent-danger)' : 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                        TIMER: {formatTime(codingSeconds)}
-                      </span>
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexGrow: 1, backgroundColor: 'var(--bg-surface)', position: 'relative', minHeight: '220px' }}>
-                      <div 
-                        id="ide-gutter"
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', backgroundColor: 'var(--bg-surface)', minHeight: '380px' }}>
+                  <div style={{ padding: '12px 20px', backgroundColor: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Code style={{ width: '16px', height: '16px', color: 'var(--accent-primary)' }} />
+                      <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--text-primary)' }}>MOCK CODING TERMINAL</span>
+                      <select 
+                        value={ideLanguage} 
+                        onChange={(e) => setIdeLanguage(e.target.value)}
                         style={{
-                          width: '36px',
-                          borderRight: '1px solid var(--border-subtle)',
-                          color: 'var(--text-muted)',
-                          textAlign: 'right',
-                          paddingRight: '8px',
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '11px',
-                          lineHeight: '18px',
-                          userSelect: 'none',
-                          paddingTop: '12px',
-                          paddingBottom: '12px',
-                          overflow: 'hidden',
-                          height: '100%'
-                        }}
-                      >
-                        {ideCode.split('\n').map((_, i) => <div key={i}>{i + 1}</div>)}
-                      </div>
-                      <textarea
-                        value={ideCode}
-                        onChange={(e) => {
-                          setIdeCode(e.target.value);
-                          triggerTypingIndicator();
-                        }}
-                        onScroll={handleEditorScroll}
-                        style={{
-                          flexGrow: 1,
-                          backgroundColor: 'transparent',
-                          color: 'var(--text-primary)',
-                          border: 'none',
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '11px',
-                          lineHeight: '18px',
-                          padding: '12px',
-                          resize: 'none',
-                          outline: 'none',
-                          boxShadow: 'none',
-                          height: '100%',
-                          minHeight: '200px'
-                        }}
-                      />
-                    </div>
-
-                    {consoleOutput && (
-                      <div style={{ padding: '12px 20px', backgroundColor: 'var(--bg-elevated)', borderTop: '1px solid var(--border-subtle)', color: 'var(--accent-primary)', fontSize: '9px', fontFamily: 'var(--font-mono)', lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
-                        {consoleOutput}
-                      </div>
-                    )}
-
-                    <div style={{ padding: '12px 20px', backgroundColor: 'var(--bg-elevated)', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <button 
-                        onClick={runMockTests}
-                        disabled={runningTests}
-                        style={{ fontSize: '10px', padding: '6px 12px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer' }}
-                        className="btn-press"
-                      >
-                        {runningTests ? 'Compiling...' : 'Run Test Cases'}
-                      </button>
-                      <Button 
-                        variant="primary" 
-                        onClick={() => handleSubmitAnswer(ideCode)}
-                        style={{ padding: '6px 16px', borderRadius: 'var(--radius-md)', fontSize: '10px' }}
-                      >
-                        Submit Solution
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  /* Standard Response and Notes */
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
-                    <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>Draft response detail</span>
-                        {activeConfig?.voiceMode && (
-                          <button
-                            type="button"
-                            onClick={isRecording ? stopDictation : startDictation}
-                            style={{
-                              padding: '4px 10px',
-                              borderRadius: '4px',
-                              backgroundColor: isRecording ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0, 212, 170, 0.1)',
-                              border: isRecording ? '1px solid #ef4444' : '1px solid var(--accent-primary)',
-                              color: isRecording ? '#ef4444' : 'var(--accent-primary)',
-                              fontSize: '9px',
-                              fontWeight: 700,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px'
-                            }}
-                            className={`btn-press ${isRecording ? 'mic-pulse' : ''}`}
-                          >
-                            {isRecording ? <MicOff style={{ width: '12px', height: '12px' }} /> : <Mic style={{ width: '12px', height: '12px' }} />}
-                            {isRecording ? 'STOP DICTATION' : 'SPEAK RESPONSE'}
-                          </button>
-                        )}
-                      </div>
-
-                      <textarea
-                        rows={6}
-                        required
-                        value={typedAnswer}
-                        onChange={(e) => {
-                          setTypedAnswer(e.target.value);
-                          triggerTypingIndicator();
-                        }}
-                        placeholder={activeConfig?.voiceMode ? "Click 'SPEAK RESPONSE' and begin drafting your answer orally..." : "Type your answer explaining technical parameters clearly..."}
-                        style={{
-                          width: '100%',
-                          backgroundColor: 'var(--bg-elevated)',
+                          padding: '2px 6px',
+                          fontSize: '9px',
+                          borderRadius: '4px',
+                          backgroundColor: 'var(--bg-surface)',
                           border: '1px solid var(--border-subtle)',
                           color: 'var(--text-primary)',
-                          borderRadius: 'var(--radius-md)',
-                          padding: '12px',
-                          fontSize: '12px',
-                          outline: 'none',
-                          fontFamily: 'var(--font-body)',
-                          resize: 'none'
+                          width: 'auto'
                         }}
-                      />
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                        <button onClick={handleSkip} style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', backgroundColor: 'transparent' }} className="btn-press">
-                          Skip
-                        </button>
-                        <Button 
-                          variant="primary" 
-                          disabled={!typedAnswer.trim()} 
-                          onClick={() => handleSubmitAnswer(typedAnswer)}
-                          style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', fontSize: '10px' }}
-                        >
-                          Submit Answer Details
-                        </Button>
-                      </div>
+                      >
+                        <option value="javascript">JavaScript</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="python">Python</option>
+                        <option value="sql">SQL</option>
+                      </select>
                     </div>
-
-                    {notesPanelOpen && (
-                      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
-                          <Clipboard style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />
-                          <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>INTERVIEW NOTES (LIVE EVALUATION)</span>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '11px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>Word Count:</span>
-                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{textWordCount} words</span>
-                          </div>
-                          
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>Matched Focus Keywords:</span>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', minHeight: '20px' }}>
-                              {matchedTopics.length > 0 ? (
-                                matchedTopics.map(topic => (
-                                  <span key={topic} style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '4px', backgroundColor: 'rgba(0, 212, 170, 0.1)', color: 'var(--accent-primary)', border: '1px solid rgba(0, 212, 170, 0.2)', fontWeight: 600 }}>
-                                    ✓ {topic}
-                                  </span>
-                                ))
-                              ) : (
-                                <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '9px' }}>Awaiting match keywords...</span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <span style={{ color: 'var(--accent-secondary)', fontWeight: 600 }}>Call Assistant Hints:</span>
-                            <div style={{ color: 'var(--text-secondary)', lineHeight: 1.4, fontSize: '9.5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <div>• Format stories using the STAR structure (Situation, Task, Action, Result).</div>
-                              <div>• Ground your answers with numerical metrics where applicable.</div>
-                              <div>• Keep technical terms standard and professional.</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <span style={{ fontSize: '9px', color: codingSeconds < 120 ? 'var(--accent-danger)' : 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                      TIMER: {formatTime(codingSeconds)}
+                    </span>
                   </div>
-                )}
+                  
+                  <div style={{ display: 'flex', flexGrow: 1, backgroundColor: 'var(--bg-surface)', position: 'relative', minHeight: '220px' }}>
+                    <div 
+                      id="ide-gutter"
+                      style={{
+                        width: '36px',
+                        borderRight: '1px solid var(--border-subtle)',
+                        color: 'var(--text-muted)',
+                        textAlign: 'right',
+                        paddingRight: '8px',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11px',
+                        lineHeight: '18px',
+                        userSelect: 'none',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        overflow: 'hidden',
+                        height: '100%'
+                      }}
+                    >
+                      {ideCode.split('\n').map((_, i) => <div key={i}>{i + 1}</div>)}
+                    </div>
+                    <textarea
+                      value={ideCode}
+                      onChange={(e) => {
+                        setIdeCode(e.target.value);
+                        triggerTypingIndicator();
+                      }}
+                      onScroll={handleEditorScroll}
+                      style={{
+                        flexGrow: 1,
+                        backgroundColor: 'transparent',
+                        color: 'var(--text-primary)',
+                        border: 'none',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11px',
+                        lineHeight: '18px',
+                        padding: '12px',
+                        resize: 'none',
+                        outline: 'none',
+                        boxShadow: 'none',
+                        height: '100%',
+                        minHeight: '200px'
+                      }}
+                    />
+                  </div>
+
+                  {consoleOutput && (
+                    <div style={{ padding: '12px 20px', backgroundColor: 'var(--bg-elevated)', borderTop: '1px solid var(--border-subtle)', color: 'var(--accent-primary)', fontSize: '9px', fontFamily: 'var(--font-mono)', lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
+                      {consoleOutput}
+                    </div>
+                  )}
+
+                  <div style={{ padding: '12px 20px', backgroundColor: 'var(--bg-elevated)', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <button 
+                      onClick={runMockTests}
+                      disabled={runningTests}
+                      style={{ fontSize: '10px', padding: '6px 12px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer' }}
+                      className="btn-press"
+                    >
+                      {runningTests ? 'Compiling...' : 'Run Test Cases'}
+                    </button>
+                    <Button 
+                      variant="primary" 
+                      onClick={() => handleSubmitAnswer(ideCode)}
+                      style={{ padding: '6px 16px', borderRadius: 'var(--radius-md)', fontSize: '10px' }}
+                    >
+                      Submit Solution
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
