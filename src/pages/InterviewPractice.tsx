@@ -215,7 +215,7 @@ export const InterviewPractice: React.FC = () => {
     };
   }, [sessionState, activeConfig?.videoMode]);
 
-  // Synchronize stream and tracks state
+  // Synchronize stream and tracks state (include sessionState to re-bind when switching from lobby to answering page)
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
@@ -230,7 +230,7 @@ export const InterviewPractice: React.FC = () => {
         track.enabled = cameraEnabled;
       });
     }
-  }, [stream, cameraEnabled]);
+  }, [stream, cameraEnabled, sessionState]);
 
   // TTS speech execution on new question
   useEffect(() => {
@@ -255,7 +255,7 @@ export const InterviewPractice: React.FC = () => {
     };
   }, []);
 
-  // Synchronize dictation engine reactively with mic state & meeting speech overlays
+  // Synchronize dictation engine reactively with mic state & meeting speech overlays (remove isRecording dependency to prevent multiple overlapping recognition instances)
   useEffect(() => {
     if (sessionState === 'answering') {
       if (!micMuted && !isSpeaking && !isAiResponding) {
@@ -272,7 +272,7 @@ export const InterviewPractice: React.FC = () => {
         stopDictation();
       }
     }
-  }, [micMuted, sessionState, isSpeaking, isAiResponding, isRecording]);
+  }, [micMuted, sessionState, isSpeaking, isAiResponding]);
 
   // Coding round timer effect
   useEffect(() => {
@@ -554,7 +554,13 @@ export const InterviewPractice: React.FC = () => {
 
   const stopDictation = () => {
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.onend = null; // Clear onend to prevent auto-restart feedback loops on stop
+        recognitionRef.current.stop();
+      } catch (err) {
+        console.warn("Error stopping SpeechRecognition:", err);
+      }
+      recognitionRef.current = null;
     }
     setIsRecording(false);
   };
