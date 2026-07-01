@@ -29,7 +29,8 @@ import {
   UserCheck,
   PhoneOff,
   VideoOff,
-  Lock
+  Lock,
+  RefreshCw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/globals.css';
@@ -240,6 +241,7 @@ export const InterviewPractice: React.FC = () => {
   const speakQuestion = (text: string) => {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
+    window.speechSynthesis.resume();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.onstart = () => setIsSpeaking(true);
@@ -249,16 +251,22 @@ export const InterviewPractice: React.FC = () => {
       if ((activeConfig?.videoMode || activeConfig?.voiceMode) && !isCodingQuestion) {
         setTimeout(() => {
           startDictation();
-        }, 200);
+        }, 300);
       }
     };
     utterance.onerror = () => setIsSpeaking(false);
 
     const voices = window.speechSynthesis.getVoices();
-    const voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('google'));
+    let voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('google'));
+    if (!voice) voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('natural'));
+    if (!voice) voice = voices.find(v => v.lang.startsWith('en-'));
+    if (!voice && voices.length > 0) voice = voices[0];
+    
     if (voice) {
       utterance.voice = voice;
     }
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
     window.speechSynthesis.speak(utterance);
   };
 
@@ -299,6 +307,15 @@ export const InterviewPractice: React.FC = () => {
         }
       }
       if (currentResult) {
+        const spokenLower = currentResult.toLowerCase().trim();
+        if (spokenLower === 'repeat' || spokenLower.includes('repeat the question') || spokenLower.includes('please repeat')) {
+          stopDictation();
+          setTypedAnswer('');
+          if (questions.length > 0) {
+            speakQuestion(questions[currentIdx].text);
+          }
+          return;
+        }
         setTypedAnswer(prev => prev + (prev.endsWith(' ') || prev === '' ? '' : ' ') + currentResult);
       }
     };
@@ -1775,6 +1792,30 @@ export const InterviewPractice: React.FC = () => {
             >
               {isMuted ? <VolumeX style={{ width: '18px', height: '18px' }} /> : <Volume2 style={{ width: '18px', height: '18px' }} />}
             </button>
+
+            {/* Repeat Question Button */}
+            {currentQuestion && (
+              <button
+                onClick={() => speakQuestion(currentQuestion.text)}
+                title="Repeat Recruiter Question"
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease'
+                }}
+                className="btn-press"
+              >
+                <RefreshCw style={{ width: '18px', height: '18px' }} />
+              </button>
+            )}
 
             {isCodingQuestion && sessionState === 'answering' && (
               <button

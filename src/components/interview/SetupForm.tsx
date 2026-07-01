@@ -395,28 +395,6 @@ export const SetupForm: React.FC<SetupFormProps> = ({
                 <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Simulates visual feed and speaks questions</span>
               </div>
             </div>
-
-            {/* Voice Mode Toggle */}
-            <div 
-              onClick={() => setVoiceMode(!voiceMode)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '12px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: voiceMode ? 'rgba(0, 212, 170, 0.05)' : 'var(--bg-elevated)',
-                border: voiceMode ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                cursor: 'pointer',
-                transition: 'all 150ms ease'
-              }}
-            >
-              <Mic style={{ width: '18px', height: '18px', color: voiceMode ? 'var(--accent-primary)' : 'var(--text-secondary)' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)' }}>Hands-free Voice Mode</span>
-                <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Speak response naturally without writing text</span>
-              </div>
-            </div>
           </div>
         </Card>
       </div>
