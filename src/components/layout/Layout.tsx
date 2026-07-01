@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
+import { WebGLBackground } from './WebGLBackground';
 import { useAppStore, AppView, Toast } from '../../store/appStore';
 import { 
   X, 
@@ -109,8 +110,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       }}
     >
       {/* Background aesthetics */}
-      <div className="app-grid-bg" />
-      <div className="app-mesh-glow" />
+      <WebGLBackground />
 
       {/* Responsive Navigation Shell */}
       {!isMobile && <Sidebar />}

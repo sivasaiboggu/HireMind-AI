@@ -286,6 +286,43 @@ export class GeminiService {
       return handleApiError(error, 'AI sandbox compiler execution');
     }
   };
+
+  /**
+   * Quick conversational dialogue response for candidates asking questions in the call
+   */
+  converseWithCandidate = async (
+    candidateText: string,
+    currentQuestion: string,
+    role: string,
+    interviewerName: string
+  ): Promise<string> => {
+    try {
+      const ai = this.getClient();
+      const model = ai.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: SYSTEM_INSTRUCTION
+      });
+
+      const prompt = `
+You are the AI interviewer named ${interviewerName} conducting a live technical/behavioral interview for a ${role} position.
+The current interview question is: "${currentQuestion}".
+
+The candidate just said/asked: "${candidateText}".
+
+Please respond to the candidate directly in a natural, helpful, yet brief and professional manner.
+If they asked a technical question (like explaining a concept or asking for clarification), explain it clearly in 2-3 sentences max.
+Then, encourage them to continue with their main answer.
+Do not provide the full code or solution directly, but guide them if they are stuck.
+Keep your response conversational, concise, and under 70 words.
+      `;
+
+      const response = await model.generateContent(prompt);
+      return response.response.text();
+    } catch (error: any) {
+      console.error("Error in conversational conversation:", error);
+      return "I understand. Please go ahead and share your thoughts or code regarding the question.";
+    }
+  };
 }
 
 export const gemini = new GeminiService();

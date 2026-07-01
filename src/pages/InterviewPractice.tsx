@@ -97,6 +97,7 @@ export const InterviewPractice: React.FC = () => {
   // TTS Speech Synthesis State
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isAiResponding, setIsAiResponding] = useState(false);
 
   // STT Speech Recognition State
   const [isRecording, setIsRecording] = useState(false);
@@ -283,6 +284,79 @@ export const InterviewPractice: React.FC = () => {
     }
   };
 
+  const isCandidateAskingQuestion = (text: string): boolean => {
+    const query = text.toLowerCase().trim();
+    const questionKeywords = [
+      'sophia', 
+      'can you', 
+      'could you', 
+      'what is', 
+      'what are',
+      'how do', 
+      'how does', 
+      'why did', 
+      'why is',
+      'explain', 
+      'clarify', 
+      'help me', 
+      'what do you mean',
+      'tell me more'
+    ];
+    return questionKeywords.some(keyword => query.includes(keyword)) || query.endsWith('?');
+  };
+
+  const handleCandidateQuery = async (queryText: string) => {
+    if (!queryText.trim() || isAiResponding) return;
+    
+    stopDictation();
+    setIsAiResponding(true);
+    setIsSpeaking(true);
+    try {
+      const interviewer = getInterviewer(questions[currentIdx]?.category || 'technical');
+      const aiResponse = await gemini.converseWithCandidate(
+        queryText,
+        questions[currentIdx]?.text || '',
+        activeConfig?.jobRole || 'Software Engineer',
+        interviewer.name
+      );
+      
+      const utterance = new SpeechSynthesisUtterance(aiResponse);
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        setIsAiResponding(false);
+        setTimeout(() => {
+          startDictation();
+        }, 300);
+      };
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        setIsAiResponding(false);
+        setTimeout(() => {
+          startDictation();
+        }, 300);
+      };
+      
+      const voices = window.speechSynthesis.getVoices();
+      let voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('google'));
+      if (!voice) voice = voices.find(v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('natural'));
+      if (!voice) voice = voices.find(v => v.lang.startsWith('en-'));
+      if (!voice && voices.length > 0) voice = voices[0];
+      if (voice) utterance.voice = voice;
+      
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      
+      window.speechSynthesis.resume();
+      window.speechSynthesis.speak(utterance);
+      
+    } catch (err) {
+      console.error("AI follow-up conversation failed:", err);
+      setIsSpeaking(false);
+      setIsAiResponding(false);
+      startDictation();
+    }
+  };
+
   const startDictation = () => {
     if (micMuted) {
       addToast('info', 'Your microphone is muted in call controls! Unmute to start speaking.');
@@ -316,6 +390,13 @@ export const InterviewPractice: React.FC = () => {
           }
           return;
         }
+        
+        // Check if candidate is asking the AI interviewer a question
+        if (isCandidateAskingQuestion(currentResult)) {
+          handleCandidateQuery(currentResult);
+          return;
+        }
+        
         setTypedAnswer(prev => prev + (prev.endsWith(' ') || prev === '' ? '' : ' ') + currentResult);
       }
     };
@@ -1177,19 +1258,18 @@ export const InterviewPractice: React.FC = () => {
             style={{
               flexGrow: 1,
               display: 'grid',
-              gridTemplateColumns: (isCodingQuestion && idePanelOpen && sessionState === 'answering') 
-                ? '1.1fr 0.9fr' 
-                : (activeConfig?.videoMode && sessionState === 'answering') 
-                  ? '1fr' 
-                  : '1.2fr 0.8fr',
+              gridTemplateColumns: (sessionState === 'answering' && (idePanelOpen || notesPanelOpen)) 
+                ? '1fr 380px' 
+                : '1fr',
               gap: '24px',
               padding: '24px',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              position: 'relative'
             }}
             className="call-layout-grid"
           >
-            {/* Left Workspace Panel: Video Grids and Feedback Screen Shares */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto' }}>
+            {/* Left Workspace Panel: Google Meet Video Room */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflowY: 'auto', position: 'relative' }}>
               
               {/* Scorecard Screen Share View */}
               {sessionState === 'viewing_feedback' && currentFeedback && !evaluatingAnswer ? (
@@ -1240,18 +1320,20 @@ export const InterviewPractice: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                /* Normal Interview Grid (Feeds Side-by-Side) */
+                /* Normal Google Meet Grid (Feeds Side-by-Side) */
                 <div 
                   style={{
                     flexGrow: 1,
                     display: 'grid',
                     gridTemplateColumns: '1fr 1fr',
                     gap: '20px',
-                    alignItems: 'stretch'
+                    alignItems: 'stretch',
+                    minHeight: '340px',
+                    position: 'relative'
                   }}
                   className="video-feeds-grid"
                 >
-                  {/* Left Grid: AI Recruiter Avatar Feed */}
+                  {/* Left Tile: AI Recruiter Sophia */}
                   <div 
                     className="neuform-card"
                     style={{
@@ -1261,62 +1343,63 @@ export const InterviewPractice: React.FC = () => {
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minHeight: '320px'
+                      minHeight: '320px',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)'
                     }}
                   >
-                    <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(0,0,0,0.4)', padding: '4px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)', zIndex: 5 }}>
-                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
+                    <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(9, 9, 14, 0.8)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', zIndex: 5 }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {currentInterviewer.name} (AI Interviewer)
                       </span>
                     </div>
 
                     <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 5 }}>
                       <span style={{
-                        fontSize: '8px', 
+                        fontSize: '9px', 
                         fontWeight: 700, 
                         color: isSpeaking ? 'var(--accent-primary)' : 'rgba(255,255,255,0.4)',
-                        padding: '3px 8px',
-                        borderRadius: '12px',
-                        backgroundColor: isSpeaking ? 'rgba(0, 212, 170, 0.1)' : 'rgba(255,255,255,0.05)',
-                        border: isSpeaking ? '1px solid rgba(0, 212, 170, 0.3)' : '1px solid transparent',
+                        padding: '4px 10px',
+                        borderRadius: '16px',
+                        backgroundColor: isSpeaking ? 'rgba(255, 106, 85, 0.1)' : 'rgba(255,255,255,0.05)',
+                        border: isSpeaking ? '1px solid rgba(255, 106, 85, 0.2)' : '1px solid transparent',
                         letterSpacing: '0.05em'
                       }}>
-                        {isSpeaking ? '• SPEAKING' : '• LISTENING'}
+                        {isAiResponding ? '• THINKING' : (isSpeaking ? '• SPEAKING' : '• LISTENING')}
                       </span>
                     </div>
 
                     {renderAvatarSVG(currentInterviewer.avatarType, isSpeaking, evaluatingAnswer)}
 
-                    <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 5 }}>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#f3f4f6' }}>
-                          {currentInterviewer.name}
-                        </span>
-                        <span style={{ fontSize: '9px', color: 'rgba(255, 255, 255, 0.4)' }}>
-                          {currentInterviewer.title}
-                        </span>
-                      </div>
-                      {isSpeaking && (
-                        <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '16px' }}>
-                          {[...Array(6)].map((_, i) => (
-                            <div 
-                              key={i}
-                              className="pulse-speaking"
-                              style={{
-                                width: '2px',
-                                height: '10px',
-                                backgroundColor: currentInterviewer.color,
-                                borderRadius: '1px',
-                                animationDelay: `${i * 100}ms`
-                              }}
-                            />
-                          ))}
-                        </div>
-                      )}
+                    <div style={{ position: 'absolute', bottom: '16px', left: '16px', display: 'flex', flexDirection: 'column', zIndex: 5 }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#f3f4f6' }}>
+                        {currentInterviewer.name}
+                      </span>
+                      <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)' }}>
+                        {currentInterviewer.title}
+                      </span>
                     </div>
+
+                    {isSpeaking && (
+                      <div style={{ position: 'absolute', bottom: '16px', right: '16px', display: 'flex', gap: '3px', alignItems: 'flex-end', height: '16px', zIndex: 5 }}>
+                        {[...Array(6)].map((_, i) => (
+                          <div 
+                            key={i}
+                            className="pulse-speaking"
+                            style={{
+                              width: '2px',
+                              height: '10px',
+                              backgroundColor: 'var(--accent-primary)',
+                              borderRadius: '1px',
+                              animationDelay: `${i * 100}ms`
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Right Grid: Candidate Video webcam Feed */}
+                  {/* Right Tile: Candidate (You) */}
                   <div 
                     className="neuform-card"
                     style={{
@@ -1326,7 +1409,9 @@ export const InterviewPractice: React.FC = () => {
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minHeight: '320px'
+                      minHeight: '320px',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)'
                     }}
                   >
                     {activeConfig?.videoMode && (
@@ -1362,100 +1447,78 @@ export const InterviewPractice: React.FC = () => {
                           YOU
                         </div>
                         <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
-                          {!cameraEnabled ? 'CAMERA TURNED OFF' : 'WEBCAM UNAVAILABLE'}
+                          {!cameraEnabled ? 'CAMERA MUTED' : 'WEBCAM INACTIVE'}
                         </span>
                       </div>
                     )}
 
-                    <div style={{ position: 'absolute', bottom: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ position: 'absolute', bottom: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#f3f4f6' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#f3f4f6' }}>
                           You (Candidate)
                         </span>
-                        <span style={{ fontSize: '9px', color: micMuted ? 'var(--accent-danger)' : 'var(--accent-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ fontSize: '10px', color: micMuted ? 'var(--accent-danger)' : 'var(--accent-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {micMuted ? <MicOff style={{ width: '10px', height: '10px' }} /> : <Mic style={{ width: '10px', height: '10px' }} />}
                           {micMuted ? 'MIC MUTED' : 'MIC ACTIVE'}
                         </span>
                       </div>
                     </div>
 
-                    <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(0,0,0,0.5)', padding: '3px 8px', borderRadius: '4px' }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: (isRecording && !micMuted) ? 'var(--accent-danger)' : 'rgba(255,255,255,0.2)' }} />
-                      <span style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>
-                        {(isRecording && !micMuted) ? 'TRANSCRIBING' : 'IDLE'}
+                    <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(9, 9, 14, 0.8)', padding: '4px 10px', borderRadius: '16px', zIndex: 5 }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: (isRecording && !micMuted) ? '#ef4444' : 'rgba(255,255,255,0.2)', display: 'inline-block' }} />
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>
+                        {(isRecording && !micMuted) ? 'SPEAKING' : 'IDLE'}
                       </span>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* Real-time Voice Transcript / Captions Box (Only shown in video/voice mode for standard questions) */}
-              {(activeConfig?.videoMode || activeConfig?.voiceMode) && !isCodingQuestion && sessionState === 'answering' && (
-                <div 
-                  className="neuform-card"
-                  style={{ 
-                    padding: '24px', 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: '16px',
-                    borderLeft: '4px solid var(--accent-primary)'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span className="live-pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: isRecording ? '#ef4444' : '#6b7280', display: 'inline-block', animation: isRecording ? 'breath 1s infinite alternate' : 'none' }} />
-                      <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {isRecording ? 'LIVE AUDIO CAPTIONS (SPEAK NOW)' : 'DICTATION INACTIVE'}
-                      </span>
+                  {/* Google Meet Captions Overlay inside the Video Grid */}
+                  {isRecording && typedAnswer && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '24px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      backgroundColor: 'rgba(9, 9, 14, 0.85)',
+                      color: '#fff',
+                      padding: '10px 24px',
+                      borderRadius: '24px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      maxWidth: '85%',
+                      textAlign: 'center',
+                      fontSize: '13px',
+                      fontWeight: 500,
+                      backdropFilter: 'blur(8px)',
+                      zIndex: 100,
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+                    }}>
+                      <span style={{ color: 'var(--accent-primary)', fontWeight: 700, marginRight: '8px' }}>Captions:</span>
+                      {typedAnswer}
                     </div>
-                    {isRecording ? (
-                      <span style={{ fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        Sophia is listening...
-                      </span>
-                    ) : (
-                      <button
-                        onClick={startDictation}
-                        style={{
-                          fontSize: '9px',
-                          color: 'var(--accent-primary)',
-                          backgroundColor: 'rgba(0, 212, 170, 0.1)',
-                          border: '1px solid var(--accent-primary)',
-                          padding: '4px 10px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: 600
-                        }}
-                        className="btn-press"
-                      >
-                        RESTART MICROPHONE
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div 
-                    style={{ 
-                      minHeight: '70px', 
-                      maxHeight: '140px',
-                      overflowY: 'auto',
-                      fontSize: 'var(--text-sm)', 
-                      color: typedAnswer ? '#fff' : 'var(--text-muted)', 
-                      lineHeight: 1.6,
-                      fontStyle: typedAnswer ? 'normal' : 'italic'
-                    }}
-                  >
-                    {typedAnswer || "Begin speaking now to dictate your interview answer orally..."}
-                  </div>
+                  )}
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-                    <Button 
-                      variant="primary" 
-                      onClick={() => handleVoiceSubmit()}
-                      disabled={!typedAnswer.trim()}
-                      style={{ padding: '8px 24px', fontSize: '11px', borderRadius: 'var(--radius-md)' }}
-                    >
-                      STOP SPEAKING & SUBMIT RESPONSE
-                    </Button>
-                  </div>
+                  {/* Interactive response overlay */}
+                  {isAiResponding && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '24px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      backgroundColor: 'var(--accent-secondary)',
+                      color: '#fff',
+                      padding: '10px 24px',
+                      borderRadius: '24px',
+                      maxWidth: '85%',
+                      textAlign: 'center',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      backdropFilter: 'blur(8px)',
+                      zIndex: 100,
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+                    }}>
+                      {currentInterviewer.name} is responding to your query...
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1465,14 +1528,14 @@ export const InterviewPractice: React.FC = () => {
                 style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Question {currentIdx + 1} of {questions.length} Prompt
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Active Prompt: Question {currentIdx + 1} of {questions.length}
                   </span>
-                  <span style={{ fontSize: '9px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
-                    Current Section: {currentQuestion?.category}
+                  <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
+                    Section: {currentQuestion?.category}
                   </span>
                 </div>
-                <p style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: '#f3f4f6', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '13px', fontWeight: 500, color: '#f3f4f6', lineHeight: 1.5 }}>
                   {currentQuestion?.text}
                 </p>
                 {currentQuestion?.expectedTopics && currentQuestion.expectedTopics.length > 0 && (

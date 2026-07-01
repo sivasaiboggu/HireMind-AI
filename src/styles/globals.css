@@ -1,99 +1,71 @@
 /* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Syne:wght@400..800&display=swap');
-/* Note: Clash Display is typically loaded from CDN, we will fall back to sans-serif display fonts or Syne if local font is not present. We'll also load it in HTML */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Syne:wght@400..800&display=swap');
 
 :root {
-  /* Colors */
-  --bg-base: #050A0F;
-  --bg-surface: #0A1628;
-  --bg-elevated: #0F1E35;
-  --bg-hover: #142540;
+  /* Colors - Pulse Theme System */
+  --bg-base: #09090E;
+  --bg-surface: #0A0A10;
+  --bg-elevated: #12121E;
+  --bg-hover: #19192A;
   
-  --accent-primary: #00D4AA;
-  --accent-secondary: #F59E0B;
-  --accent-danger: #F43F5E;
-  --accent-purple: #818CF8;
+  --accent-primary: #FF6A55;    /* Coral */
+  --accent-secondary: #8B5CF6;  /* Violet */
+  --accent-danger: #F43F5E;     /* Rose */
+  --accent-purple: #8B5CF6;     /* Purple */
   
-  --text-primary: #E2E8F0;
-  --text-secondary: #94A3B8;
-  --text-muted: #475569;
+  --text-primary: #F4F1EA;
+  --text-secondary: #A9A3B5;
+  --text-muted: #625E70;
   
-  --border-subtle: rgba(0, 212, 170, 0.12);
-  --border-active: rgba(0, 212, 170, 0.35);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(255, 255, 255, 0.16);
   --border-danger: rgba(244, 63, 94, 0.2);
-  --border-purple: rgba(129, 140, 248, 0.2);
+  --border-purple: rgba(139, 92, 246, 0.2);
   
-  --glow-primary: 0 0 40px rgba(0, 212, 170, 0.15);
-  --glow-amber: 0 0 40px rgba(245, 158, 11, 0.15);
+  --glow-primary: rgba(139, 92, 246, 0.4) 0px 20px 35px -14px;
+  --glow-amber: rgba(255, 106, 85, 0.2) 0px 10px 25px -5px;
   
-  --grid-line: rgba(0, 212, 170, 0.03);
-  --mesh-color-1: rgba(0, 212, 170, 0.05);
-  --mesh-color-2: rgba(129, 140, 248, 0.05);
-  --header-bg: rgba(5, 10, 15, 0.85);
-  --panel-bg: rgba(5, 10, 15, 0.3);
-  --collapse-bg: rgba(10, 22, 40, 0.8);
-  --modal-overlay: rgba(5, 10, 15, 0.85);
-
-  /* Light Theme overrides */
-  &[data-theme='light'], [data-theme='light'] & {
-    --bg-base: #F8FAFC;
-    --bg-surface: #FFFFFF;
-    --bg-elevated: #F1F5F9;
-    --bg-hover: #E2E8F0;
-    
-    --accent-primary: #0D9488;
-    --accent-secondary: #D97706;
-    --accent-danger: #E11D48;
-    --accent-purple: #4F46E5;
-    
-    --text-primary: #0F172A;
-    --text-secondary: #475569;
-    --text-muted: #94A3B8;
-    
-    --border-subtle: rgba(13, 148, 136, 0.12);
-    --border-active: rgba(13, 148, 136, 0.35);
-    --border-danger: rgba(225, 29, 72, 0.2);
-    --border-purple: rgba(79, 70, 229, 0.2);
-    
-    --glow-primary: 0 4px 20px rgba(13, 148, 136, 0.08);
-    --glow-amber: 0 4px 20px rgba(217, 119, 6, 0.08);
-    
-    --grid-line: rgba(13, 148, 136, 0.05);
-    --mesh-color-1: rgba(13, 148, 136, 0.04);
-    --mesh-color-2: rgba(79, 70, 229, 0.04);
-    --header-bg: rgba(255, 255, 255, 0.85);
-    --panel-bg: rgba(13, 148, 136, 0.04);
-    --collapse-bg: rgba(241, 245, 249, 0.8);
-    --modal-overlay: rgba(241, 245, 249, 0.85);
-  }
+  --grid-line: rgba(255, 255, 255, 0.015);
+  --mesh-color-1: rgba(255, 106, 85, 0.04);
+  --mesh-color-2: rgba(139, 92, 246, 0.04);
+  --header-bg: rgba(9, 9, 14, 0.85);
+  --panel-bg: rgba(10, 10, 16, 0.7);
+  --collapse-bg: rgba(17, 17, 27, 0.8);
+  --modal-overlay: rgba(9, 9, 14, 0.9);
   
   /* Typography */
-  --font-display: 'Clash Display', 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Inter', 'Syne', sans-serif;
+  --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --font-numeric: 'Syne', sans-serif;
+  --font-numeric: 'Inter', sans-serif;
 
   /* Font sizes */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: 2.25rem;
-  --text-5xl: 3rem;
+  --text-xs: 12px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 24px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+  --text-5xl: 96px;     /* display-lg */
   
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  /* Radii - Pulse Corners */
+  --radius-sm: 13px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 18px;
   
   /* Layout */
   --sidebar-width-expanded: 240px;
   --sidebar-width-collapsed: 64px;
   --topbar-height: 64px;
+
+  /* Glass and shadows */
+  --blur-glass: blur(12px);
+  --blur-deep: blur(24px);
+  --shadow-depth-1: rgba(0, 0, 0, 0.45) 0px 30px 80px 0px, rgba(139, 92, 246, 0.12) 0px 0px 70px 0px, rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset;
+  --shadow-depth-2: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
 }
 
 /* Reset and Base styles */
@@ -245,13 +217,13 @@ button {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   backdrop-filter: var(--blur-glass);
-  box-shadow: var(--glow-primary);
+  box-shadow: var(--shadow-depth-1);
   transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 
 .glass-panel:hover {
   border-color: var(--border-active);
-  box-shadow: var(--glow-primary);
+  box-shadow: var(--shadow-depth-1);
 }
 
 .flex-center {
