@@ -188,7 +188,7 @@ export const Dashboard: React.FC = () => {
                 Personalize Your Hub
               </h3>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>
-                Welcome to HireMind AI! Help us configure your target roles for recruiters, sandboxes, and resume matching.
+                Welcome to HireMind! Help us configure your target roles for recruiters, sandboxes, and resume matching.
               </p>
             </div>
 

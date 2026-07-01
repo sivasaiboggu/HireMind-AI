@@ -252,9 +252,6 @@ export const TopBar: React.FC = () => {
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Notifications Hub
                 </span>
-                <span style={{ fontSize: '9px', color: 'var(--accent-primary)', fontWeight: 600 }}>
-                  Real-time Active
-                </span>
               </div>
               
               <div style={{ height: '1px', backgroundColor: 'var(--border-subtle)' }} />

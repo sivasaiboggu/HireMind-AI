@@ -732,13 +732,13 @@ export const Auth: React.FC = () => {
               letterSpacing: '-0.02em',
               color: '#0f172a'
             }}>
-              HireMind AI
+              HireMind
             </span>
           </div>
 
           <div className="showcase-badge">
             <Shield style={{ width: '12px', height: '12px' }} />
-            AI-Proctored Ecosystem
+            Secure Sandbox Ecosystem
           </div>
 
           <h1 className="showcase-title">

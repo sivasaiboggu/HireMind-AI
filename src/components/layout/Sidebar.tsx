@@ -222,7 +222,7 @@ export const Sidebar: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Coins style={{ width: '14px', height: '14px', color: 'var(--accent-primary)' }} />
-                AI CREDITS
+                CREDITS
               </span>
               <button 
                 onClick={resetCredits}
