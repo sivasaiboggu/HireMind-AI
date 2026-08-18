@@ -3,7 +3,7 @@
 
 HireMind AI is an enterprise-grade, single-page career strategic strategy platform. It empowers candidates to run detailed ATS resume audits, participate in mock interview simulators with scorecards, and outline step-by-step upskilling timelines.
 
----
+---  
 
 ## 🎨 Design System & Premium Aesthetics
 
