@@ -244,9 +244,20 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (roadmapChannel) supabase.removeChannel(roadmapChannel);
     };
 
-    // Subscribe to auth state updates
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      set({ authLoading: true });
+    let authEpoch = 0;
+    let disposed = false;
+    // Run database work after Supabase releases its auth callback. Each auth
+    // event invalidates earlier work, including in-flight realtime reads.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const epoch = ++authEpoch;
+      const isCurrent = () => !disposed && epoch === authEpoch;
+      const incomingUser = session?.user || null;
+      cleanRealtimeSubscriptions();
+      set({ authLoading: true, user: incomingUser, profile: null, credits: 0, guestMode: false,
+        resumeHistory: [], activeResume: null, interviewHistory: [],
+        activeInterview: null, roadmapHistory: [], activeRoadmap: null });
+      setTimeout(() => { void (async () => {
+      if (!isCurrent()) return;
       try {
         const currentUser = session?.user || null;
         cleanRealtimeSubscriptions();
@@ -275,6 +286,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             console.error("Supabase Database fetch failed:", dbErr);
           }
 
+          if (!isCurrent()) return;
           localStorage.setItem('hiremind_guest_v9', 'false');
           set({
             user: currentUser,
@@ -298,6 +310,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 'postgres_changes',
                 { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${currentUser.id}` },
                 (payload) => {
+                  if (!isCurrent()) return;
                   const updatedProfile = payload.new as UserProfile;
                   if (updatedProfile && get().credits !== updatedProfile.credits) {
                     set({
@@ -317,7 +330,9 @@ export const useAppStore = create<AppState>((set, get) => ({
                 { event: '*', schema: 'public', table: 'saved_resumes', filter: `user_id=eq.${currentUser.id}` },
                 async () => {
                   try {
+                    if (!isCurrent()) return;
                     const res = await supabaseService.fetchResumes(currentUser.id);
+                    if (!isCurrent()) return;
                     set({ resumeHistory: res, activeResume: res.length > 0 ? res[0] : null });
                     get().addToast('info', 'Real-time Sync: Resumes history updated');
                   } catch (err) {}
@@ -332,7 +347,9 @@ export const useAppStore = create<AppState>((set, get) => ({
                 { event: '*', schema: 'public', table: 'saved_interviews', filter: `user_id=eq.${currentUser.id}` },
                 async () => {
                   try {
+                    if (!isCurrent()) return;
                     const ints = await supabaseService.fetchInterviews(currentUser.id);
+                    if (!isCurrent()) return;
                     set({ interviewHistory: ints, activeInterview: ints.length > 0 ? ints[0] : null });
                     get().addToast('info', 'Real-time Sync: Mock Interviews updated');
                   } catch (err) {}
@@ -347,7 +364,9 @@ export const useAppStore = create<AppState>((set, get) => ({
                 { event: '*', schema: 'public', table: 'saved_roadmaps', filter: `user_id=eq.${currentUser.id}` },
                 async () => {
                   try {
+                    if (!isCurrent()) return;
                     const rds = await supabaseService.fetchRoadmaps(currentUser.id);
+                    if (!isCurrent()) return;
                     set({ roadmapHistory: rds, activeRoadmap: rds.length > 0 ? rds[0] : null });
                     get().addToast('info', 'Real-time Sync: Learning Roadmaps updated');
                   } catch (err) {}
@@ -376,12 +395,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
       } catch (err) {
         console.error("Failed executing AuthStateChange listener:", err);
-        set({ authLoading: false });
+        if (isCurrent()) set({ authLoading: false });
       }
+      })(); }, 0);
     });
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      disposed = true;
+      ++authEpoch;
       subscription.unsubscribe();
       cleanRealtimeSubscriptions();
     };

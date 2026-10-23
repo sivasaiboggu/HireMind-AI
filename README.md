@@ -184,3 +184,11 @@ unknown milestone IDs are rejected. Failed writes preserve prior progress, and
 late responses do not enter another signed-in account. This queue is local to
 one JavaScript store, not cross-tab/server concurrency control. Full auth-state
 subscription races and isolated Supabase tests remain separate work.
+
+Auth events invalidate earlier account loads and realtime reads. The auth
+callback returns synchronously and defers database work; account-bound history
+is cleared while a new identity loads. Late responses after sign-out, a newer
+auth event or cleanup cannot restore the previous account's data or register its
+subscriptions. Five mocked-auth regressions exercise these cases. Live auth,
+RLS, token refresh and cross-tab conflict behavior still require isolated E2E;
+these tests do not certify production identity isolation on their own.
