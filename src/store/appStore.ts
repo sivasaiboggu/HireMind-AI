@@ -482,23 +482,24 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   deleteResumeAnalysis: async (id) => {
-    const nextHistory = get().resumeHistory.filter(r => r.id !== id);
-    const active = get().activeResume?.id === id
-      ? (nextHistory.length > 0 ? nextHistory[0] : null)
-      : get().activeResume;
-    set({ resumeHistory: nextHistory, activeResume: active });
-
+    // Persist first. A rejected deletion must not disappear locally or claim success.
     const user = get().user;
-    if (user && hasSupabaseConfig) {
-      try {
+    try {
+      if (user && hasSupabaseConfig) {
         await supabaseService.deleteResume(user.id, id);
-      } catch (err) {
-        get().addToast('error', 'Failed to remove resume record from server.');
+      } else {
+        const nextHistory = get().resumeHistory.filter(record => record.id !== id);
+        localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
       }
-    } else {
-      localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
+      // Read current state after await so unrelated updates are not overwritten.
+      const nextHistory = get().resumeHistory.filter(record => record.id !== id);
+      const active = get().activeResume?.id === id
+        ? (nextHistory[0] || null) : get().activeResume;
+      set({ resumeHistory: nextHistory, activeResume: active });
+      get().addToast('info', 'Resume audit record deleted.');
+    } catch (err) {
+      get().addToast('error', 'Failed to remove resume record from server.');
     }
-    get().addToast('info', 'Resume audit record deleted.');
   },
   
   setActiveResume: (activeResume) => set({ activeResume }),
@@ -526,23 +527,24 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   deleteInterviewSession: async (id) => {
-    const nextHistory = get().interviewHistory.filter(i => i.id !== id);
-    const active = get().activeInterview?.id === id
-      ? (nextHistory.length > 0 ? nextHistory[0] : null)
-      : get().activeInterview;
-    set({ interviewHistory: nextHistory, activeInterview: active });
-
+    // Persist first. A rejected deletion must not disappear locally or claim success.
     const user = get().user;
-    if (user && hasSupabaseConfig) {
-      try {
+    try {
+      if (user && hasSupabaseConfig) {
         await supabaseService.deleteInterview(user.id, id);
-      } catch (err) {
-        get().addToast('error', 'Failed to remove interview record from database.');
+      } else {
+        const nextHistory = get().interviewHistory.filter(record => record.id !== id);
+        localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
       }
-    } else {
-      localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
+      // Read current state after await so unrelated updates are not overwritten.
+      const nextHistory = get().interviewHistory.filter(record => record.id !== id);
+      const active = get().activeInterview?.id === id
+        ? (nextHistory[0] || null) : get().activeInterview;
+      set({ interviewHistory: nextHistory, activeInterview: active });
+      get().addToast('info', 'Interview session record deleted.');
+    } catch (err) {
+      get().addToast('error', 'Failed to remove interview record from database.');
     }
-    get().addToast('info', 'Interview session record deleted.');
   },
   
   setActiveInterview: (activeInterview) => set({ activeInterview }),
@@ -570,23 +572,24 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   deleteRoadmap: async (id) => {
-    const nextHistory = get().roadmapHistory.filter(r => r.id !== id);
-    const active = get().activeRoadmap?.id === id
-      ? (nextHistory.length > 0 ? nextHistory[0] : null)
-      : get().activeRoadmap;
-    set({ roadmapHistory: nextHistory, activeRoadmap: active });
-
+    // Persist first. A rejected deletion must not disappear locally or claim success.
     const user = get().user;
-    if (user && hasSupabaseConfig) {
-      try {
+    try {
+      if (user && hasSupabaseConfig) {
         await supabaseService.deleteRoadmap(user.id, id);
-      } catch (err) {
-        get().addToast('error', 'Failed to remove roadmap database record.');
+      } else {
+        const nextHistory = get().roadmapHistory.filter(record => record.id !== id);
+        localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
       }
-    } else {
-      localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+      // Read current state after await so unrelated updates are not overwritten.
+      const nextHistory = get().roadmapHistory.filter(record => record.id !== id);
+      const active = get().activeRoadmap?.id === id
+        ? (nextHistory[0] || null) : get().activeRoadmap;
+      set({ roadmapHistory: nextHistory, activeRoadmap: active });
+      get().addToast('info', 'Learning roadmap deleted.');
+    } catch (err) {
+      get().addToast('error', 'Failed to remove roadmap database record.');
     }
-    get().addToast('info', 'Learning roadmap deleted.');
   },
   
   setActiveRoadmap: (activeRoadmap) => set({ activeRoadmap }),

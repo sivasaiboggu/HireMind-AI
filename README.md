@@ -162,3 +162,9 @@ charge only after a result is returned, and repeated clicks on the same hook
 are blocked while it is running. This is not trusted metering: cross-tab
 concurrency and editable browser state still require server-side accounting.
 No real balances or stored profiles were changed by the synthetic tests.
+
+History deletion persists to the selected backend before removing the record from
+local UI state. A rejected server request or full guest browser storage keeps
+the record visible and shows an error, not a false deleted-success message.
+Store tests execute with Zustand and mocked Supabase/storage; isolated live
+Supabase row-level-policy and storage tests still need a test environment.
