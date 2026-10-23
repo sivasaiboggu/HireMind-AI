@@ -292,7 +292,7 @@ Keep your response conversational, concise, and under 70 words.
       return response.response.text();
     } catch (error: any) {
       // Do not log raw provider errors, which may include private request text.
-      return "I understand. Please go ahead and share your thoughts or code regarding the question.";
+      throw safeApiError(error);
     }
   };
 }

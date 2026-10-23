@@ -461,7 +461,9 @@ export const InterviewPractice: React.FC = () => {
       window.speechSynthesis.speak(utterance);
       
     } catch (err) {
-      console.error("AI follow-up conversation failed:", err);
+      // Keep the candidate's words intact when the provider is unavailable.
+      const message = err instanceof Error ? err.message : 'The AI follow-up is unavailable. Please try again.';
+      useAppStore.getState().addToast('error', message);
       setIsSpeaking(false);
       setIsAiResponding(false);
       startDictation();

@@ -24,3 +24,10 @@ test('permission and missing model failures keep distinct useful messages', () =
   assert.match(safeApiError({status:403}).message,/authorize/);
   assert.match(safeApiError({status:404}).message,/model is unavailable/);
 });
+test('conversation failure is not silently presented as an AI reply', () => {
+  const {readFileSync}=require('node:fs');
+  const service=readFileSync('src/services/gemini.ts','utf8');
+  const conversation=service.slice(service.indexOf('converseWithCandidate ='));
+  assert.match(conversation,/throw safeApiError\(error\)/);
+  assert.doesNotMatch(conversation,/return "I understand\. Please go ahead/);
+});
