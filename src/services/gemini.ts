@@ -1,3 +1,4 @@
+import { safeApiError } from './api-errors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { 
   parseGeminiJson, 
@@ -31,36 +32,7 @@ const getApiKey = (): string => {
   return typeof apiKey === 'string' ? apiKey.trim() : '';
 };
 
-const handleApiError = (error: any, context: string): never => {
-  console.error(`Gemini API error during ${context}:`, error);
-  const originalMessage = error?.message || error?.toString() || '';
-  
-  if (originalMessage.includes('429') || originalMessage.toLowerCase().includes('quota') || originalMessage.toLowerCase().includes('limit exceeded') || originalMessage.toLowerCase().includes('resource exhausted')) {
-    throw new Error(
-      `[Quota/Rate Limit Exceeded (429)]\n\n` +
-      `Your Google AI Studio Free Tier quota has been exhausted. To fix this, please try one of these options:\n` +
-      `• Option A: Create a brand new API key in Google AI Studio (https://aistudio.google.com/) using a different Google Cloud project or a different Google account.\n` +
-      `• Option B: Enable billing on your current Google Cloud project to upgrade to Pay-As-You-Go pricing.\n` +
-      `• Option C: Wait a few minutes (for per-minute limits) or until midnight Pacific Time (for daily free tier limits) for your quota to reset.`
-    );
-  }
-  
-  if (originalMessage.includes('403') || originalMessage.toLowerCase().includes('denied') || originalMessage.toLowerCase().includes('permission')) {
-    throw new Error(
-      `[Access Denied (403)]\n\n` +
-      `The Gemini API key is either invalid, lacks permissions, or has been restricted. Please verify the VITE_GEMINI_API_KEY in your .env file or generate a new key in Google AI Studio.`
-    );
-  }
-
-  if (originalMessage.includes('404') || originalMessage.toLowerCase().includes('not found')) {
-    throw new Error(
-      `[Model/Resource Not Found (404)]\n\n` +
-      `The requested Gemini model was not found or is deprecated. We have updated the app to 'gemini-2.5-flash'. Please restart your server if this persists.`
-    );
-  }
-
-  throw new Error(originalMessage || `Gemini API call failed during ${context}.`);
-};
+const handleApiError = (error: unknown, _context: string): never => { throw safeApiError(error); };
 
 export class GeminiService {
   private getClient = () => {
@@ -319,7 +291,7 @@ Keep your response conversational, concise, and under 70 words.
       const response = await model.generateContent(prompt);
       return response.response.text();
     } catch (error: any) {
-      console.error("Error in conversational conversation:", error);
+      // Do not log raw provider errors, which may include private request text.
       return "I understand. Please go ahead and share your thoughts or code regarding the question.";
     }
   };
