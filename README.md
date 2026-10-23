@@ -168,3 +168,12 @@ local UI state. A rejected server request or full guest browser storage keeps
 the record visible and shows an error, not a false deleted-success message.
 Store tests execute with Zustand and mocked Supabase/storage; isolated live
 Supabase row-level-policy and storage tests still need a test environment.
+
+Save operations now wait for storage before marking a history item as saved.
+Server saves use the returned row UUID directly, avoiding a broad history refresh
+that could erase concurrent arrivals. Missing IDs, rejected requests and full
+guest storage show an error without adding a falsely persisted item. Results
+remain in the current feature view for retry. Late save/delete responses from a
+previous account do not change the newly selected account's workspace. Guest
+localStorage synchronization is ignored while signed in. Synthetic Zustand
+regressions cover these boundaries; they do not replace isolated Supabase E2E.

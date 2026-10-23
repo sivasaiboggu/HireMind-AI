@@ -177,7 +177,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   initializeAuth: () => {
     // 1. Cross-tab LocalStorage synchronization listener
     const handleStorageChange = (e: StorageEvent) => {
-      if (!e.key) return;
+      // Guest localStorage changes must not overwrite a signed-in workspace.
+      if (!e.key || get().user) return;
       if (e.key === KEYS.CREDITS) {
         const val = getSavedJson<number>(KEYS.CREDITS, 85);
         if (get().credits !== val) {
@@ -459,31 +460,32 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   addResumeAnalysis: async (analysis) => {
-    const nextHistory = [analysis, ...get().resumeHistory];
-    set({ resumeHistory: nextHistory, activeResume: analysis });
-
-    const user = get().user;
-    if (user && hasSupabaseConfig) {
-      try {
-        await supabaseService.insertResume(user.id, analysis);
-        // Refresh analysis listing from database to get UUID
-        const refreshedResumes = await supabaseService.fetchResumes(user.id);
-        set({ 
-          resumeHistory: refreshedResumes, 
-          activeResume: refreshedResumes.length > 0 ? refreshedResumes[0] : analysis 
-        });
-      } catch (err) {
-        get().addToast('error', 'Failed to save resume analysis to database.');
+    const ownerId = get().user?.id ?? null;
+    try {
+      let saved = analysis;
+      if (ownerId && hasSupabaseConfig) {
+        const record = await supabaseService.insertResume(ownerId, analysis);
+        if (!record?.id) throw new Error('Save did not return a record ID.');
+        saved = { ...analysis, id: record.id };
+      } else {
+        const nextHistory = [analysis, ...get().resumeHistory];
+        localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
       }
-    } else {
-      localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
+      // A response for a prior account must never enter the current workspace.
+      if ((get().user?.id ?? null) !== ownerId) return;
+      set({ resumeHistory: [saved, ...get().resumeHistory.filter(row => row.id !== saved.id)],
+            activeResume: saved });
+      get().addToast('success', 'Resume analysis saved.');
+    } catch (err) {
+      if ((get().user?.id ?? null) !== ownerId) return;
+      get().addToast('error', 'Resume analysis could not be saved. Keep this result open and try again.');
     }
-    get().addToast('success', `Resume analyzed successfully. ATS Score: ${analysis.atsScore}`);
   },
   
   deleteResumeAnalysis: async (id) => {
     // Persist first. A rejected deletion must not disappear locally or claim success.
     const user = get().user;
+    const ownerId = user?.id ?? null;
     try {
       if (user && hasSupabaseConfig) {
         await supabaseService.deleteResume(user.id, id);
@@ -491,6 +493,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         const nextHistory = get().resumeHistory.filter(record => record.id !== id);
         localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
       }
+      if ((get().user?.id ?? null) !== ownerId) return;
       // Read current state after await so unrelated updates are not overwritten.
       const nextHistory = get().resumeHistory.filter(record => record.id !== id);
       const active = get().activeResume?.id === id
@@ -498,6 +501,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ resumeHistory: nextHistory, activeResume: active });
       get().addToast('info', 'Resume audit record deleted.');
     } catch (err) {
+      if ((get().user?.id ?? null) !== ownerId) return;
       get().addToast('error', 'Failed to remove resume record from server.');
     }
   },
@@ -505,30 +509,32 @@ export const useAppStore = create<AppState>((set, get) => ({
   setActiveResume: (activeResume) => set({ activeResume }),
   
   addInterviewSession: async (session) => {
-    const nextHistory = [session, ...get().interviewHistory];
-    set({ interviewHistory: nextHistory, activeInterview: session });
-
-    const user = get().user;
-    if (user && hasSupabaseConfig) {
-      try {
-        await supabaseService.insertInterview(user.id, session);
-        const refreshedInterviews = await supabaseService.fetchInterviews(user.id);
-        set({ 
-          interviewHistory: refreshedInterviews, 
-          activeInterview: refreshedInterviews.length > 0 ? refreshedInterviews[0] : session 
-        });
-      } catch (err) {
-        get().addToast('error', 'Failed to save interview session to database.');
+    const ownerId = get().user?.id ?? null;
+    try {
+      let saved = session;
+      if (ownerId && hasSupabaseConfig) {
+        const record = await supabaseService.insertInterview(ownerId, session);
+        if (!record?.id) throw new Error('Save did not return a record ID.');
+        saved = { ...session, id: record.id };
+      } else {
+        const nextHistory = [session, ...get().interviewHistory];
+        localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
       }
-    } else {
-      localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
+      // A response for a prior account must never enter the current workspace.
+      if ((get().user?.id ?? null) !== ownerId) return;
+      set({ interviewHistory: [saved, ...get().interviewHistory.filter(row => row.id !== saved.id)],
+            activeInterview: saved });
+      get().addToast('success', 'Interview session saved.');
+    } catch (err) {
+      if ((get().user?.id ?? null) !== ownerId) return;
+      get().addToast('error', 'Interview session could not be saved. Keep this result open and try again.');
     }
-    get().addToast('success', `Interview evaluated. Score: ${session.overallScore}/10`);
   },
   
   deleteInterviewSession: async (id) => {
     // Persist first. A rejected deletion must not disappear locally or claim success.
     const user = get().user;
+    const ownerId = user?.id ?? null;
     try {
       if (user && hasSupabaseConfig) {
         await supabaseService.deleteInterview(user.id, id);
@@ -536,6 +542,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         const nextHistory = get().interviewHistory.filter(record => record.id !== id);
         localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
       }
+      if ((get().user?.id ?? null) !== ownerId) return;
       // Read current state after await so unrelated updates are not overwritten.
       const nextHistory = get().interviewHistory.filter(record => record.id !== id);
       const active = get().activeInterview?.id === id
@@ -543,6 +550,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ interviewHistory: nextHistory, activeInterview: active });
       get().addToast('info', 'Interview session record deleted.');
     } catch (err) {
+      if ((get().user?.id ?? null) !== ownerId) return;
       get().addToast('error', 'Failed to remove interview record from database.');
     }
   },
@@ -550,30 +558,32 @@ export const useAppStore = create<AppState>((set, get) => ({
   setActiveInterview: (activeInterview) => set({ activeInterview }),
   
   addRoadmap: async (roadmap) => {
-    const nextHistory = [roadmap, ...get().roadmapHistory];
-    set({ roadmapHistory: nextHistory, activeRoadmap: roadmap });
-
-    const user = get().user;
-    if (user && hasSupabaseConfig) {
-      try {
-        await supabaseService.insertRoadmap(user.id, roadmap);
-        const refreshedRoadmaps = await supabaseService.fetchRoadmaps(user.id);
-        set({ 
-          roadmapHistory: refreshedRoadmaps, 
-          activeRoadmap: refreshedRoadmaps.length > 0 ? refreshedRoadmaps[0] : roadmap 
-        });
-      } catch (err) {
-        get().addToast('error', 'Failed to save roadmap to database.');
+    const ownerId = get().user?.id ?? null;
+    try {
+      let saved = roadmap;
+      if (ownerId && hasSupabaseConfig) {
+        const record = await supabaseService.insertRoadmap(ownerId, roadmap);
+        if (!record?.id) throw new Error('Save did not return a record ID.');
+        saved = { ...roadmap, id: record.id };
+      } else {
+        const nextHistory = [roadmap, ...get().roadmapHistory];
+        localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
       }
-    } else {
-      localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+      // A response for a prior account must never enter the current workspace.
+      if ((get().user?.id ?? null) !== ownerId) return;
+      set({ roadmapHistory: [saved, ...get().roadmapHistory.filter(row => row.id !== saved.id)],
+            activeRoadmap: saved });
+      get().addToast('success', 'Learning roadmap saved.');
+    } catch (err) {
+      if ((get().user?.id ?? null) !== ownerId) return;
+      get().addToast('error', 'Learning roadmap could not be saved. Keep this result open and try again.');
     }
-    get().addToast('success', `Learning path generated for ${roadmap.role}.`);
   },
   
   deleteRoadmap: async (id) => {
     // Persist first. A rejected deletion must not disappear locally or claim success.
     const user = get().user;
+    const ownerId = user?.id ?? null;
     try {
       if (user && hasSupabaseConfig) {
         await supabaseService.deleteRoadmap(user.id, id);
@@ -581,6 +591,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         const nextHistory = get().roadmapHistory.filter(record => record.id !== id);
         localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
       }
+      if ((get().user?.id ?? null) !== ownerId) return;
       // Read current state after await so unrelated updates are not overwritten.
       const nextHistory = get().roadmapHistory.filter(record => record.id !== id);
       const active = get().activeRoadmap?.id === id
@@ -588,6 +599,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ roadmapHistory: nextHistory, activeRoadmap: active });
       get().addToast('info', 'Learning roadmap deleted.');
     } catch (err) {
+      if ((get().user?.id ?? null) !== ownerId) return;
       get().addToast('error', 'Failed to remove roadmap database record.');
     }
   },
