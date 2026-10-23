@@ -177,3 +177,10 @@ remain in the current feature view for retry. Late save/delete responses from a
 previous account do not change the newly selected account's workspace. Guest
 localStorage synchronization is ignored while signed in. Synthetic Zustand
 regressions cover these boundaries; they do not replace isolated Supabase E2E.
+
+Roadmap milestone changes also persist before changing saved progress. Local
+writes to one roadmap are serialized so rapid toggles preserve both intentions;
+unknown milestone IDs are rejected. Failed writes preserve prior progress, and
+late responses do not enter another signed-in account. This queue is local to
+one JavaScript store, not cross-tab/server concurrency control. Full auth-state
+subscription races and isolated Supabase tests remain separate work.

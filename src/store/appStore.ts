@@ -108,6 +108,10 @@ export const generateId = () => {
   return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
 };
 
+// Serialize local writes to one roadmap so rapid toggles do not overwrite each
+// other. This is not a server-side cross-tab concurrency or quota boundary.
+const progressWrites = new Map<string, Promise<void>>();
+
 export const useAppStore = create<AppState>((set, get) => ({
   sidebarCollapsed: getSavedJson<boolean>(KEYS.COLLAPSED, false),
   searchOpen: false,
@@ -607,39 +611,44 @@ export const useAppStore = create<AppState>((set, get) => ({
   setActiveRoadmap: (activeRoadmap) => set({ activeRoadmap }),
   
   togglePhaseCompleted: async (roadmapId, phaseId) => {
-    const nextHistory = get().roadmapHistory.map((roadmap) => {
-      if (roadmap.id === roadmapId) {
-        const completed = roadmap.completedPhases || [];
-        const nextCompleted = completed.includes(phaseId)
-          ? completed.filter(p => p !== phaseId)
-          : [...completed, phaseId];
-        return { ...roadmap, completedPhases: nextCompleted };
+    const ownerId = get().user?.id ?? null;
+    const queueKey = JSON.stringify([ownerId, roadmapId]);
+    const prior = progressWrites.get(queueKey) ?? Promise.resolve();
+    const write = prior.then(async () => {
+      if ((get().user?.id ?? null) !== ownerId) return;
+      const roadmap = get().roadmapHistory.find(row => row.id === roadmapId);
+      if (!roadmap || !roadmap.phases.some(phase => phase.id === phaseId)) {
+        get().addToast('error', 'This saved roadmap milestone is unavailable.');
+        return;
       }
-      return roadmap;
-    });
-    
-    const active = get().activeRoadmap?.id === roadmapId
-      ? nextHistory.find(r => r.id === roadmapId) || null
-      : get().activeRoadmap;
-      
-    set({ roadmapHistory: nextHistory, activeRoadmap: active });
-
-    const user = get().user;
-    const activeRoadmapRecord = nextHistory.find(r => r.id === roadmapId);
-    if (user && hasSupabaseConfig && activeRoadmapRecord) {
+      const completed = roadmap.completedPhases || [];
+      const nextCompleted = completed.includes(phaseId)
+        ? completed.filter(id => id !== phaseId) : [...completed, phaseId];
       try {
-        await supabaseService.updateRoadmapProgress(
-          user.id, 
-          roadmapId, 
-          activeRoadmapRecord.completedPhases || []
-        );
+        if (ownerId && hasSupabaseConfig) {
+          await supabaseService.updateRoadmapProgress(ownerId, roadmapId, nextCompleted);
+        } else {
+          const history = get().roadmapHistory.map(row => row.id === roadmapId
+            ? { ...row, completedPhases: nextCompleted } : row);
+          localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(history));
+        }
+        if ((get().user?.id ?? null) !== ownerId) return;
+        // Preserve unrelated updates and never resurrect a deleted record.
+        const history = get().roadmapHistory.map(row => row.id === roadmapId
+          ? { ...row, completedPhases: nextCompleted } : row);
+        const active = get().activeRoadmap;
+        set({ roadmapHistory: history, activeRoadmap: active?.id === roadmapId
+          ? history.find(row => row.id === roadmapId) || null : active });
+        get().addToast('info', 'Roadmap milestone progress saved.');
       } catch (err) {
-        get().addToast('error', 'Failed to sync roadmap progress to database.');
+        if ((get().user?.id ?? null) === ownerId) {
+          get().addToast('error', 'Roadmap progress could not be saved. Try again.');
+        }
       }
-    } else {
-      localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
-    }
-    get().addToast('info', 'Roadmap milestone progress updated.');
+    });
+    progressWrites.set(queueKey, write);
+    try { await write; }
+    finally { if (progressWrites.get(queueKey) === write) progressWrites.delete(queueKey); }
   },
   
   getRecentActivity: () => {
