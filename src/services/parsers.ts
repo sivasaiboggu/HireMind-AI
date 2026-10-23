@@ -2,8 +2,8 @@ import { ResumeAnalysis, Question, AnswerFeedback, Roadmap } from '../types';
 
 /**
  * Strips markdown code blocks (e.g., ```json ... ```) from the LLM's raw text response
- * and parses the clean string as JSON. If the parsing fails, it logs diagnostic errors
- * and throws a user-friendly error message.
+ * and parses the clean string as JSON. Invalid responses produce a safe error
+ * without logging resume content or other personal data.
  */
 export function parseGeminiJson<T>(rawText: string): T {
   let cleaned = rawText.trim();
@@ -21,9 +21,7 @@ export function parseGeminiJson<T>(rawText: string): T {
   try {
     return JSON.parse(cleaned) as T;
   } catch (error) {
-    // Log the malformed response so we can debug prompt issues in Google AI Studio
-    console.error('Failed to parse Gemini response as JSON. Cleaned text:', cleaned);
-    console.error('Original raw text was:', rawText);
+    // Model responses may contain resumes and other personal data. Never log them.
     throw new Error('API returned an invalid JSON response structure. Please retry.');
   }
 }
