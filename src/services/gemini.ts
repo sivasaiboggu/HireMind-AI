@@ -21,14 +21,8 @@ import {
 import { ResumeAnalysis, Question, AnswerFeedback, Roadmap, InterviewConfig, QuizQuestion } from '../types';
 
 const getApiKey = (): string => {
-  // Try to read from Vite's import.meta.env or process.env configuration defines
-  const apiKey = (
-    import.meta.env.VITE_GEMINI_API_KEY || 
-    process.env.GEMINI_API_KEY || 
-    process.env.VITE_GEMINI_API_KEY || 
-    process.env.API_KEY || 
-    ''
-  );
+  // Local development only. Public builds reject configured provider secrets.
+  const apiKey = import.meta.env.DEV ? (import.meta.env.VITE_GEMINI_API_KEY || '') : '';
   return typeof apiKey === 'string' ? apiKey.trim() : '';
 };
 
@@ -39,7 +33,7 @@ export class GeminiService {
     const key = getApiKey();
     if (!key) {
       throw new Error(
-        'Gemini API Key is missing. Please define VITE_GEMINI_API_KEY in your .env file or verify configuration.'
+        'AI is not configured. Local development can use VITE_GEMINI_API_KEY; public hosting requires an authenticated server-side endpoint.'
       );
     }
     return new GoogleGenerativeAI(key);

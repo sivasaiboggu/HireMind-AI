@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useAppStore } from '../store/appStore';
+import { generateThenCharge } from '../services/generation';
 
 export interface UseGeminiState<T> {
   data: T | null;
@@ -17,23 +18,21 @@ export function useGemini<Args extends any[], T>(
     error: null,
   });
 
+  const inFlight = useRef(false);
   const useCredit = useAppStore((s) => s.useCredit);
   const addToast = useAppStore((s) => s.addToast);
 
   const execute = useCallback(
     async (...args: Args): Promise<T | null> => {
+      if (inFlight.current) return null;
+      inFlight.current = true;
       setState({ data: null, loading: true, error: null });
-      
-      // Deduct AI credits
-      const hasCredit = await useCredit(creditCost);
-      if (!hasCredit) {
-        const err = new Error('Insufficient AI credits. Refill required.');
-        setState({ data: null, loading: false, error: err });
-        return null;
-      }
-
       try {
-        const result = await apiFn(...args);
+        const result = await generateThenCharge(
+          () => apiFn(...args),
+          () => useAppStore.getState().credits >= creditCost,
+          () => useCredit(creditCost),
+        );
         setState({ data: result, loading: false, error: null });
         return result;
       } catch (err: any) {
@@ -41,6 +40,8 @@ export function useGemini<Args extends any[], T>(
         setState({ data: null, loading: false, error });
         addToast('error', error.message);
         return null;
+      } finally {
+        inFlight.current = false;
       }
     },
     [apiFn, creditCost, useCredit, addToast]

@@ -139,3 +139,26 @@ npm run build
 **Boggu Sivasai** - Full Stack Developer
 *   **GitHub**: [sivasaiboggu](https://github.com/sivasaiboggu)
 
+
+### AI key deployment boundary
+
+Public browser builds now stop if `GEMINI_API_KEY`, `VITE_GEMINI_API_KEY` or
+`API_KEY` is configured. A provider key embedded in JavaScript is visible to
+any visitor. Vite no longer copies private server environment variables into
+browser code. Keyless builds still work, but hosted AI generation is unavailable
+until an authenticated server-side endpoint is implemented and tested. This is
+a safety boundary, not a completed backend integration.
+
+For local development only, `VITE_GEMINI_API_KEY` is read by the dev client.
+That key is still visible to the browser and anyone who can access that dev
+server. Use an isolated, restricted test key and do not expose the dev server.
+Never add a provider key to a public hosting build. Previously shipped keys
+should be reviewed and revoked/rotated by the account owner; changing this
+source does not remove secrets from older deployed bundles. No provider keys
+were used, revoked or rotated during this checkpoint.
+
+Failed AI requests no longer deduct client-side credits. Successful requests
+charge only after a result is returned, and repeated clicks on the same hook
+are blocked while it is running. This is not trusted metering: cross-tab
+concurrency and editable browser state still require server-side accounting.
+No real balances or stored profiles were changed by the synthetic tests.
