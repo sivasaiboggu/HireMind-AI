@@ -203,3 +203,14 @@ it still exists. Initial load failures/timeouts show a notice instead of silentl
 claiming there is no history. Synthetic tests cover each history type; live
 Supabase/RLS and multi-tab write ordering remain unverified. This change does not
 add server-side AI or quota enforcement, which remain separate work.
+
+
+### Guest storage container checks
+
+Guest preferences reject incompatible JSON types and negative/non-finite credit
+values. History expects arrays of non-null objects, not strings, null or primitive
+entries. Invalid stored bytes are left untouched for recovery rather than erased.
+A denied theme-storage read no longer prevents store construction. Eight isolated
+regressions cover these cases. This is a container/type boundary, not complete
+nested-record validation or protection against malicious same-origin scripts;
+record-field schema validation remains further work.

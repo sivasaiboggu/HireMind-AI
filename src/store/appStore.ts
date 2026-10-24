@@ -95,7 +95,15 @@ const KEYS = {
 const getSavedJson = <T>(key: string, defaultValue: T): T => {
   try {
     const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : defaultValue;
+    if (!data) return defaultValue;
+    const parsed: unknown = JSON.parse(data);
+    // JSON syntax alone does not make a stored preference/history usable.
+    // Reject incompatible containers without overwriting the recoverable bytes.
+    if (Array.isArray(defaultValue)) {
+      if (!Array.isArray(parsed) || parsed.some(item => !item || typeof item !== 'object' || Array.isArray(item))) return defaultValue;
+    } else if (typeof parsed !== typeof defaultValue || parsed === null) return defaultValue;
+    if (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 0)) return defaultValue;
+    return parsed as T;
   } catch (e) {
     return defaultValue;
   }
@@ -118,7 +126,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   toasts: [],
   credits: getSavedJson<number>(KEYS.CREDITS, 85), 
   theme: (() => {
-    const saved = localStorage.getItem('hiremind_theme_v9') || 'dark';
+    let saved: 'light' | 'dark' = 'dark';
+    try { saved = localStorage.getItem('hiremind_theme_v9') === 'light' ? 'light' : 'dark'; } catch {}
     try {
       document.documentElement.setAttribute('data-theme', saved);
     } catch (e) {}
