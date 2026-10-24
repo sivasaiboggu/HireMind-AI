@@ -142,17 +142,17 @@ export const QuizPractice: React.FC = () => {
         setPyodide(py);
         setPyodideLoaded(true);
         setConsoleOutput(prev => prev + '✓ Python 3 environment loaded successfully!\n');
-        addToast('success', 'Python compiler sandbox loaded successfully!');
+        addToast('success', 'Browser-local Python runtime loaded.');
       } catch (err) {
         console.error("Failed to load Pyodide:", err);
-        setConsoleOutput(prev => prev + '✗ Failed to load Pyodide compiler. Defaulting to AI Sandbox.\n');
+        setConsoleOutput(prev => prev + '✗ Failed to load Pyodide compiler. AI review only is available; no Python execution.\n');
         addToast('error', 'Failed to load Python compiler environment.');
       } finally {
         setLoadingPyodide(false);
       }
     };
     script.onerror = () => {
-      setConsoleOutput(prev => prev + '✗ Failed to load compiler script. Defaulting to AI Sandbox.\n');
+      setConsoleOutput(prev => prev + '✗ Failed to load compiler script. AI review only is available; no Python execution.\n');
       setLoadingPyodide(false);
     };
     document.body.appendChild(script);
@@ -308,7 +308,7 @@ export const QuizPractice: React.FC = () => {
       }
     } else if (selectedLanguage === 'python') {
       if (!pyodide) {
-        setConsoleOutput('Compiler environment is loading or offline. Triggering AI Compiler Sandbox execution...\n');
+        setConsoleOutput('Python runtime is unavailable. Requesting AI review only...\n');
         return runDsaCodeViaAi(filteredTestCases);
       }
       
@@ -363,55 +363,33 @@ json.dumps(result)
         return null;
       }
     } else {
-      // C++ or Java runs via AI Sandbox
+      // C++ or Java: advisory AI review only, not compiled execution.
       return runDsaCodeViaAi(filteredTestCases);
     }
   };
 
   const runDsaCodeViaAi = async (tCases: any[]) => {
-    setConsoleOutput('Submitting to Gemini AI Compiler Sandbox environment...\n');
+    setCompilerTab('console');
+    setTestCaseResults([]);
+    setConsoleOutput('Requesting AI code review. No compiler or test execution is performed.');
     const result = await getCompilerRun(activeCode, selectedLanguage, tCases);
-    
-    if (result) {
-      if (!result.compiled) {
-        setConsoleOutput(`Compiler Error:\n${result.compileErrors || 'Syntax mismatch/Compilation failure.'}`);
-        setCompilerTab('console');
-        return null;
-      } else {
-        const results = (result.testCaseResults || []).map((r: any) => ({
-          passed: r.passed,
-          input: r.input,
-          expected: r.expected,
-          actual: r.actual,
-          hidden: r.hidden,
-          error: r.error
-        }));
-        setTestCaseResults(results);
-        const passCount = results.filter((r: any) => r.passed).length;
-        setConsoleOutput(`Sandbox run successful.\nPassed ${passCount}/${results.length} test cases.`);
-        return results;
-      }
-    } else {
-      // Fallback if AI limits hit
-      setConsoleOutput('API limit reached. Simulating local execution...\n');
-      const mockResults = tCases.map((tc, idx) => ({
-        passed: activeCode.length > 50, // simple mock: if code is longer than 50 chars, pass
-        input: tc.inputLabel,
-        expected: JSON.stringify(tc.expected),
-        actual: activeCode.length > 50 ? JSON.stringify(tc.expected) : 'Null/Timeout',
-        hidden: tc.hidden,
-        error: null
-      }));
-      setTestCaseResults(mockResults);
-      setConsoleOutput('Simulation complete.');
-      return mockResults;
+    if (!result) {
+      setConsoleOutput('AI review unavailable. No code was executed and no test result was recorded.');
+      return null;
     }
+    // Provider output is a prediction, never evidence of compiled execution.
+    setConsoleOutput('AI code review only. Predictions below are unverified and do not count toward scores.\n' + JSON.stringify(result, null, 2));
+    return null;
   };
 
   const handleNextDsaQuestion = async (code: string) => {
     // Run all test cases (including hidden) to compute final score
     const results = await runDsaCodeLocally(false);
-    const passRate = results ? results.filter((r: any) => r.passed).length / results.length : 0;
+    if (!results || results.length === 0) {
+      addToast('info', 'No executed test results. Your code is unchanged; retry with the local JavaScript or Python runner.');
+      return;
+    }
+    const passRate = results.filter((r: any) => r.passed).length / results.length;
     
     // Save submission
     setUserAnswers(prev => ({ ...prev, [currentQuestion.id]: code }));
@@ -477,13 +455,13 @@ json.dumps(result)
     if (practiceMode === 'dsa') {
       generated = await getDsaQuestions(jobRole, targetCompany, questionCount, easy, medium, hard);
       if (!generated || generated.length === 0) {
-        addToast('info', 'Google AI Studio quota reached. Loading pre-configured fallback company questions.');
+        addToast('info', 'AI questions unavailable. Loading bundled practice questions, not verified company questions.');
         generated = getDsaFallback(targetCompany, questionCount);
       }
     } else {
       generated = await getNonDsaQuestions(jobRole, targetCompany, questionCount, easy, medium, hard);
       if (!generated || generated.length === 0) {
-        addToast('info', 'Google AI Studio quota reached. Loading pre-configured fallback company questions.');
+        addToast('info', 'AI questions unavailable. Loading bundled practice questions, not verified company questions.');
         generated = getNonDsaFallback(targetCompany, questionCount);
       }
     }
@@ -565,7 +543,7 @@ json.dumps(result)
         <div className="page-enter" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-              Prepare for elite software engineering and corporate interviews with structured compiler sandboxes and AI evaluations.
+              Prepare for elite software engineering and corporate interviews with browser-local JavaScript/Python practice and advisory AI reviews.
             </p>
           </div>
           
@@ -582,7 +560,7 @@ json.dumps(result)
                 transition: 'all 200ms ease'
               }}
             >
-              DSA Sandbox IDE
+              DSA Practice IDE
             </button>
             <button
               onClick={() => setPracticeMode('interview')}
@@ -613,7 +591,7 @@ json.dumps(result)
             TAILORING INTERVIEW EXPERIENCES...
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', maxWidth: '480px' }}>
-            Consulting company historical questions for <span className="text-cyan">{targetCompany}</span>. Formulating difficulty proportionality maps ({splitDetails.easy} Easy, {splitDetails.medium} Medium, {splitDetails.hard} Hard).
+            Preparing practice questions themed for <span className="text-cyan">{targetCompany}</span>. Formulating difficulty proportionality maps ({splitDetails.easy} Easy, {splitDetails.medium} Medium, {splitDetails.hard} Hard).
           </p>
           <div style={{ width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
             <Skeleton height={16} />
@@ -668,7 +646,7 @@ json.dumps(result)
                   onChange={(e) => setTargetCompany(e.target.value)}
                   style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', cursor: 'pointer' }}
                 >
-                  <option value="Google">Google (Historical Questions)</option>
+                  <option value="Google">Google (Practice theme)</option>
                   <option value="Amazon">Amazon (Leadership & DSA)</option>
                   <option value="Microsoft">Microsoft (Algorithms)</option>
                   <option value="Meta">Meta (System & Coding)</option>
@@ -866,7 +844,7 @@ json.dumps(result)
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Terminal style={{ width: '16px', color: 'var(--accent-primary)' }} />
-                      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700 }}>AI IDE Compiler Sandbox</span>
+                      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700 }}>Local Runner / AI Review</span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -875,10 +853,10 @@ json.dumps(result)
                         onChange={(e) => setSelectedLanguage(e.target.value as any)}
                         style={{ fontSize: '10px', padding: '4px 10px', backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '4px', cursor: 'pointer', color: 'var(--accent-primary)', fontWeight: 600 }}
                       >
-                        <option value="javascript">JavaScript (Local sandbox)</option>
-                        <option value="python">Python 3 (Local interpret)</option>
-                        <option value="cpp">C++ (AI compiler)</option>
-                        <option value="java">Java (AI compiler)</option>
+                        <option value="javascript">JavaScript (Browser local)</option>
+                        <option value="python">Python 3 (Browser local)</option>
+                        <option value="cpp">C++ (AI review only)</option>
+                        <option value="java">Java (AI review only)</option>
                       </select>
                     </div>
                   </div>
@@ -937,7 +915,7 @@ json.dumps(result)
                     {loadingPyodide && (
                       <div className="absolute inset-0 bg-opacity-70" style={{ backgroundColor: 'rgba(5, 10, 15, 0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                         <RefreshCw className="animate-spin text-cyan" />
-                        <span style={{ fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 600 }}>Loading Python compiler sandbox...</span>
+                        <span style={{ fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 600 }}>Loading browser-local Python runtime...</span>
                       </div>
                     )}
                   </div>

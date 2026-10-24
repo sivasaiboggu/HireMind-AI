@@ -260,3 +260,14 @@ failure branch. Valid provider zero scores remain zero. Four handler regressions
 cover failure and successful zero-score results; no provider request is made.
 This does not establish a working authenticated public AI endpoint or validate
 DSA compiler/sandbox behavior.
+
+
+### DSA execution evidence
+
+C++/Java provider output is advisory AI code review, not a compiler sandbox.
+Predictions and provider failures never produce scored test results. Submissions
+without nonempty executed test results stay on the current question with the code
+intact. JavaScript and available Pyodide Python runs are browser-local execution,
+not security-isolated sandboxes. This change does not add a C++/Java compiler,
+execution timeout, or server-side isolation. Five handler tests cover unavailable
+review, unverified predictions, missing tests and real local-result advancement.

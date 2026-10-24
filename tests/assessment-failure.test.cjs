@@ -24,3 +24,22 @@ for(const result of [null,{overallScore:0}])test(`quiz ${result?'successful zero
  });await run();
  assert.equal(feedback,result);if(!result)assert.match(output,/Assessment unavailable/);
 });
+
+for(const result of [null,{compiled:true,testCaseResults:[{passed:true}]}])test(`AI code review ${result?'prediction':'failure'} never becomes executed test evidence`,async()=>{
+ let output,results;const run=handler('src/pages/QuizPractice.tsx','runDsaCodeViaAi',{
+  activeCode:'x'.repeat(100),selectedLanguage:'cpp',getCompilerRun:async()=>result,
+  setConsoleOutput:v=>output=v,setCompilerTab:()=>{},setTestCaseResults:v=>results=v,
+ });assert.equal(await run([{expected:1}]),null);assert.equal(results.length,0);assert.match(output,result?/unverified/:/No code was executed/);
+});
+for(const results of [null,[]])test(`missing executed tests ${results?'empty':'unavailable'} cannot submit or advance`,async()=>{
+ let writes=0,notice;const run=handler('src/pages/QuizPractice.tsx','handleNextDsaQuestion',{
+  runDsaCodeLocally:async()=>results,addToast:(_,s)=>notice=s,
+  setUserAnswers:()=>writes++,setAiEvaluations:()=>writes++,setCurrentIdx:()=>writes++,setQuizState:()=>writes++,
+ });await run('long code');assert.equal(writes,0);assert.match(notice,/No executed test results/);
+});
+test('real nonempty local test results still submit and advance',async()=>{
+ let answer,evaluation,index;const run=handler('src/pages/QuizPractice.tsx','handleNextDsaQuestion',{
+  runDsaCodeLocally:async()=>[{passed:true},{passed:false}],addToast:()=>{},currentQuestion:{id:'q'},currentIdx:0,questions:[{},{}],selectedLanguage:'javascript',
+  setUserAnswers:fn=>answer=fn({}),setAiEvaluations:fn=>evaluation=fn({}),setCurrentIdx:v=>index=v,
+ });await run('solve code');assert.equal(answer.q,'solve code');assert.equal(evaluation.q.passRate,.5);assert.equal(evaluation.q.passed,false);assert.equal(index,1);
+});
