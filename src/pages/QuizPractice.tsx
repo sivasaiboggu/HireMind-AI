@@ -434,7 +434,7 @@ json.dumps(result)
 
   // Interview Questions Review and Next handlers
   const handleReviewAnswer = async () => {
-    if (!writtenAnswer.trim()) return;
+    if (!writtenAnswer.trim() || evalLoading) return;
     setConsoleOutput('Analyzing answer structure, accuracy, and STAR model completeness...');
     
     const evaluation = await evaluateAnswer(
@@ -444,18 +444,12 @@ json.dumps(result)
       currentQuestion.expectedTopics || []
     );
 
-    const finalEval = evaluation || {
-      overallScore: 7,
-      accuracy: 7,
-      clarity: 8,
-      depth: 6,
-      examples: 7,
-      strengths: ['Clear explanation of core concept', 'Proper terminology used'],
-      improvements: ['Could include a specific quantitative example', 'Expand on architectural compromises'],
-      modelAnswer: 'A high-impact answer should start with the core thesis, explain the detailed mechanism, outline critical failure scenarios and how to mitigate them, and conclude with a brief, real-world example highlighting metrics.'
-    };
-
-    setAiEvaluation(finalEval);
+    if (!evaluation) {
+      setAiEvaluation(null);
+      setConsoleOutput('Assessment unavailable. Your answer is unchanged. Retry when evaluation is available.');
+      return;
+    }
+    setAiEvaluation(evaluation);
   };
 
   const handleNextInterviewQuestion = () => {

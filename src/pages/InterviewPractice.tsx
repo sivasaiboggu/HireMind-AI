@@ -693,7 +693,7 @@ export const InterviewPractice: React.FC = () => {
   };
 
   const handleSubmitAnswer = async (userAnswer: string) => {
-    if (currentIdx >= questions.length || !activeConfig) return;
+    if (currentIdx >= questions.length || !activeConfig || evaluatingAnswer || sessionState !== 'answering') return;
     setSessionState('viewing_feedback');
 
     const currentQuestion = questions[currentIdx];
@@ -716,25 +716,10 @@ export const InterviewPractice: React.FC = () => {
       setAnswersList(prev => [...prev, record]);
       setCurrentFeedback(feedbackResult);
     } else {
-      // Fallback evaluation if API fails
-      const fallbackFeedback = {
-        overallScore: 7,
-        accuracy: 7,
-        clarity: 8,
-        depth: 6,
-        examples: 5,
-        strengths: ['Provided a coherent structure', 'Addressed the core topic prompt'],
-        improvements: ['Include deeper metrics', 'Explain standard alternatives'],
-        modelAnswer: 'Reference model answer generated during fallback.'
-      };
-      const record: AnswerRecord = {
-        question: currentQuestion,
-        userAnswer,
-        feedback: fallbackFeedback,
-        timestamp: Date.now()
-      };
-      setAnswersList(prev => [...prev, record]);
-      setCurrentFeedback(fallbackFeedback);
+      // A failed assessment is not evidence of any score or strength.
+      // Keep the typed answer available so the candidate can retry.
+      setCurrentFeedback(null);
+      setSessionState('answering');
     }
   };
 

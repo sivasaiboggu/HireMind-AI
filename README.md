@@ -249,3 +249,14 @@ bytes. A later explicit save/delete/progress action can still replace that histo
 key with the current valid records, so this guard is not a backup or repair tool.
 These checks cover local guest reads, not validation of every signed-in database
 row or a live Supabase/browser session.
+
+
+### Unavailable answer assessment
+
+Interview and written-quiz handlers no longer create a fixed 7/10 scorecard or
+invent strengths when provider evaluation fails. The original answer stays in
+place for retry; no interview answer record or quiz scorecard is created by the
+failure branch. Valid provider zero scores remain zero. Four handler regressions
+cover failure and successful zero-score results; no provider request is made.
+This does not establish a working authenticated public AI endpoint or validate
+DSA compiler/sandbox behavior.
