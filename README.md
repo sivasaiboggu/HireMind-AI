@@ -288,3 +288,14 @@ for the current questions, with the assessed count shown separately. An actual
 zero rating remains part of that average. Six logic regressions cover empty,
 partial, invalid and zero-score cases. Desktop and 390px local application
 screenshots were inspected for the all-skipped state; no provider was contacted.
+
+### Unique bundled practice
+
+Bundled practice selects prompts without repeating a short difficulty bucket
+under new IDs. It targets a balanced mix where the pool allows it, then fills
+from other unused questions. If the pool is smaller than requested, the app
+announces the shorter session rather than duplicating prompts. The summary
+shows its actual easy/medium/hard mix instead of asserting Equal Split.
+Five selector tests cover both bundled catalogs, short tiers, duplicate text,
+invalid counts and source preservation. These are practice themes, not verified
+company interview histories. AI-generated question quality remains unverified.

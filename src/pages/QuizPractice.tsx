@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
+import { selectBundledQuestions } from '../services/practice-selection';
 import { useAppStore } from '../store/appStore';
 import { 
   MOCK_DSA_QUESTIONS, 
@@ -43,15 +44,6 @@ import '../styles/animations.css';
 
 type QuizState = 'setup' | 'loading' | 'active' | 'results';
 type PracticeMode = 'dsa' | 'interview';
-
-function shuffleArray<T>(array: T[]): T[] {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
 
 const formatTime = (secs: number) => {
   const mm = String(Math.floor(secs / 60)).padStart(2, '0');
@@ -466,7 +458,15 @@ json.dumps(result)
       }
     }
 
-    setQuestions(generated || []);
+    if (!generated?.length) {
+      addToast('error', 'No practice questions are available. Try again later.');
+      setQuizState('setup');
+      return;
+    }
+    if (generated.length < questionCount) {
+      addToast('info', `Starting ${generated.length} unique questions instead of ${questionCount}; bundled questions will not repeat.`);
+    }
+    setQuestions(generated);
     setCurrentIdx(0);
     setUserAnswers({});
     setAiEvaluations({});
@@ -476,37 +476,11 @@ json.dumps(result)
     setQuizState('active');
   };
 
-  const getDsaFallback = (company: string, count: number) => {
-    const list = MOCK_DSA_QUESTIONS[company.toLowerCase()] || MOCK_DSA_QUESTIONS.general;
-    const { easy, medium, hard } = calculateProportionalSplit(count);
-    
-    const easyQ = shuffleArray(list.filter(q => q.difficulty === 'easy'));
-    const mediumQ = shuffleArray(list.filter(q => q.difficulty === 'medium'));
-    const hardQ = shuffleArray(list.filter(q => q.difficulty === 'hard'));
-    
-    const selected: any[] = [];
-    for (let i = 0; i < easy; i++) selected.push(easyQ[i % easyQ.length] || list[i % list.length]);
-    for (let i = 0; i < medium; i++) selected.push(mediumQ[i % mediumQ.length] || list[i % list.length]);
-    for (let i = 0; i < hard; i++) selected.push(hardQ[i % hardQ.length] || list[i % list.length]);
-    
-    return selected.map((q, idx) => ({ ...q, id: `dsa-fallback-${idx}` }));
-  };
+  const getDsaFallback = (company: string, count: number) =>
+    selectBundledQuestions(MOCK_DSA_QUESTIONS[company.toLowerCase()] || MOCK_DSA_QUESTIONS.general, count);
 
-  const getNonDsaFallback = (company: string, count: number) => {
-    const list = MOCK_INTERVIEW_QUESTIONS[company.toLowerCase()] || MOCK_INTERVIEW_QUESTIONS.general;
-    const { easy, medium, hard } = calculateProportionalSplit(count);
-    
-    const easyQ = shuffleArray(list.filter(q => q.difficulty === 'easy'));
-    const mediumQ = shuffleArray(list.filter(q => q.difficulty === 'medium'));
-    const hardQ = shuffleArray(list.filter(q => q.difficulty === 'hard'));
-    
-    const selected: any[] = [];
-    for (let i = 0; i < easy; i++) selected.push(easyQ[i % easyQ.length] || list[i % list.length]);
-    for (let i = 0; i < medium; i++) selected.push(mediumQ[i % mediumQ.length] || list[i % list.length]);
-    for (let i = 0; i < hard; i++) selected.push(hardQ[i % hardQ.length] || list[i % list.length]);
-    
-    return selected.map((q, idx) => ({ ...q, id: `int-fallback-${idx}` }));
-  };
+  const getNonDsaFallback = (company: string, count: number) =>
+    selectBundledQuestions(MOCK_INTERVIEW_QUESTIONS[company.toLowerCase()] || MOCK_INTERVIEW_QUESTIONS.general, count);
 
   const handleReset = () => {
     setQuestions([]);
@@ -1203,7 +1177,7 @@ json.dumps(result)
               <span>•</span>
               <span>Target Focus: <strong className="text-cyan">{targetCompany}</strong></span>
               <span>•</span>
-              <span>Proportional Difficulty: <strong className="text-cyan">Equal Split</strong></span>
+              <span>Difficulty mix: <strong className="text-cyan">{questions.filter(q => q.difficulty === 'easy').length} easy / {questions.filter(q => q.difficulty === 'medium').length} medium / {questions.filter(q => q.difficulty === 'hard').length} hard</strong></span>
             </div>
           </Card>
 
