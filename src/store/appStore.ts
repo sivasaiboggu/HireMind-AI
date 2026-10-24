@@ -91,6 +91,55 @@ const KEYS = {
   COLLAPSED: 'hiremind_collapsed_v9',
 };
 
+// Persisted JSON is untrusted. Validate nested records before UI consumers use
+// .map(), .length or string methods. Never rewrite rejected stored bytes here.
+type StoredObject = Record<string, any>;
+const object = (v: unknown): v is StoredObject => !!v && typeof v === 'object' && !Array.isArray(v);
+const text = (v: unknown) => typeof v === 'string';
+const texts = (v: unknown) => Array.isArray(v) && v.every(text);
+const numberIn = (v: unknown, max = Number.MAX_VALUE) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max;
+const list = (v: unknown, check: (item: any) => boolean) => Array.isArray(v) && v.every(item => object(item) && check(item));
+const oneOf = (v: unknown, choices: string[]) => typeof v === 'string' && choices.includes(v);
+const baseRecord = (v: StoredObject) => text(v.id) && !!v.id.trim() && numberIn(v.timestamp);
+const feedbackRecord = (v: StoredObject) =>
+  ['overallScore', 'accuracy', 'clarity', 'depth', 'examples'].every(k => numberIn(v[k], 10)) &&
+  texts(v.strengths) && texts(v.improvements) && text(v.modelAnswer);
+const questionRecord = (v: StoredObject) => text(v.id) && text(v.text) &&
+  oneOf(v.category, ['technical', 'behavioral', 'system-design', 'hr', 'dsa']) &&
+  oneOf(v.difficulty, ['easy', 'medium', 'hard']) && texts(v.expectedTopics);
+const resumeRecord = (v: StoredObject) => baseRecord(v) && text(v.jobRole) && text(v.experienceLevel) &&
+  ['atsScore', 'contentScore', 'formatScore', 'overallScore'].every(k => numberIn(v[k], 100)) &&
+  list(v.sections, s => text(s.name) && numberIn(s.score, 100) && oneOf(s.status, ['pass', 'warn', 'fail']) && texts(s.feedback)) &&
+  list(v.recommendations, r => text(r.id) && oneOf(r.priority, ['HIGH', 'MED', 'LOW']) && text(r.title) && text(r.description)) &&
+  texts(v.matchedKeywords) && texts(v.missingKeywords) &&
+  list(v.atsChecklist, c => text(c.label) && typeof c.checked === 'boolean') &&
+  list(v.rewrites, r => text(r.original) && text(r.improved));
+const interviewRecord = (v: StoredObject) => baseRecord(v) && numberIn(v.overallScore, 10) &&
+  object(v.config) && text(v.config.jobRole) && texts(v.config.techStack) &&
+  oneOf(v.config.difficulty, ['Beginner', 'Intermediate', 'Senior']) &&
+  oneOf(v.config.interviewType, ['technical', 'behavioral', 'system-design', 'hr', 'full', 'dsa']) &&
+  numberIn(v.config.questionCount) && Number.isInteger(v.config.questionCount) &&
+  list(v.answers, a => object(a.question) && questionRecord(a.question) && text(a.userAnswer) &&
+    object(a.feedback) && feedbackRecord(a.feedback) && numberIn(a.timestamp));
+const safeResource = (v: StoredObject) => {
+  if (!oneOf(v.type, ['video', 'article', 'project', 'quiz']) || !text(v.title) || !text(v.url)) return false;
+  try {
+    const url = new URL(v.url);
+    return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password;
+  } catch { return false; }
+};
+const roadmapRecord = (v: StoredObject) => baseRecord(v) && text(v.role) && text(v.experienceLevel) &&
+  texts(v.currentSkills) && numberIn(v.totalWeeks, 104) && v.totalWeeks >= 1 &&
+  list(v.phases, p => text(p.id) && text(p.title) && text(p.weeks) && text(p.color) &&
+    list(p.topics, t => text(t.id) && text(t.name) && oneOf(t.level, ['Beginner', 'Intermediate', 'Advanced']) &&
+      text(t.description) && text(t.whyItMatters) && list(t.resources, safeResource))) &&
+  list(v.skillGaps, g => text(g.name) && numberIn(g.demandPercentage, 100) && numberIn(g.gapPercentage, 100)) &&
+  (v.completedPhases === undefined || (texts(v.completedPhases) &&
+    v.completedPhases.every((id: string) => v.phases.some((p: StoredObject) => p.id === id))));
+const historyValidators: Record<string, (v: StoredObject) => boolean> = {
+  [KEYS.RESUMES]: resumeRecord, [KEYS.INTERVIEWS]: interviewRecord, [KEYS.ROADMAPS]: roadmapRecord,
+};
+
 // Safe parsers
 const getSavedJson = <T>(key: string, defaultValue: T): T => {
   try {
@@ -100,7 +149,9 @@ const getSavedJson = <T>(key: string, defaultValue: T): T => {
     // JSON syntax alone does not make a stored preference/history usable.
     // Reject incompatible containers without overwriting the recoverable bytes.
     if (Array.isArray(defaultValue)) {
-      if (!Array.isArray(parsed) || parsed.some(item => !item || typeof item !== 'object' || Array.isArray(item))) return defaultValue;
+      if (!Array.isArray(parsed)) return defaultValue;
+      const validate = historyValidators[key];
+      return parsed.filter(item => object(item) && (!validate || validate(item))) as T;
     } else if (typeof parsed !== typeof defaultValue || parsed === null) return defaultValue;
     if (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 0)) return defaultValue;
     return parsed as T;

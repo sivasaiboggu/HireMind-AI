@@ -234,3 +234,18 @@ blank or out-of-range ratings instead of inventing70/100 or5/10. Valid zero and
 numeric-string scores are preserved. Malformed responses fail generation before
 the existing success-only credit step. Two parser regressions cover this boundary;
 no employer ATS accuracy or calibrated assessment quality is claimed.
+
+### Persisted guest history
+
+Guest history is checked before it enters the store, including nested resume
+sections, interview configurations/answer feedback, and roadmap topics/resources.
+Malformed records are excluded from the displayed history instead of crashing
+consumers of nested fields. Valid records in the same array remain available.
+Stored zero scores remain zero; no replacement assessment is generated.
+Roadmap resources must use HTTP(S) without embedded credentials.
+
+Loading rejected records does not delete or rewrite the original localStorage
+bytes. A later explicit save/delete/progress action can still replace that history
+key with the current valid records, so this guard is not a backup or repair tool.
+These checks cover local guest reads, not validation of every signed-in database
+row or a live Supabase/browser session.
