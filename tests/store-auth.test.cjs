@@ -15,3 +15,26 @@ test('a late account load cannot restore a signed-out workspace',async()=>{const
 test('newer account wins when older account load finishes last',async()=>{const f=setup();let finish;f.service.getProfile=id=>id==='one'?new Promise(resolve=>finish=resolve):Promise.resolve({credits:22});f.event('one');f.run();await flush();f.event('two');f.run();await flush();finish({credits:99});await flush();assert.equal(f.store.getState().user.id,'two');assert.equal(f.store.getState().credits,22);assert(f.channels.every(c=>c.name.endsWith('-two')));});
 test('disposed auth work cannot update state or install channels',async()=>{const f=setup();let finish;f.service.getProfile=()=>new Promise(resolve=>finish=resolve);f.event('one');f.run();await flush();f.dispose();finish({credits:70});await flush();assert.equal(f.channels.length,0);assert.equal(f.store.getState().profile,null);});
 test('late realtime history fetch cannot leak across sign-out',async()=>{const f=setup();f.event('one');f.run();await flush();const channel=f.channels.find(c=>c.name.startsWith('resumes'));let finish;f.service.fetchResumes=()=>new Promise(resolve=>finish=resolve);const pending=channel.callback();await flush();f.event(null);f.run();await flush();finish([{id:'private-one'}]);await pending;assert.equal(f.store.getState().user,null);assert.equal(f.store.getState().resumeHistory.length,0);});
+
+for(const [prefix,method,history,active] of [
+ ['resumes','fetchResumes','resumeHistory','activeResume'],
+ ['interviews','fetchInterviews','interviewHistory','activeInterview'],
+ ['roadmaps','fetchRoadmaps','roadmapHistory','activeRoadmap']
+]) {
+ test(`${prefix} newest realtime read wins within the same account`,async()=>{
+  const f=setup();f.event('one');f.run();await flush();
+  const channel=f.channels.find(c=>c.name.startsWith(prefix));let finish;let calls=0;
+  f.service[method]=()=>++calls===1?new Promise(resolve=>finish=resolve):Promise.resolve([{id:'new'}]);
+  const old=channel.callback();await flush();await channel.callback();finish([{id:'old'}]);await old;
+  assert.equal(f.store.getState()[history][0].id,'new');
+ });
+ test(`${prefix} refresh preserves selected record and failed reads preserve history`,async()=>{
+  const f=setup();f.event('one');f.run();await flush();
+  const channel=f.channels.find(c=>c.name.startsWith(prefix));
+  f.store.setState({[history]:[{id:'selected'}],[active]:{id:'selected'}});
+  f.service[method]=async()=>[{id:'newest'},{id:'selected'}];await channel.callback();
+  assert.equal(f.store.getState()[active].id,'selected');
+  f.service[method]=async()=>{throw Error('synthetic read error');};await channel.callback();
+  assert.equal(f.store.getState()[history].length,2);assert.equal(f.store.getState()[active].id,'selected');
+ });
+}

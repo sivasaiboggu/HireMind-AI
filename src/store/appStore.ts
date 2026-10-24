@@ -245,6 +245,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
 
     let authEpoch = 0;
+    let resumeRead = 0, interviewRead = 0, roadmapRead = 0;
     let disposed = false;
     // Run database work after Supabase releases its auth callback. Each auth
     // event invalidates earlier work, including in-flight realtime reads.
@@ -264,10 +265,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         if (currentUser) {
           // Logged In -> Fetch User Data from Supabase database safely with 6s timeout
-          const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 6000): Promise<T> =>
+          const withTimeout = <T>(promise: Promise<T>, ms = 6000): Promise<T> =>
             Promise.race([
               promise,
-              new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
+              new Promise<T>((_resolve, reject) => setTimeout(() => reject(new Error('Saved history request timed out')), ms))
             ]);
 
           let userProfile = null;
@@ -277,13 +278,14 @@ export const useAppStore = create<AppState>((set, get) => ({
 
           try {
             [userProfile, resumes, interviews, roadmaps] = await Promise.all([
-              withTimeout(supabaseService.getProfile(currentUser.id), null),
-              withTimeout(supabaseService.fetchResumes(currentUser.id), []),
-              withTimeout(supabaseService.fetchInterviews(currentUser.id), []),
-              withTimeout(supabaseService.fetchRoadmaps(currentUser.id), [])
+              withTimeout(supabaseService.getProfile(currentUser.id)),
+              withTimeout(supabaseService.fetchResumes(currentUser.id)),
+              withTimeout(supabaseService.fetchInterviews(currentUser.id)),
+              withTimeout(supabaseService.fetchRoadmaps(currentUser.id))
             ]);
           } catch (dbErr) {
             console.error("Supabase Database fetch failed:", dbErr);
+            if (isCurrent()) get().addToast('error', 'Saved history could not be loaded. Your records have not been deleted. Try signing in again.');
           }
 
           if (!isCurrent()) return;
@@ -331,9 +333,10 @@ export const useAppStore = create<AppState>((set, get) => ({
                 async () => {
                   try {
                     if (!isCurrent()) return;
+                    const read = ++resumeRead;
                     const res = await supabaseService.fetchResumes(currentUser.id);
-                    if (!isCurrent()) return;
-                    set({ resumeHistory: res, activeResume: res.length > 0 ? res[0] : null });
+                    if (!isCurrent() || read !== resumeRead) return;
+                    set({ resumeHistory: res, activeResume: res.find(item => item.id === get().activeResume?.id) || res[0] || null });
                     get().addToast('info', 'Real-time Sync: Resumes history updated');
                   } catch (err) {}
                 }
@@ -348,9 +351,10 @@ export const useAppStore = create<AppState>((set, get) => ({
                 async () => {
                   try {
                     if (!isCurrent()) return;
+                    const read = ++interviewRead;
                     const ints = await supabaseService.fetchInterviews(currentUser.id);
-                    if (!isCurrent()) return;
-                    set({ interviewHistory: ints, activeInterview: ints.length > 0 ? ints[0] : null });
+                    if (!isCurrent() || read !== interviewRead) return;
+                    set({ interviewHistory: ints, activeInterview: ints.find(item => item.id === get().activeInterview?.id) || ints[0] || null });
                     get().addToast('info', 'Real-time Sync: Mock Interviews updated');
                   } catch (err) {}
                 }
@@ -365,9 +369,10 @@ export const useAppStore = create<AppState>((set, get) => ({
                 async () => {
                   try {
                     if (!isCurrent()) return;
+                    const read = ++roadmapRead;
                     const rds = await supabaseService.fetchRoadmaps(currentUser.id);
-                    if (!isCurrent()) return;
-                    set({ roadmapHistory: rds, activeRoadmap: rds.length > 0 ? rds[0] : null });
+                    if (!isCurrent() || read !== roadmapRead) return;
+                    set({ roadmapHistory: rds, activeRoadmap: rds.find(item => item.id === get().activeRoadmap?.id) || rds[0] || null });
                     get().addToast('info', 'Real-time Sync: Learning Roadmaps updated');
                   } catch (err) {}
                 }

@@ -192,3 +192,14 @@ auth event or cleanup cannot restore the previous account's data or register its
 subscriptions. Five mocked-auth regressions exercise these cases. Live auth,
 RLS, token refresh and cross-tab conflict behavior still require isolated E2E;
 these tests do not certify production identity isolation on their own.
+
+
+### Realtime history ordering
+
+History fetch errors now reject rather than masquerading as an empty account.
+Failed realtime reads keep the displayed records, and overlapping reads for one
+account accept only the newest response. Refreshes keep the selected record if
+it still exists. Initial load failures/timeouts show a notice instead of silently
+claiming there is no history. Synthetic tests cover each history type; live
+Supabase/RLS and multi-tab write ordering remain unverified. This change does not
+add server-side AI or quota enforcement, which remain separate work.

@@ -72,7 +72,7 @@ export const supabaseService = {
 
     if (error) {
       console.error('Error fetching resume history:', error);
-      return [];
+      throw error;
     }
     return (data || []).map(r => ({
       id: r.id,
@@ -146,7 +146,7 @@ export const supabaseService = {
 
     if (error) {
       console.error('Error fetching interview sessions:', error);
-      return [];
+      throw error;
     }
     return (data || []).map(i => ({
       id: i.id,
@@ -205,7 +205,7 @@ export const supabaseService = {
 
     if (error) {
       console.error('Error fetching roadmap histories:', error);
-      return [];
+      throw error;
     }
     return (data || []).map(r => ({
       id: r.id,
