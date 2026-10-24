@@ -1,5 +1,18 @@
 import { ResumeAnalysis, Question, AnswerFeedback, Roadmap } from '../types';
 
+/** Reject absent/malformed ratings instead of inventing a passing score. */
+function requiredScore(value: unknown, maximum: number): number {
+  if ((typeof value !== 'number' && typeof value !== 'string') ||
+      (typeof value === 'string' && !value.trim())) {
+    throw new Error('The assessment did not return valid scores. Please retry.');
+  }
+  const score = Number(value);
+  if (!Number.isFinite(score) || score < 0 || score > maximum) {
+    throw new Error('The assessment did not return valid scores. Please retry.');
+  }
+  return score;
+}
+
 /**
  * Strips markdown code blocks (e.g., ```json ... ```) from the LLM's raw text response
  * and parses the clean string as JSON. Invalid responses produce a safe error
@@ -32,15 +45,11 @@ export function parseGeminiJson<T>(rawText: string): T {
  * the UI will receive a clean, predictable object matching the ResumeAnalysis type.
  */
 export function sanitizeResumeAnalysis(data: any): ResumeAnalysis {
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new Error('Invalid resume analysis response: expected an object.');
   }
 
-  // Ensures we always get a valid numeric score between 0 and 100
-  const getScore = (val: any, fallback: number = 70): number => {
-    const num = Number(val);
-    return isNaN(num) ? fallback : Math.min(100, Math.max(0, num));
-  };
+  const getScore = (value: unknown): number => requiredScore(value, 100);
 
   const atsScore = getScore(data.atsScore ?? data.ats_score ?? data.atsScoreCard);
   const contentScore = getScore(data.contentScore ?? data.content_score);
@@ -51,7 +60,7 @@ export function sanitizeResumeAnalysis(data: any): ResumeAnalysis {
   const sections = Array.isArray(data.sections) 
     ? data.sections.map((s: any) => ({
         name: String(s?.name || 'Section'),
-        score: getScore(s?.score, 8),
+        score: getScore(s?.score),
         status: ['pass', 'warn', 'fail'].includes(s?.status) ? s.status : 'warn',
         feedback: Array.isArray(s?.feedback) ? s.feedback.map(String) : []
       }))
@@ -127,15 +136,11 @@ export function sanitizeInterviewQuestions(data: any): Question[] {
  * Scores are validated on a standard 1 to 10 rating scale.
  */
 export function sanitizeAnswerFeedback(data: any): AnswerFeedback {
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new Error('Invalid answer feedback response.');
   }
 
-  // Ensures sub-ratings are within valid range [0, 10]
-  const getScore = (val: any, fallback: number = 5): number => {
-    const num = Number(val);
-    return isNaN(num) ? fallback : Math.min(10, Math.max(0, num));
-  };
+  const getScore = (value: unknown): number => requiredScore(value, 10);
 
   return {
     overallScore: getScore(data.overallScore ?? data.overall_score ?? data.overall),
@@ -169,7 +174,7 @@ function finiteNumber(value: unknown, fallback: number, min: number, max: number
 }
 
 export function sanitizeRoadmap(data: any): Roadmap {
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new Error('Invalid roadmap response.');
   }
 

@@ -43,3 +43,20 @@ test('roadmap preserves zero percentages and bounds finite curriculum numbers',(
  assert.deepEqual(result.skillGaps.map(g=>[g.demandPercentage,g.gapPercentage]),[[0,0],[50,0],[100,25]]);
  assert.equal(sanitizeRoadmap({totalWeeks:-2}).totalWeeks,1);
 });
+
+const {sanitizeResumeAnalysis,sanitizeAnswerFeedback}=require(path.join(output,'services/parsers.js'));
+test('resume missing or malformed scores are not replaced by a fabricated70',()=>{
+ const valid={atsScore:0,contentScore:80,formatScore:'90',overallScore:75};
+ assert.equal(sanitizeResumeAnalysis(valid).atsScore,0);
+ for(const score of [undefined,null,'',true,Infinity,-1,101,'bad']){
+  assert.throws(()=>sanitizeResumeAnalysis({...valid,atsScore:score}),/valid scores/);
+ }
+ assert.throws(()=>sanitizeResumeAnalysis({}),/valid scores/);
+ assert.throws(()=>sanitizeResumeAnalysis({...valid,sections:[{score:undefined}]}),/valid scores/);
+});
+test('interview missing or malformed ratings are not replaced by a fabricated5',()=>{
+ const valid={overallScore:0,accuracy:8,clarity:'9',depth:7,examples:6};
+ assert.equal(sanitizeAnswerFeedback(valid).overallScore,0);
+ for(const score of [undefined,null,'',false,Infinity,-1,11,'bad'])assert.throws(()=>sanitizeAnswerFeedback({...valid,accuracy:score}),/valid scores/);
+ assert.throws(()=>sanitizeAnswerFeedback({}),/valid scores/);
+});

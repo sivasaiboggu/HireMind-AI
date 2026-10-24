@@ -225,3 +225,12 @@ exists or is safe/current; resource verification remains needed. Week counts and
 skill-gap percentages are finite and bounded, preserving valid zero percentages.
 Two regression tests cover these cases. This source change does not enable the
 separately deferred server-side AI feature.
+
+
+### Assessment scores must come from the response
+
+Resume and interview score parsing now rejects missing, non-finite, boolean,
+blank or out-of-range ratings instead of inventing70/100 or5/10. Valid zero and
+numeric-string scores are preserved. Malformed responses fail generation before
+the existing success-only credit step. Two parser regressions cover this boundary;
+no employer ATS accuracy or calibrated assessment quality is claimed.
