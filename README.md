@@ -214,3 +214,14 @@ A denied theme-storage read no longer prevents store construction. Eight isolate
 regressions cover these cases. This is a container/type boundary, not complete
 nested-record validation or protection against malicious same-origin scripts;
 record-field schema validation remains further work.
+
+
+### Generated roadmap boundaries
+
+Generated resource links must be explicit HTTP(S) URLs without embedded account
+credentials. Executable/data/file links and malformed or absent links are omitted,
+not replaced by a made-up Google link. Valid URLs are not proof that a resource
+exists or is safe/current; resource verification remains needed. Week counts and
+skill-gap percentages are finite and bounded, preserving valid zero percentages.
+Two regression tests cover these cases. This source change does not enable the
+separately deferred server-side AI feature.

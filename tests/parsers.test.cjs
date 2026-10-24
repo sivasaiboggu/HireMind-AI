@@ -30,3 +30,16 @@ test('invalid JSON never logs or returns private response content', () => {
     assert.deepEqual(logged, []);
   } finally { console.error = original; }
 });
+
+const {sanitizeRoadmap}=require(path.join(output,'services/parsers.js'));
+test('roadmap resources reject executable, credential-bearing and invented links',()=>{
+ const input=['javascript:alert(1)','data:text/html,hello','file:///etc/passwd','https://user:secret@example.test','not a url',null,'https://example.test/lesson'];
+ const result=sanitizeRoadmap({phases:[{topics:[{resources:input.map(url=>({url}))}]}]});
+ assert.deepEqual(result.phases[0].topics[0].resources.map(r=>r.url),['https://example.test/lesson']);
+});
+test('roadmap preserves zero percentages and bounds finite curriculum numbers',()=>{
+ const result=sanitizeRoadmap({totalWeeks:Infinity,skillGaps:[{demandPercentage:0,gapPercentage:0},{demandPercentage:Infinity,gapPercentage:-1},{demandPercentage:200,gapPercentage:'25'}]});
+ assert.equal(result.totalWeeks,12);
+ assert.deepEqual(result.skillGaps.map(g=>[g.demandPercentage,g.gapPercentage]),[[0,0],[50,0],[100,25]]);
+ assert.equal(sanitizeRoadmap({totalWeeks:-2}).totalWeeks,1);
+});
