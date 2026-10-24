@@ -271,3 +271,11 @@ intact. JavaScript and available Pyodide Python runs are browser-local execution
 not security-isolated sandboxes. This change does not add a C++/Java compiler,
 execution timeout, or server-side isolation. Five handler tests cover unavailable
 review, unverified predictions, missing tests and real local-result advancement.
+
+### Mobile practice actions
+
+The mobile shell reserves bottom space for its fixed navigation and safe-area
+inset. Practice runner actions wrap and keep at least 44px touch height. A real
+390px-wide local viewport was scrolled to the footer: both Run Code and Submit
+Solution were visible above navigation, with the unavailable-review notice still
+readable. This is a focused footer check, not a full device/keyboard audit.

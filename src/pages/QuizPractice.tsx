@@ -998,12 +998,12 @@ json.dumps(result)
                     </div>
 
                     {/* IDE Sandbox controls footer */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', backgroundColor: 'var(--bg-surface)' }}>
+                    <div className="practice-runner-footer" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', backgroundColor: 'var(--bg-surface)' }}>
                       <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
                         Ensure function header and return types match starter code templates.
                       </span>
 
-                      <div style={{ display: 'flex', gap: '10px' }}>
+                      <div className="practice-runner-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                         <button
                           type="button"
                           onClick={() => runDsaCodeLocally(true)}

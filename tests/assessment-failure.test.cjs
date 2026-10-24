@@ -43,3 +43,11 @@ test('real nonempty local test results still submit and advance',async()=>{
   setUserAnswers:fn=>answer=fn({}),setAiEvaluations:fn=>evaluation=fn({}),setCurrentIdx:v=>index=v,
  });await run('solve code');assert.equal(answer.q,'solve code');assert.equal(evaluation.q.passRate,.5);assert.equal(evaluation.q.passed,false);assert.equal(index,1);
 });
+test('mobile shell reserves safe-area space and practice controls can wrap',()=>{
+ const layout=fs.readFileSync('src/components/layout/Layout.tsx','utf8');
+ const quiz=fs.readFileSync('src/pages/QuizPractice.tsx','utf8');const css=fs.readFileSync('src/styles/globals.css','utf8');
+ assert.match(layout,/paddingBottom: isMobile \? 'calc\(84px \+ env\(safe-area-inset-bottom, 0px\)\)'/);
+ assert.match(layout,/height: 'calc\(60px \+ env\(safe-area-inset-bottom, 0px\)\)'/);
+ assert.match(quiz,/className="practice-runner-footer"[^\n]*flexWrap: 'wrap'/);
+ assert.match(css,/\.practice-runner-actions > button\s*\{[^}]*min-height: 44px/s);
+});

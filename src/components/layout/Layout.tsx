@@ -171,7 +171,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         )}
 
         {/* Page Content */}
-        <main style={{ flexGrow: 1 }} className="page-enter">
+        <main style={{ flexGrow: 1, paddingBottom: isMobile ? 'calc(84px + env(safe-area-inset-bottom, 0px))' : undefined }} className="page-enter">
           {children}
         </main>
       </div>
@@ -184,7 +184,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             bottom: 0,
             left: 0,
             right: 0,
-            height: '60px',
+            height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
+            boxSizing: 'border-box',
             backgroundColor: 'var(--bg-surface)',
             borderTop: '1px solid var(--border-subtle)',
             display: 'flex',

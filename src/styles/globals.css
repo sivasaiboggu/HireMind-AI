@@ -231,3 +231,14 @@ button {
   align-items: center;
   justify-content: center;
 }
+
+
+/* Reserve touch space and keep runner controls above the fixed mobile tabs. */
+@media (max-width: 767px) {
+  .practice-runner-actions { width: 100%; }
+  .practice-runner-actions > button {
+    flex: 1 1 120px;
+    min-height: 44px;
+    white-space: normal;
+  }
+}
