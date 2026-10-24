@@ -524,14 +524,15 @@ json.dumps(result)
   };
 
   const getAverageScore = () => {
-    const evals = Object.values(aiEvaluations);
-    if (evals.length === 0) return 0;
-    let sum = 0;
-    evals.forEach((e: any) => {
-      sum += e?.overallScore || 0;
-    });
-    return Math.round(sum / Math.max(questions.length, 1));
+    const scored = questions.map(q => aiEvaluations[q.id]?.overallScore)
+      .filter((score: unknown): score is number => typeof score === 'number' &&
+        Number.isFinite(score) && score >= 0 && score <= 10);
+    return scored.length ? Math.round(scored.reduce((sum, score) => sum + score, 0) / scored.length) : null;
   };
+  const assessedCount = questions.filter(q => {
+    const score = aiEvaluations[q.id]?.overallScore;
+    return typeof score === 'number' && Number.isFinite(score) && score >= 0 && score <= 10;
+  }).length;
 
   const splitDetails = calculateProportionalSplit(questionCount);
 
@@ -1183,19 +1184,16 @@ json.dumps(result)
             <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><Trophy style={{ color: 'var(--accent-secondary)' }} /> Practice Session Summary</h3>
             
             {/* Score ring */}
-            <div style={{ position: 'relative', width: '112px', height: '112px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '8px solid var(--bg-hover)' }} />
-              <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '8px solid var(--accent-primary)', clipPath: 'polygon(50% 50%, -50% -50%, 150% -50%, 150% 150%, -50% 150%)' }} />
-              
+            <div style={{ position: 'relative', width: '240px', maxWidth: '100%', minHeight: '112px', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <span style={{ fontSize: 'var(--text-2xl)', fontWeight: 800, fontFamily: 'var(--font-numeric)' }}>
                   {practiceMode === 'dsa' 
                     ? `${Object.values(aiEvaluations).filter((e: any) => e.passed).length}/${questions.length}`
-                    : `${getAverageScore()}/10`
+                    : getAverageScore() === null ? 'Not assessed' : `${getAverageScore()}/10`
                   }
                 </span>
                 <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
-                  {practiceMode === 'dsa' ? 'Solved' : 'Avg Score'}
+                  {practiceMode === 'dsa' ? 'Solved' : `${assessedCount}/${questions.length} assessed`}
                 </span>
               </div>
             </div>
@@ -1218,10 +1216,13 @@ json.dumps(result)
                 const uCodeOrAns = userAnswers[q.id] || '';
                 const qEval = aiEvaluations[q.id];
                 const isDsa = practiceMode === 'dsa';
-                const scorePassed = isDsa ? qEval?.passed : (qEval?.overallScore >= 7);
+                const hasAssessment = isDsa ? typeof qEval?.passed === 'boolean' :
+                  typeof qEval?.overallScore === 'number' && Number.isFinite(qEval.overallScore) &&
+                  qEval.overallScore >= 0 && qEval.overallScore <= 10;
+                const scorePassed = hasAssessment && (isDsa ? qEval.passed : qEval.overallScore >= 7);
 
                 return (
-                  <Card key={q.id} hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderColor: scorePassed ? 'var(--accent-primary)' : 'var(--accent-danger)' }}>
+                  <Card key={q.id} hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderColor: !hasAssessment ? 'var(--border-subtle)' : scorePassed ? 'var(--accent-primary)' : 'var(--accent-danger)' }}>
                     
                     {/* Item header info */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1229,7 +1230,9 @@ json.dumps(result)
                         Question {idx + 1}. {q.title || q.category.toUpperCase()}
                       </span>
 
-                      {scorePassed ? (
+                      {!hasAssessment ? (
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 700 }}>NOT ASSESSED</span>
+                      ) : scorePassed ? (
                         <span style={{ color: 'var(--accent-primary)', fontSize: '10px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <CheckCircle2 style={{ width: '14px' }} /> {isDsa ? 'ALL TESTS PASSED' : `EXCELLENT (${qEval?.overallScore}/10)`}
                         </span>

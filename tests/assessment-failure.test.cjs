@@ -51,3 +51,7 @@ test('mobile shell reserves safe-area space and practice controls can wrap',()=>
  assert.match(quiz,/className="practice-runner-footer"[^\n]*flexWrap: 'wrap'/);
  assert.match(css,/\.practice-runner-actions > button\s*\{[^}]*min-height: 44px/s);
 });
+
+for(const [evaluations,expected] of [[{},null],[{a:null,b:null},null],[{a:{overallScore:0}},0],[{a:{overallScore:8},b:null},8],[{a:{overallScore:8},b:{overallScore:0}},4],[{a:{overallScore:'8'},b:{overallScore:NaN}},null]])test(`summary average excludes unassessed rows: ${JSON.stringify(evaluations)}`,()=>{
+ const run=handler('src/pages/QuizPractice.tsx','getAverageScore',{questions:[{id:'a'},{id:'b'}],aiEvaluations:evaluations});assert.equal(run(),expected);
+});

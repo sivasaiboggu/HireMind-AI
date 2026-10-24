@@ -279,3 +279,12 @@ inset. Practice runner actions wrap and keep at least 44px touch height. A real
 390px-wide local viewport was scrolled to the footer: both Run Code and Submit
 Solution were visible above navigation, with the unavailable-review notice still
 readable. This is a focused footer check, not a full device/keyboard audit.
+
+### Unassessed practice summaries
+
+Skipped or unavailable written-quiz evaluations are shown as Not assessed,
+not 0/10 or a failed result. Summary averages include only finite 0-10 ratings
+for the current questions, with the assessed count shown separately. An actual
+zero rating remains part of that average. Six logic regressions cover empty,
+partial, invalid and zero-score cases. Desktop and 390px local application
+screenshots were inspected for the all-skipped state; no provider was contacted.
