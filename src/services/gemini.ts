@@ -1,4 +1,5 @@
 import { safeApiError } from './api-errors';
+import { resolveGeminiApiKey, readStoredGeminiKey } from './ai-key';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { 
   parseGeminiJson, 
@@ -21,9 +22,13 @@ import {
 import { ResumeAnalysis, Question, AnswerFeedback, Roadmap, InterviewConfig, QuizQuestion } from '../types';
 
 const getApiKey = (): string => {
-  // Local development only. Public builds reject configured provider secrets.
-  const apiKey = import.meta.env.DEV ? (import.meta.env.VITE_GEMINI_API_KEY || '') : '';
-  return typeof apiKey === 'string' ? apiKey.trim() : '';
+  // Public builds reject baked-in provider secrets. Local development uses the
+  // env key; everyone can connect their own free Google AI key from the top bar.
+  return resolveGeminiApiKey({
+    isDev: import.meta.env.DEV,
+    devKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+    storedKey: readStoredGeminiKey()
+  });
 };
 
 const handleApiError = (error: unknown, _context: string): never => { throw safeApiError(error); };
@@ -33,7 +38,7 @@ export class GeminiService {
     const key = getApiKey();
     if (!key) {
       throw new Error(
-        'AI is not configured. Local development can use VITE_GEMINI_API_KEY; public hosting requires an authenticated server-side endpoint.'
+        'AI features need a Google AI key. Tap the key icon in the top bar to connect your free key, then try again.'
       );
     }
     return new GoogleGenerativeAI(key);
