@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Sun, Moon, LogOut, KeyRound } from 'lucide-react';
+import { Search, Bell, Sun, Moon, LogOut } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { readStoredGeminiKey, saveStoredGeminiKey, clearStoredGeminiKey } from '../../services/ai-key';
+import { GoogleAIKeyConnect } from './GoogleAIKeyConnect';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
@@ -26,9 +24,6 @@ export const TopBar: React.FC = () => {
   } = useAppStore();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [keyModalOpen, setKeyModalOpen] = useState(false);
-  const [keyInput, setKeyInput] = useState('');
-  const [keyConnected, setKeyConnected] = useState(() => readStoredGeminiKey() !== '');
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const currentView = location.pathname.substring(1) || 'dashboard';
   
@@ -177,30 +172,13 @@ export const TopBar: React.FC = () => {
 
 
         {/* Connect Google AI key */}
-        <button
-          onClick={() => {
-            setKeyInput('');
-            setKeyModalOpen(true);
+        <GoogleAIKeyConnect
+          variant="icon"
+          onOpen={() => {
             setNotificationsOpen(false);
             setMenuOpen(false);
           }}
-          style={{
-            position: 'relative',
-            color: keyConnected ? 'var(--accent-primary)' : 'var(--text-secondary)',
-            padding: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '50%',
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            cursor: 'pointer'
-          }}
-          className="btn-press"
-          title={keyConnected ? 'Google AI key connected' : 'Connect your free Google AI key'}
-        >
-          <KeyRound style={{ width: '18px', height: '18px' }} />
-        </button>
+        />
 
         {/* Notification Bell Dropdown Container */}
         <div style={{ position: 'relative' }} ref={bellRef}>
@@ -387,59 +365,7 @@ export const TopBar: React.FC = () => {
         </div>
       </div>
 
-      <Modal isOpen={keyModalOpen} onClose={() => setKeyModalOpen(false)} title="Connect Google AI">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            HireMind's AI features (resume analysis, interview questions, roadmaps) run with your own free Google AI key.
-            The key is saved only in this browser and is sent only to Google when you use an AI feature.
-          </p>
-          <a
-            href="https://aistudio.google.com/apikey"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}
-          >
-            Get a free key from Google AI Studio
-          </a>
-          <div>
-            <label htmlFor="gemini-key-input">Your Google AI key</label>
-            <input
-              id="gemini-key-input"
-              type="password"
-              value={keyInput}
-              onChange={(e) => setKeyInput(e.target.value)}
-              placeholder={keyConnected ? 'A key is connected - paste a new one to replace it' : 'Paste your key here'}
-              autoComplete="off"
-              style={{ marginTop: '6px' }}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <Button
-              onClick={() => {
-                if (!keyInput.trim()) return;
-                saveStoredGeminiKey(keyInput);
-                setKeyConnected(true);
-                setKeyModalOpen(false);
-              }}
-              disabled={!keyInput.trim()}
-            >
-              Save and connect
-            </Button>
-            {keyConnected && (
-              <Button
-                variant="danger"
-                onClick={() => {
-                  clearStoredGeminiKey();
-                  setKeyConnected(false);
-                  setKeyModalOpen(false);
-                }}
-              >
-                Remove key
-              </Button>
-            )}
-          </div>
-        </div>
-      </Modal>
+      
     </header>
   );
 };

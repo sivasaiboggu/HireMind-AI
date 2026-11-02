@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
@@ -35,7 +36,10 @@ export const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  // Render at document.body: a backdrop-filtered or transformed ancestor
+  // (such as the sticky top bar) would become the containing block for
+  // position:fixed and clip or misplace the overlay.
+  return createPortal(
     <div
       onClick={onClose}
       style={{
@@ -103,6 +107,7 @@ export const Modal: React.FC<ModalProps> = ({
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
+import { GoogleAIKeyConnect } from './GoogleAIKeyConnect';
 import { WebGLBackground } from './WebGLBackground';
 import { useAppStore, AppView, Toast } from '../../store/appStore';
 import { 
@@ -267,6 +268,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </button>
               );
             })}
+
+            <GoogleAIKeyConnect variant="row" />
           </div>
         </div>
       )}
