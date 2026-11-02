@@ -175,7 +175,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   sidebarCollapsed: getSavedJson<boolean>(KEYS.COLLAPSED, false),
   searchOpen: false,
   toasts: [],
-  credits: getSavedJson<number>(KEYS.CREDITS, 85), 
+  credits: getSavedJson<number>(KEYS.CREDITS, 100), 
   theme: (() => {
     let saved: 'light' | 'dark' = 'dark';
     try { saved = localStorage.getItem('hiremind_theme_v9') === 'light' ? 'light' : 'dark'; } catch {}
@@ -244,7 +244,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       // Guest localStorage changes must not overwrite a signed-in workspace.
       if (!e.key || get().user) return;
       if (e.key === KEYS.CREDITS) {
-        const val = getSavedJson<number>(KEYS.CREDITS, 85);
+        const val = getSavedJson<number>(KEYS.CREDITS, 100);
         if (get().credits !== val) {
           set({ credits: val });
           get().addToast('info', 'Sync: Credits updated');
@@ -448,7 +448,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           set({
             user: null,
             profile: null,
-            credits: getSavedJson<number>(KEYS.CREDITS, 85),
+            credits: getSavedJson<number>(KEYS.CREDITS, 100),
             resumeHistory: isGuest ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []) : [],
             activeResume: isGuest && getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []).length > 0 ? getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, [])[0] : null,
             interviewHistory: isGuest ? getSavedJson<SavedInterview[]>(KEYS.INTERVIEWS, []) : [],

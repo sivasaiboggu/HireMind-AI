@@ -8,7 +8,7 @@ for(const raw of ['null','{}','"bad"','[null]','[1]','[[]]'])test(`guest history
 });
 test('guest preferences reject wrong types and negative credits',()=>{
  const f=store(false,false,{saved:{hiremind_credits_v9:'-1',hiremind_guest_v9:'"true"',hiremind_collapsed_v9:'[]',hiremind_theme_v9:'invalid'}});
- assert.equal(f.store.getState().credits,85);assert.equal(f.store.getState().guestMode,false);assert.equal(f.store.getState().sidebarCollapsed,false);assert.equal(f.store.getState().theme,'dark');
+ assert.equal(f.store.getState().credits,100);assert.equal(f.store.getState().guestMode,false);assert.equal(f.store.getState().sidebarCollapsed,false);assert.equal(f.store.getState().theme,'dark');
 });
 test('denied storage reads do not crash store construction or guest initialization',()=>{
  const f=store(false,false,{readFails:true});f.store.getState().initializeAuth();
