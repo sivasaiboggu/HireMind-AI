@@ -60,3 +60,25 @@ test('interview missing or malformed ratings are not replaced by a fabricated5',
  for(const score of [undefined,null,'',false,Infinity,-1,11,'bad'])assert.throws(()=>sanitizeAnswerFeedback({...valid,accuracy:score}),/valid scores/);
  assert.throws(()=>sanitizeAnswerFeedback({}),/valid scores/);
 });
+
+test('parses JSON wrapped in prose or a mid-text fence', () => {
+  assert.deepEqual(
+    parseGeminiJson('Here is the analysis:\n```json\n{"ok":true}\n```\nLet me know if you need more.'),
+    { ok: true });
+  assert.deepEqual(
+    parseGeminiJson('Sure! {"score": 42, "note": "keeps } braces in strings"} Hope that helps.'),
+    { score: 42, note: 'keeps } braces in strings' });
+  assert.deepEqual(parseGeminiJson('Result: [1, 2, 3] done.'), [1, 2, 3]);
+});
+test('prose-wrapped invalid JSON still throws without logging private content', () => {
+  const privateText = 'Intro PRIVATE_RESUME_SENTINEL {broken json} outro';
+  const logged = [];
+  const original = console.error;
+  console.error = (...args) => logged.push(args.join(' '));
+  try {
+    assert.throws(() => parseGeminiJson(privateText), {
+      message: 'API returned an invalid JSON response structure. Please retry.'
+    });
+    assert.deepEqual(logged, []);
+  } finally { console.error = original; }
+});

@@ -34,7 +34,25 @@ export function parseGeminiJson<T>(rawText: string): T {
   try {
     return JSON.parse(cleaned) as T;
   } catch (error) {
-    // Model responses may contain resumes and other personal data. Never log them.
+    // Models sometimes wrap the payload in prose or a mid-text fence. Try the
+    // first fenced block, then the outermost top-level {..} or [..] span, before
+    // giving up. Responses may contain resumes and other personal data, so none
+    // of these paths ever log the content.
+    const fenced = /```(?:json)?\s*([\s\S]*?)\s*```/i.exec(cleaned);
+    const candidates = [];
+    if (fenced) candidates.push(fenced[1]);
+    const openers = ['{', '['].map(c => cleaned.indexOf(c)).filter(i => i >= 0);
+    if (openers.length) {
+      const start = Math.min(...openers);
+      const closer = cleaned[start] === '{' ? '}' : ']';
+      const end = cleaned.lastIndexOf(closer);
+      if (end > start) candidates.push(cleaned.slice(start, end + 1));
+    }
+    for (const candidate of candidates) {
+      try {
+        return JSON.parse(candidate) as T;
+      } catch { /* try the next candidate */ }
+    }
     throw new Error('API returned an invalid JSON response structure. Please retry.');
   }
 }
