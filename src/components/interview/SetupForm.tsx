@@ -211,8 +211,8 @@ export const SetupForm: React.FC<SetupFormProps> = ({
                   gap: '6px',
                   padding: '4px 8px',
                   borderRadius: 'var(--radius-sm)',
-                  backgroundColor: 'rgba(0, 212, 170, 0.1)',
-                  border: '1px solid rgba(0, 212, 170, 0.2)',
+                  backgroundColor: 'rgba(198, 242, 78, 0.1)',
+                  border: '1px solid rgba(198, 242, 78, 0.2)',
                   color: 'var(--accent-primary)',
                   fontSize: '10px',
                   fontWeight: 600
@@ -383,7 +383,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({
                 gap: '12px',
                 padding: '12px',
                 borderRadius: 'var(--radius-md)',
-                backgroundColor: videoMode ? 'rgba(0, 212, 170, 0.05)' : 'var(--bg-elevated)',
+                backgroundColor: videoMode ? 'rgba(198, 242, 78, 0.05)' : 'var(--bg-elevated)',
                 border: videoMode ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                 cursor: 'pointer',
                 transition: 'all 150ms ease'

@@ -64,7 +64,7 @@ export const StatsGrid: React.FC = () => {
       {/* Card 2: Interviews Done */}
       <Card hoverable style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '160px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(0, 212, 170, 0.1)', color: 'var(--accent-primary)' }}>
+          <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(198, 242, 78, 0.1)', color: 'var(--accent-primary)' }}>
             <Mic style={{ width: '20px', height: '20px' }} />
           </div>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 600 }}>
@@ -105,7 +105,7 @@ export const StatsGrid: React.FC = () => {
       {/* Card 4: Career Readiness */}
       <Card hoverable style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '160px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(0, 212, 170, 0.05)', color: 'var(--accent-primary)', width: 'fit-content', marginBottom: '8px' }}>
+          <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(198, 242, 78, 0.05)', color: 'var(--accent-primary)', width: 'fit-content', marginBottom: '8px' }}>
             <Compass style={{ width: '20px', height: '20px' }} />
           </div>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>

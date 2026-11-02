@@ -293,7 +293,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             if (toast.type === 'success') {
               Icon = CheckCircle;
               color = 'var(--accent-primary)';
-              border = '1px solid rgba(0, 212, 170, 0.3)';
+              border = '1px solid rgba(198, 242, 78, 0.3)';
             } else if (toast.type === 'error') {
               Icon = X;
               color = 'var(--accent-danger)';

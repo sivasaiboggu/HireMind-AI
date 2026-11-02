@@ -19,7 +19,7 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#F4F1EA',
+        backgroundColor: 'var(--bg-base)',
         backgroundImage: 'radial-gradient(rgba(0,0,0,0.018) 1px, transparent 1px)',
         backgroundSize: '28px 28px',
         display: 'flex',

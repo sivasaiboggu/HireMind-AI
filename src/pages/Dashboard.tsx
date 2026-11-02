@@ -150,7 +150,7 @@ export const Dashboard: React.FC = () => {
         <div style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.7)',
+          backgroundColor: 'rgba(4, 6, 5, 0.66)',
           backdropFilter: 'blur(16px)',
           display: 'flex',
           alignItems: 'center',
@@ -175,8 +175,8 @@ export const Dashboard: React.FC = () => {
                 width: '46px',
                 height: '46px',
                 borderRadius: '14px',
-                backgroundColor: 'rgba(0, 212, 170, 0.08)',
-                border: '1px solid rgba(0, 212, 170, 0.15)',
+                backgroundColor: 'rgba(198, 242, 78, 0.08)',
+                border: '1px solid rgba(198, 242, 78, 0.15)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -245,7 +245,7 @@ export const Dashboard: React.FC = () => {
                         fontSize: '11px',
                         padding: '6px 12px',
                         borderRadius: '100px',
-                        backgroundColor: onboardingRole === role ? 'rgba(0, 212, 170, 0.1)' : 'var(--bg-elevated)',
+                        backgroundColor: onboardingRole === role ? 'rgba(198, 242, 78, 0.1)' : 'var(--bg-elevated)',
                         border: onboardingRole === role ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                         color: onboardingRole === role ? 'var(--accent-primary)' : 'var(--text-secondary)',
                         fontWeight: 500,
@@ -265,7 +265,7 @@ export const Dashboard: React.FC = () => {
                 style={{
                   width: '100%',
                   background: 'linear-gradient(135deg, var(--accent-primary) 0%, #00b38f 100%)',
-                  color: '#ffffff',
+                  color: '#0D1110',
                   border: 'none',
                   borderRadius: '12px',
                   padding: '12px 20px',
@@ -276,7 +276,7 @@ export const Dashboard: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 212, 170, 0.15)',
+                  boxShadow: '0 4px 12px rgba(198, 242, 78, 0.15)',
                   marginTop: '10px',
                   transition: 'all 200ms ease'
                 }}

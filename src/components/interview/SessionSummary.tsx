@@ -44,7 +44,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: 'rgba(0, 212, 170, 0.03)',
+          backgroundColor: 'rgba(198, 242, 78, 0.03)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-lg)',
           padding: '24px'

@@ -878,7 +878,7 @@ export const InterviewPractice: React.FC = () => {
           }}
         />
 
-        <svg width="100%" height="100%" viewBox="0 0 100 100" style={{ borderRadius: '50%', border: '2px solid rgba(255,255,255,0.08)', overflow: 'hidden', backgroundColor: '#0f172a', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+        <svg width="100%" height="100%" viewBox="0 0 100 100" style={{ borderRadius: '50%', border: '2px solid rgba(255,255,255,0.08)', overflow: 'hidden', backgroundColor: '#EDF3EF', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
           <defs>
             {/* Background Gradients */}
             <linearGradient id="office-bg-sophia" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -969,7 +969,7 @@ export const InterviewPractice: React.FC = () => {
             {type === 'sophia' && (
               <g>
                 <path d="M 12,95 C 12,74 32,68 50,68 C 68,68 88,74 88,95 Z" fill="url(#blazer-sophia)" />
-                <path d="M 43,68 L 50,84 L 57,68 Z" fill="#0f766e" />
+                <path d="M 43,68 L 50,84 L 57,68 Z" fill="#C6F24E" />
                 <path d="M 46,68 L 50,78 L 54,68 Z" fill="#2dd4bf" />
                 <rect x="45.5" y="56" width="9" height="14" fill="url(#skin-main)" />
                 <path d="M 45.5,64 C 48,66 52,66 54.5,64 Z" fill="#fdcba1" opacity="0.6" />
@@ -1006,13 +1006,13 @@ export const InterviewPractice: React.FC = () => {
                 <circle cx="34" cy="44" r="2.5" fill="url(#skin-main)" />
                 <circle cx="66" cy="44" r="2.5" fill="url(#skin-main)" />
                 <path d="M 49,45 L 50,49 L 51,45" fill="none" stroke="#e0a97c" strokeWidth="0.8" strokeLinecap="round" />
-                <circle cx="43.5" cy={eyeY} r="2.0" fill="#1e293b" className="blink-eye" />
-                <circle cx="56.5" cy={eyeY} r="2.0" fill="#1e293b" className="blink-eye" />
+                <circle cx="43.5" cy={eyeY} r="2.0" fill="#D8E1DC" className="blink-eye" />
+                <circle cx="56.5" cy={eyeY} r="2.0" fill="#D8E1DC" className="blink-eye" />
                 <path d="M 40,39.5 Q 43.5,38.5 46,40" fill="none" stroke="#1f2937" strokeWidth="1" strokeLinecap="round" />
                 <path d="M 54,40 Q 56.5,38.5 60,39.5" fill="none" stroke="#1f2937" strokeWidth="1" strokeLinecap="round" />
-                <circle cx="43.5" cy={eyeY} r="5.2" fill="none" stroke="#475569" strokeWidth="1" />
-                <circle cx="56.5" cy={eyeY} r="5.2" fill="none" stroke="#475569" strokeWidth="1" />
-                <line x1="48.7" y1={eyeY} x2="51.3" y2={eyeY} stroke="#475569" strokeWidth="1" />
+                <circle cx="43.5" cy={eyeY} r="5.2" fill="none" stroke="#A3AFA9" strokeWidth="1" />
+                <circle cx="56.5" cy={eyeY} r="5.2" fill="none" stroke="#A3AFA9" strokeWidth="1" />
+                <line x1="48.7" y1={eyeY} x2="51.3" y2={eyeY} stroke="#A3AFA9" strokeWidth="1" />
                 {isSpk ? (
                   <>
                     {mouthShapeIdx === 0 && <path d="M 46,53 Q 50,55 54,53" fill="none" stroke="#e11d48" strokeWidth="1" strokeLinecap="round" />}
@@ -1036,8 +1036,8 @@ export const InterviewPractice: React.FC = () => {
                 <circle cx="34" cy="43" r="2.5" fill="url(#skin-main)" />
                 <circle cx="66" cy="43" r="2.5" fill="url(#skin-main)" />
                 <path d="M 49,43.5 L 50,47.5 L 51,43.5" fill="none" stroke="#e0a97c" strokeWidth="0.8" strokeLinecap="round" />
-                <circle cx="43.5" cy={marcusEyeY} r="2.1" fill="#1e293b" className="blink-eye" />
-                <circle cx="56.5" cy={marcusEyeY} r="2.1" fill="#1e293b" className="blink-eye" />
+                <circle cx="43.5" cy={marcusEyeY} r="2.1" fill="#D8E1DC" className="blink-eye" />
+                <circle cx="56.5" cy={marcusEyeY} r="2.1" fill="#D8E1DC" className="blink-eye" />
                 <path d="M 39,38.5 Q 43,37.5 46.5,39" fill="none" stroke="#431407" strokeWidth="1.2" strokeLinecap="round" />
                 <path d="M 53.5,39 Q 57,37.5 61,38.5" fill="none" stroke="#431407" strokeWidth="1.2" strokeLinecap="round" />
                 {isSpk ? (
@@ -1061,8 +1061,8 @@ export const InterviewPractice: React.FC = () => {
                 <circle cx="34" cy="44" r="2.2" fill="url(#skin-main)" />
                 <circle cx="66" cy="44" r="2.2" fill="url(#skin-main)" />
                 <path d="M 49,45 L 50,48.5 L 51,45" fill="none" stroke="#e0a97c" strokeWidth="0.8" strokeLinecap="round" />
-                <circle cx="43.5" cy={eyeY} r="2.1" fill="#1e293b" className="blink-eye" />
-                <circle cx="56.5" cy={eyeY} r="2.1" fill="#1e293b" className="blink-eye" />
+                <circle cx="43.5" cy={eyeY} r="2.1" fill="#D8E1DC" className="blink-eye" />
+                <circle cx="56.5" cy={eyeY} r="2.1" fill="#D8E1DC" className="blink-eye" />
                 <path d="M 39.5,40 Q 43,39 46,40.5" fill="none" stroke="#431407" strokeWidth="1" strokeLinecap="round" />
                 <path d="M 54,40.5 Q 57,39 60.5,40" fill="none" stroke="#431407" strokeWidth="1" strokeLinecap="round" />
                 {isSpk ? (
@@ -1119,7 +1119,7 @@ export const InterviewPractice: React.FC = () => {
       pointer-events: none;
       border: 1px solid transparent;
       border-radius: inherit;
-      background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), transparent, rgba(139, 92, 246, 0.2)) border-box;
+      background: linear-gradient(135deg, rgba(198, 242, 78, 0.2), transparent, rgba(94, 234, 200, 0.2)) border-box;
       mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
       mask-composite: exclude;
       opacity: 0.4;
@@ -1172,8 +1172,8 @@ export const InterviewPractice: React.FC = () => {
       animation: micGlow 1.5s infinite alternate;
     }
     @keyframes micGlow {
-      from { box-shadow: 0 0 4px rgba(0, 212, 170, 0.2); }
-      to { box-shadow: 0 0 16px rgba(0, 212, 170, 0.6); }
+      from { box-shadow: 0 0 4px rgba(198, 242, 78, 0.2); }
+      to { box-shadow: 0 0 16px rgba(198, 242, 78, 0.6); }
     }
     @media (max-width: 1024px) {
       .call-layout-grid {
@@ -1478,8 +1478,8 @@ export const InterviewPractice: React.FC = () => {
                     width: '44px',
                     height: '44px',
                     borderRadius: '50%',
-                    backgroundColor: micMuted ? '#ea4335' : 'rgba(255,255,255,0.15)',
-                    color: '#fff',
+                    backgroundColor: micMuted ? '#ea4335' : 'rgba(255,255,255,0.08)',
+                    color: micMuted ? '#fff' : 'var(--text-primary)',
                     border: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -1498,8 +1498,8 @@ export const InterviewPractice: React.FC = () => {
                     width: '44px',
                     height: '44px',
                     borderRadius: '50%',
-                    backgroundColor: !cameraEnabled ? '#ea4335' : 'rgba(255,255,255,0.15)',
-                    color: '#fff',
+                    backgroundColor: !cameraEnabled ? '#ea4335' : 'rgba(255,255,255,0.08)',
+                    color: !cameraEnabled ? '#fff' : 'var(--text-primary)',
                     border: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -1567,7 +1567,7 @@ export const InterviewPractice: React.FC = () => {
                   padding: '14px 32px',
                   borderRadius: '30px',
                   backgroundColor: 'var(--accent-primary)',
-                  color: '#fff',
+                  color: '#0D1110',
                   border: 'none',
                   fontSize: '13px',
                   fontWeight: 700,
@@ -1839,7 +1839,7 @@ export const InterviewPractice: React.FC = () => {
                       left: '50%',
                       transform: 'translateX(-50%)',
                       backgroundColor: 'var(--accent-secondary)',
-                      color: '#fff',
+                      color: '#0D1110',
                       padding: '10px 24px',
                       borderRadius: '24px',
                       maxWidth: '85%',
@@ -2119,7 +2119,7 @@ export const InterviewPractice: React.FC = () => {
                 borderRadius: '20px',
                 backgroundColor: typedAnswer.trim() ? 'var(--accent-primary)' : 'var(--bg-elevated)',
                 border: 'none',
-                color: typedAnswer.trim() ? '#fff' : 'var(--text-muted)',
+                color: typedAnswer.trim() ? '#0D1110' : 'var(--text-muted)',
                 fontSize: '11px',
                 fontWeight: 700,
                 letterSpacing: '0.05em',
@@ -2164,8 +2164,8 @@ export const InterviewPractice: React.FC = () => {
                   width: '40px',
                   height: '40px',
                   borderRadius: '50%',
-                  backgroundColor: idePanelOpen ? 'rgba(139, 92, 246, 0.15)' : '#202124',
-                  border: idePanelOpen ? '1px solid rgba(139, 92, 246, 0.3)' : 'none',
+                  backgroundColor: idePanelOpen ? 'rgba(94, 234, 200, 0.15)' : '#202124',
+                  border: idePanelOpen ? '1px solid rgba(94, 234, 200, 0.3)' : 'none',
                   color: idePanelOpen ? 'var(--accent-purple)' : '#fff',
                   display: 'flex',
                   alignItems: 'center',

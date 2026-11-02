@@ -16,9 +16,9 @@ export const Badge: React.FC<BadgeProps> = ({
     switch (variant) {
       case 'success':
         return {
-          backgroundColor: 'rgba(0, 212, 170, 0.1)',
+          backgroundColor: 'rgba(198, 242, 78, 0.1)',
           color: 'var(--accent-primary)',
-          border: '1px solid rgba(0, 212, 170, 0.2)'
+          border: '1px solid rgba(198, 242, 78, 0.2)'
         };
       case 'warning':
         return {

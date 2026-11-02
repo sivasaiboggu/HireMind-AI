@@ -65,16 +65,16 @@ export const WebGLBackground: React.FC = () => {
           gridLine *= horizonFade * 0.14;
         }
         
-        // Violet/Coral gradient glow
+        // Lime/Mint gradient glow
         vec2 glowCenter = vec2(0.5) + mouseDrift * 0.4;
         float dist = length(uv - glowCenter);
-        vec3 glowColor = mix(vec3(0.54, 0.36, 0.96), vec3(1.0, 0.42, 0.33), uv.y);
-        float glowIntensity = exp(-dist * 2.0) * 0.08;
+        vec3 glowColor = mix(vec3(0.78, 0.95, 0.31), vec3(0.37, 0.92, 0.78), uv.y);
+        float glowIntensity = exp(-dist * 2.0) * 0.16;
         
-        // Base light sand color (#F4F1EA)
-        vec3 baseColor = vec3(0.95, 0.94, 0.91);
-        vec3 gridColor = vec3(0.78, 0.74, 0.65);
-        vec3 finalColor = mix(baseColor + glowColor * glowIntensity * 0.4, gridColor, gridLine);
+        // Base deep ink color (#0D1110)
+        vec3 baseColor = vec3(0.051, 0.067, 0.063);
+        vec3 gridColor = vec3(0.23, 0.30, 0.27);
+        vec3 finalColor = mix(baseColor + glowColor * glowIntensity * 0.5, gridColor, gridLine);
         
         gl_FragColor = vec4(finalColor, 1.0);
       }

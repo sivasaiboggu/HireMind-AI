@@ -76,7 +76,7 @@ export const GoalSetup: React.FC<GoalSetupProps> = ({
             alignItems: 'center',
             gap: '12px',
             padding: '12px 20px',
-            backgroundColor: 'rgba(0, 212, 170, 0.05)',
+            backgroundColor: 'rgba(198, 242, 78, 0.05)',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
             cursor: 'pointer',

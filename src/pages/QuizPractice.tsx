@@ -581,8 +581,8 @@ json.dumps(result)
           <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {/* Mode Intro Banner */}
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(0, 212, 170, 0.03)', border: '1px dashed var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ padding: '10px', backgroundColor: 'rgba(0, 212, 170, 0.08)', borderRadius: '8px', color: 'var(--accent-primary)' }}>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(198, 242, 78, 0.03)', border: '1px dashed var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ padding: '10px', backgroundColor: 'rgba(198, 242, 78, 0.08)', borderRadius: '8px', color: 'var(--accent-primary)' }}>
                 {practiceMode === 'dsa' ? <Code /> : <Layers />}
               </div>
               <div>
@@ -690,7 +690,7 @@ json.dumps(result)
           {/* Workspace Active Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 800, padding: '4px 8px', borderRadius: '4px', backgroundColor: 'rgba(0, 212, 170, 0.08)', color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 800, padding: '4px 8px', borderRadius: '4px', backgroundColor: 'rgba(198, 242, 78, 0.08)', color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
                 Question {currentIdx + 1} of {questions.length}
               </span>
               <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
@@ -755,7 +755,7 @@ json.dumps(result)
                       borderRadius: '4px',
                       textTransform: 'uppercase',
                       color: currentQuestion.difficulty === 'easy' ? 'var(--accent-primary)' : currentQuestion.difficulty === 'medium' ? 'var(--accent-secondary)' : 'var(--accent-danger)',
-                      backgroundColor: currentQuestion.difficulty === 'easy' ? 'rgba(0, 212, 170, 0.08)' : currentQuestion.difficulty === 'medium' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(244, 63, 94, 0.08)'
+                      backgroundColor: currentQuestion.difficulty === 'easy' ? 'rgba(198, 242, 78, 0.08)' : currentQuestion.difficulty === 'medium' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(244, 63, 94, 0.08)'
                     }}>
                       {currentQuestion.difficulty}
                     </span>
@@ -931,7 +931,7 @@ json.dumps(result)
                     </div>
 
                     {/* Console View contents */}
-                    <div style={{ padding: '16px', minHeight: '120px', maxHeight: '180px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#E2E8F0', whiteSpace: 'pre-wrap' }}>
+                    <div style={{ padding: '16px', minHeight: '120px', maxHeight: '180px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'rgba(255,255,255,0.08)', whiteSpace: 'pre-wrap' }}>
                       {compilerTab === 'console' ? (
                         consoleOutput || (
                           <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
@@ -1032,7 +1032,7 @@ json.dumps(result)
                   borderRadius: '4px',
                   textTransform: 'uppercase',
                   color: currentQuestion.difficulty === 'easy' ? 'var(--accent-primary)' : currentQuestion.difficulty === 'medium' ? 'var(--accent-secondary)' : 'var(--accent-danger)',
-                  backgroundColor: currentQuestion.difficulty === 'easy' ? 'rgba(0, 212, 170, 0.08)' : currentQuestion.difficulty === 'medium' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(244, 63, 94, 0.08)'
+                  backgroundColor: currentQuestion.difficulty === 'easy' ? 'rgba(198, 242, 78, 0.08)' : currentQuestion.difficulty === 'medium' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(244, 63, 94, 0.08)'
                 }}>
                   {currentQuestion.difficulty}
                 </span>
@@ -1052,7 +1052,7 @@ json.dumps(result)
               {aiEvaluation ? (
                 // Evaluation feedback interface
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} className="page-enter">
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(0, 212, 170, 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(198, 242, 78, 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ position: 'relative', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <div className="absolute inset-0 rounded-full border-4 border-cyan-subtle" style={{ borderColor: 'var(--bg-hover)' }} />
                       <div className="absolute inset-0 rounded-full border-4 border-cyan" style={{ borderColor: 'var(--accent-primary)', clipPath: `polygon(50% 50%, -50% -50%, 150% -50%, 150% 150%, -50% 150%)` }} />
@@ -1070,7 +1070,7 @@ json.dumps(result)
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div style={{ padding: '16px', backgroundColor: 'rgba(0, 212, 170, 0.01)', border: '1px solid rgba(0, 212, 170, 0.05)', borderRadius: 'var(--radius-md)' }}>
+                    <div style={{ padding: '16px', backgroundColor: 'rgba(198, 242, 78, 0.01)', border: '1px solid rgba(198, 242, 78, 0.05)', borderRadius: 'var(--radius-md)' }}>
                       <h5 style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <CheckCircle2 style={{ width: '13px', height: '13px' }} />
                         STRENGTHS

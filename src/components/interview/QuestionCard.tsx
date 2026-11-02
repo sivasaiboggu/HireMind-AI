@@ -137,7 +137,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           <div
             style={{
               padding: '16px',
-              backgroundColor: 'rgba(0, 212, 170, 0.05)',
+              backgroundColor: 'rgba(198, 242, 78, 0.05)',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-md)',
               fontSize: 'var(--text-xs)',

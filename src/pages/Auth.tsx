@@ -243,7 +243,7 @@ export const Auth: React.FC = () => {
 
   const styles = `
     html, body {
-      background-color: #f8fafc !important;
+      background-color: #141A18 !important;
       margin: 0 !important;
       padding: 0 !important;
       overscroll-behavior: none !important;
@@ -264,8 +264,8 @@ export const Auth: React.FC = () => {
       display: flex;
       min-height: 100vh;
       width: 100vw;
-      background-color: #f8fafc;
-      color: #0f172a;
+      background-color: #141A18;
+      color: #EDF3EF;
       font-family: 'DM Sans', sans-serif;
       position: relative;
       overflow-y: auto;
@@ -277,9 +277,9 @@ export const Auth: React.FC = () => {
       position: absolute;
       inset: 0;
       background-image: 
-        radial-gradient(rgba(15, 23, 42, 0.015) 1px, transparent 1px),
-        linear-gradient(rgba(13, 148, 136, 0.008) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(13, 148, 136, 0.008) 1px, transparent 1px);
+        radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(rgba(198, 242, 78, 0.008) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(198, 242, 78, 0.008) 1px, transparent 1px);
       background-size: 32px 32px, 64px 64px, 64px 64px;
       z-index: 0;
     }
@@ -289,7 +289,7 @@ export const Auth: React.FC = () => {
       width: 650px;
       height: 650px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(13, 148, 136, 0.04) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(198, 242, 78, 0.04) 0%, transparent 70%);
       filter: blur(80px);
       top: -150px;
       left: -200px;
@@ -301,7 +301,7 @@ export const Auth: React.FC = () => {
       width: 700px;
       height: 700px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(79, 70, 229, 0.03) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(94, 234, 200, 0.03) 0%, transparent 70%);
       filter: blur(90px);
       bottom: -200px;
       right: -150px;
@@ -315,9 +315,9 @@ export const Auth: React.FC = () => {
       flex-direction: column;
       justify-content: space-between;
       padding: 40px 60px;
-      border-right: 1px solid #e2e8f0;
+      border-right: 1px solid rgba(255,255,255,0.08);
       position: relative;
-      background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+      background: linear-gradient(180deg, #171E1C 0%, #101514 100%);
       z-index: 1;
     }
 
@@ -336,9 +336,9 @@ export const Auth: React.FC = () => {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(13, 148, 136, 0.06);
-      border: 1px solid rgba(13, 148, 136, 0.15);
-      color: #0f766e;
+      background: rgba(198, 242, 78, 0.06);
+      border: 1px solid rgba(198, 242, 78, 0.15);
+      color: #C6F24E;
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
@@ -354,19 +354,19 @@ export const Auth: React.FC = () => {
       font-weight: 600;
       line-height: 1.15;
       letter-spacing: -0.02em;
-      color: #0f172a;
+      color: #EDF3EF;
       margin-bottom: 14px;
     }
 
     .showcase-title span {
-      background: linear-gradient(90deg, #0d9488 0%, #4f46e5 100%);
+      background: linear-gradient(90deg, #C6F24E 0%, #5EEAC8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .showcase-desc {
       font-size: 14px;
-      color: #475569;
+      color: #A3AFA9;
       line-height: 1.5;
       max-width: 520px;
       margin-bottom: 24px;
@@ -380,8 +380,8 @@ export const Auth: React.FC = () => {
     }
 
     .feature-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
+      background: var(--bg-surface);
+      border: 1px solid rgba(255,255,255,0.08);
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
       border-radius: 16px;
       padding: 16px;
@@ -392,9 +392,9 @@ export const Auth: React.FC = () => {
     }
 
     .feature-card:hover {
-      border-color: rgba(13, 148, 136, 0.25);
+      border-color: rgba(198, 242, 78, 0.25);
       transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.04);
+      box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.04);
     }
 
     .feature-icon-wrapper {
@@ -408,15 +408,15 @@ export const Auth: React.FC = () => {
     }
 
     .feature-icon-wrapper.cyan {
-      background: rgba(13, 148, 136, 0.06);
-      border: 1px solid rgba(13, 148, 136, 0.12);
-      color: #0d9488;
+      background: rgba(198, 242, 78, 0.06);
+      border: 1px solid rgba(198, 242, 78, 0.12);
+      color: #C6F24E;
     }
 
     .feature-icon-wrapper.purple {
-      background: rgba(79, 70, 229, 0.06);
-      border: 1px solid rgba(79, 70, 229, 0.12);
-      color: #4f46e5;
+      background: rgba(94, 234, 200, 0.06);
+      border: 1px solid rgba(94, 234, 200, 0.12);
+      color: #5EEAC8;
     }
 
     .feature-icon-wrapper.amber {
@@ -428,13 +428,13 @@ export const Auth: React.FC = () => {
     .feature-details h4 {
       font-size: 14.5px;
       font-weight: 600;
-      color: #0f172a;
+      color: #EDF3EF;
       margin-bottom: 3px;
     }
 
     .feature-details p {
       font-size: 12px;
-      color: #475569;
+      color: #A3AFA9;
       line-height: 1.4;
     }
 
@@ -442,13 +442,13 @@ export const Auth: React.FC = () => {
       display: flex;
       align-items: center;
       gap: 6px;
-      background: #f8fafc;
+      background: #141A18;
       padding: 3px 8px;
       border-radius: 100px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.08);
       font-size: 10.5px;
       font-weight: 500;
-      color: #334155;
+      color: #C4CFC9;
       margin-top: 6px;
       display: inline-flex;
     }
@@ -456,13 +456,13 @@ export const Auth: React.FC = () => {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #0d9488;
-      box-shadow: 0 0 8px rgba(13, 148, 136, 0.6);
+      background: #C6F24E;
+      box-shadow: 0 0 8px rgba(198, 242, 78, 0.6);
     }
 
     .showcase-footer {
       font-size: 11.5px;
-      color: #64748b;
+      color: #67736D;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -471,17 +471,17 @@ export const Auth: React.FC = () => {
     .premium-auth-card {
       width: 100%;
       max-width: 460px;
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
+      background: var(--bg-surface);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 24px;
       padding: 32px 36px;
-      box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 10px 10px -5px rgba(15, 23, 42, 0.02);
+      box-shadow: 0 20px 25px -5px rgba(255, 255, 255, 0.05), 0 10px 10px -5px rgba(255, 255, 255, 0.02);
       transition: all 300ms ease;
     }
 
     .premium-auth-card:hover {
-      box-shadow: 0 25px 35px -5px rgba(15, 23, 42, 0.08);
-      border-color: #cbd5e1;
+      box-shadow: 0 25px 35px -5px rgba(255, 255, 255, 0.08);
+      border-color: #2A3531;
     }
 
     .auth-input-group {
@@ -493,10 +493,10 @@ export const Auth: React.FC = () => {
 
     .auth-input-field {
       width: 100%;
-      background: #f8fafc !important;
-      border: 1px solid #cbd5e1 !important;
+      background: #141A18 !important;
+      border: 1px solid #2A3531 !important;
       border-radius: 14px !important;
-      color: #0f172a !important;
+      color: #EDF3EF !important;
       padding: 13px 16px 13px 44px !important;
       font-size: 13.5px !important;
       transition: all 200ms ease !important;
@@ -504,9 +504,9 @@ export const Auth: React.FC = () => {
     }
 
     .auth-input-field:focus {
-      border-color: #0d9488 !important;
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1) !important;
-      background: #ffffff !important;
+      border-color: #C6F24E !important;
+      box-shadow: 0 0 0 3px rgba(198, 242, 78, 0.1) !important;
+      background: var(--bg-surface) !important;
     }
 
     .auth-input-icon {
@@ -515,13 +515,13 @@ export const Auth: React.FC = () => {
       top: 36px;
       width: 17px;
       height: 17px;
-      color: #64748b;
+      color: #67736D;
       transition: color 200ms ease;
     }
 
     .auth-input-field:focus + .auth-input-icon,
     .auth-input-group:focus-within .auth-input-icon {
-      color: #0d9488;
+      color: #C6F24E;
     }
 
     .social-btn {
@@ -530,15 +530,15 @@ export const Auth: React.FC = () => {
       justify-content: center;
       padding: 12px;
       border-radius: 14px;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
+      background: var(--bg-surface);
+      border: 1px solid #2A3531;
       cursor: pointer;
       transition: all 200ms ease;
     }
 
     .social-btn:hover {
-      background: #f8fafc;
-      border-color: #94a3b8;
+      background: #141A18;
+      border-color: #67736D;
       transform: translateY(-2px);
     }
 
@@ -547,8 +547,8 @@ export const Auth: React.FC = () => {
     }
 
     .btn-primary-teal {
-      background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
-      color: #ffffff;
+      background: linear-gradient(135deg, #C6F24E 0%, #C6F24E 100%);
+      color: #0D1110;
       border: none;
       border-radius: 14px;
       padding: 14px 20px;
@@ -559,14 +559,14 @@ export const Auth: React.FC = () => {
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+      box-shadow: 0 4px 12px rgba(198, 242, 78, 0.15);
       transition: all 250ms ease;
     }
 
     .btn-primary-teal:hover {
-      background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+      background: linear-gradient(135deg, #C6F24E 0%, #115e59 100%);
       transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(13, 148, 136, 0.25);
+      box-shadow: 0 6px 18px rgba(198, 242, 78, 0.25);
     }
 
     .btn-primary-teal:active {
@@ -574,7 +574,7 @@ export const Auth: React.FC = () => {
     }
 
     .btn-primary-teal:disabled {
-      background: #94a3b8;
+      background: #67736D;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
@@ -582,10 +582,10 @@ export const Auth: React.FC = () => {
 
     .offline-guest-btn {
       width: 100%;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
+      background: var(--bg-surface);
+      border: 1px solid #2A3531;
       border-radius: 14px;
-      color: #475569;
+      color: #A3AFA9;
       padding: 12px;
       font-size: 12.5px;
       font-weight: 600;
@@ -598,14 +598,14 @@ export const Auth: React.FC = () => {
     }
 
     .offline-guest-btn:hover {
-      background: #f8fafc;
-      border-color: #94a3b8;
-      color: #0f172a;
+      background: #141A18;
+      border-color: #67736D;
+      color: #EDF3EF;
     }
 
     .security-badge-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      background: #141A18;
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 16px;
       padding: 12px 14px;
       display: flex;
@@ -620,7 +620,7 @@ export const Auth: React.FC = () => {
       top: 36px;
       background: none;
       border: none;
-      color: #64748b;
+      color: #67736D;
       cursor: pointer;
       padding: 4px;
       border-radius: 5px;
@@ -628,7 +628,7 @@ export const Auth: React.FC = () => {
     }
 
     .toggle-pass-btn:hover {
-      color: #0f172a;
+      color: #EDF3EF;
     }
 
     /* OTP Inputs styling */
@@ -643,9 +643,9 @@ export const Auth: React.FC = () => {
       width: 100%;
       height: 48px;
       border-radius: 12px;
-      border: 1px solid #cbd5e1;
-      background: #f8fafc;
-      color: #0f172a;
+      border: 1px solid #2A3531;
+      background: #141A18;
+      color: #EDF3EF;
       font-size: 20px;
       font-weight: 700;
       text-align: center;
@@ -654,15 +654,15 @@ export const Auth: React.FC = () => {
     }
 
     .otp-box:focus {
-      border-color: #0d9488;
-      background: #ffffff;
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+      border-color: #C6F24E;
+      background: var(--bg-surface);
+      box-shadow: 0 0 0 3px rgba(198, 242, 78, 0.1);
     }
 
     .toggle-link-btn {
       background: none;
       border: none;
-      color: #0f766e;
+      color: #C6F24E;
       font-weight: 600;
       cursor: pointer;
       padding: 0;
@@ -671,7 +671,7 @@ export const Auth: React.FC = () => {
     }
 
     .toggle-link-btn:hover {
-      color: #0d9488;
+      color: #C6F24E;
       text-decoration: underline;
     }
 
@@ -718,19 +718,19 @@ export const Auth: React.FC = () => {
               width: '38px',
               height: '38px',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #0d9488 0%, #4f46e5 100%)',
+              background: 'linear-gradient(135deg, #C6F24E 0%, #5EEAC8 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <Brain style={{ width: '20px', height: '20px', color: '#ffffff' }} />
+              <Brain style={{ width: '20px', height: '20px', color: '#0D1110' }} />
             </div>
             <span style={{
               fontFamily: 'Clash Display, Syne, sans-serif',
               fontSize: '20px',
               fontWeight: 600,
               letterSpacing: '-0.02em',
-              color: '#0f172a'
+              color: '#EDF3EF'
             }}>
               HireMind
             </span>
@@ -789,7 +789,7 @@ export const Auth: React.FC = () => {
         </div>
 
         <div className="showcase-footer">
-          <CheckCircle2 style={{ width: '14px', height: '14px', color: '#0d9488' }} />
+          <CheckCircle2 style={{ width: '14px', height: '14px', color: '#C6F24E' }} />
           <span>Used by software engineering candidates worldwide.</span>
         </div>
       </div>
@@ -804,20 +804,20 @@ export const Auth: React.FC = () => {
               width: '46px',
               height: '46px',
               borderRadius: '14px',
-              backgroundColor: 'rgba(13, 148, 136, 0.06)',
-              border: '1px solid rgba(13, 148, 136, 0.15)',
+              backgroundColor: 'rgba(198, 242, 78, 0.06)',
+              border: '1px solid rgba(198, 242, 78, 0.15)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '16px'
             }}>
-              <Shield style={{ width: '20px', height: '20px', color: '#0d9488' }} />
+              <Shield style={{ width: '20px', height: '20px', color: '#C6F24E' }} />
             </div>
             
-            <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#0f172a', marginBottom: '6px', fontFamily: 'Clash Display, Syne, sans-serif' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#EDF3EF', marginBottom: '6px', fontFamily: 'Clash Display, Syne, sans-serif' }}>
               {isSignUp ? 'Create Cloud Account' : otpSent ? 'Verify OTP Code' : 'Welcome back'}
             </h2>
-            <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.4 }}>
+            <p style={{ fontSize: '13px', color: '#A3AFA9', lineHeight: 1.4 }}>
               {isSignUp 
                 ? 'Register to initialize credit limits and cloud sync history.'
                 : otpSent 
@@ -841,7 +841,7 @@ export const Auth: React.FC = () => {
               <AlertCircle style={{ width: '16px', height: '16px', color: '#d97706', flexShrink: 0, marginTop: '1px' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#d97706' }}>Supabase Config Offline</span>
-                <span style={{ fontSize: '10px', color: '#475569', lineHeight: 1.4 }}>
+                <span style={{ fontSize: '10px', color: '#A3AFA9', lineHeight: 1.4 }}>
                   Database variables are not active. Tap "Use Offline Guest Mode" below to try all app features instantly.
                 </span>
               </div>
@@ -875,7 +875,7 @@ export const Auth: React.FC = () => {
                   onClick={() => handleSocialLogin('google')}
                   className="social-btn"
                   title="Sign in with Google"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', padding: '12px' }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#C4CFC9', padding: '12px' }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" style={{ display: 'block' }}>
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -892,7 +892,7 @@ export const Auth: React.FC = () => {
                   onClick={() => handleSocialLogin('github')}
                   className="social-btn"
                   title="Sign in with GitHub"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', padding: '12px' }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#C4CFC9', padding: '12px' }}
                 >
                   <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" style={{ display: 'block', color: '#181717' }}>
                     <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
@@ -902,9 +902,9 @@ export const Auth: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', margin: '10px 0 0 0', gap: '10px' }}>
-                <div style={{ flexGrow: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
-                <span style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Or continue with credentials</span>
-                <div style={{ flexGrow: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
+                <div style={{ flexGrow: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }} />
+                <span style={{ fontSize: '10px', color: '#67736D', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Or continue with credentials</span>
+                <div style={{ flexGrow: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }} />
               </div>
 
               {/* Developer Configuration Assistance */}
@@ -920,7 +920,7 @@ export const Auth: React.FC = () => {
           {otpSent ? (
             <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>6-Digit Verification Code</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#A3AFA9' }}>6-Digit Verification Code</label>
                 
                 <div className="otp-inputs-grid">
                   {otpCode.map((digit, idx) => (
@@ -949,7 +949,7 @@ export const Auth: React.FC = () => {
                 style={{ width: '100%' }}
               >
                 {loading ? (
-                  <span className="rotating-brain" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'pulseSoft 1.2s infinite ease-in-out' }} />
+                  <span className="rotating-brain" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid #0D1110', borderTopColor: 'transparent', borderRadius: '50%', animation: 'pulseSoft 1.2s infinite ease-in-out' }} />
                 ) : (
                   <>
                     Verify Code & Login
@@ -1064,7 +1064,7 @@ export const Auth: React.FC = () => {
                 style={{ width: '100%', marginTop: '8px' }}
               >
                 {loading ? (
-                  <span className="rotating-brain" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'pulseSoft 1.2s infinite ease-in-out' }} />
+                  <span className="rotating-brain" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid #0D1110', borderTopColor: 'transparent', borderRadius: '50%', animation: 'pulseSoft 1.2s infinite ease-in-out' }} />
                 ) : (
                   <>
                     {authMethod === 'password' 
@@ -1113,7 +1113,7 @@ export const Auth: React.FC = () => {
 
           {/* Toggle Mode Link (Sign Up vs Sign In) - Hide if verifying OTP */}
           {!otpSent && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', marginTop: '20px', fontSize: '13px', color: '#475569' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', marginTop: '20px', fontSize: '13px', color: '#A3AFA9' }}>
               <span>{isSignUp ? 'Already have an account?' : 'New to HireMind?'}</span>
               <button
                 onClick={() => {
@@ -1133,16 +1133,16 @@ export const Auth: React.FC = () => {
           {!otpSent && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0 16px 0', gap: '10px' }}>
-                <div style={{ flexGrow: 1, height: '1px', backgroundColor: '#cbd5e1' }} />
-                <span style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Offline mode</span>
-                <div style={{ flexGrow: 1, height: '1px', backgroundColor: '#cbd5e1' }} />
+                <div style={{ flexGrow: 1, height: '1px', backgroundColor: '#2A3531' }} />
+                <span style={{ fontSize: '10px', color: '#67736D', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Offline mode</span>
+                <div style={{ flexGrow: 1, height: '1px', backgroundColor: '#2A3531' }} />
               </div>
 
               <button
                 onClick={handleGuestMode}
                 className="offline-guest-btn"
               >
-                <User style={{ width: '14px', height: '14px', color: '#4f46e5' }} />
+                <User style={{ width: '14px', height: '14px', color: '#5EEAC8' }} />
                 Use Offline Guest Mode (Local Storage)
               </button>
             </>
@@ -1150,8 +1150,8 @@ export const Auth: React.FC = () => {
 
           {/* Cryptographic Password Security Tooltip Badge */}
           <div className="security-badge-card">
-            <LockKeyhole style={{ width: '16px', height: '16px', color: '#4f46e5', flexShrink: 0 }} />
-            <span style={{ fontSize: '10.5px', color: '#475569', lineHeight: 1.4 }}>
+            <LockKeyhole style={{ width: '16px', height: '16px', color: '#5EEAC8', flexShrink: 0 }} />
+            <span style={{ fontSize: '10.5px', color: '#A3AFA9', lineHeight: 1.4 }}>
               <strong>Secure Encryption</strong>: All data is protected via SSL in transit. Passwords are Bcrypt hashed, and OTP transactions expire automatically.
             </span>
           </div>

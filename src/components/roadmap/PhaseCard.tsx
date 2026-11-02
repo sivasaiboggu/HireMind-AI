@@ -50,7 +50,7 @@ export const PhaseCard: React.FC<PhaseCardProps> = ({
           padding: '20px 24px',
           cursor: 'pointer',
           userSelect: 'none',
-          backgroundColor: completed ? 'rgba(0, 212, 170, 0.02)' : 'transparent'
+          backgroundColor: completed ? 'rgba(198, 242, 78, 0.02)' : 'transparent'
         }}
         className="phase-header"
       >
