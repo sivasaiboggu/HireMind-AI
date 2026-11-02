@@ -21,6 +21,14 @@ import {
 } from './prompts';
 import { ResumeAnalysis, Question, AnswerFeedback, Roadmap, InterviewConfig, QuizQuestion } from '../types';
 
+import { supabase, hasSupabaseConfig } from './supabase';
+import type { RequestOptions } from '@google/generative-ai';
+
+// Optional authenticated server-side proxy (Supabase edge function). When set
+// and the user is signed in, AI calls go through it and the provider key stays
+// on the server. Guests and signed-out users fall back to their own key.
+const PROXY_URL = (import.meta.env.VITE_GEMINI_PROXY_URL || '').trim();
+
 const getApiKey = (): string => {
   // Public builds reject baked-in provider secrets. Local development uses the
   // env key; everyone can connect their own free Google AI key from the top bar.
@@ -34,7 +42,27 @@ const getApiKey = (): string => {
 const handleApiError = (error: unknown, _context: string): never => { throw safeApiError(error); };
 
 export class GeminiService {
-  private getClient = () => {
+  private getRequestOptions = async (): Promise<RequestOptions | undefined> => {
+    if (!PROXY_URL || !hasSupabaseConfig) return undefined;
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) return undefined;
+      return {
+        baseUrl: PROXY_URL,
+        apiVersion: 'v1beta',
+        customHeaders: { Authorization: `Bearer ${token}` }
+      };
+    } catch {
+      return undefined;
+    }
+  };
+
+  private getClient = (viaProxy: boolean) => {
+    if (viaProxy) {
+      // The proxy replaces this placeholder with the server-side key.
+      return new GoogleGenerativeAI('server-managed');
+    }
     const key = getApiKey();
     if (!key) {
       throw new Error(
@@ -49,7 +77,8 @@ export class GeminiService {
    */
   analyzeResume = async (resumeText: string, jobDescription?: string): Promise<ResumeAnalysis> => {
     try {
-      const ai = this.getClient();
+      const requestOptions = await this.getRequestOptions();
+      const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
         model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -57,7 +86,7 @@ export class GeminiService {
       });
       
       const prompt = RESUME_ANALYSIS_PROMPT(resumeText, jobDescription);
-      const response = await model.generateContent(prompt);
+      const response = await model.generateContent(prompt, requestOptions);
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeResumeAnalysis(parsed);
@@ -71,7 +100,8 @@ export class GeminiService {
    */
   generateInterviewQuestions = async (config: InterviewConfig): Promise<Question[]> => {
     try {
-      const ai = this.getClient();
+      const requestOptions = await this.getRequestOptions();
+      const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
         model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -88,7 +118,7 @@ export class GeminiService {
         config.candidateBackground || ''
       );
       
-      const response = await model.generateContent(prompt);
+      const response = await model.generateContent(prompt, requestOptions);
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeInterviewQuestions(parsed);
@@ -102,7 +132,8 @@ export class GeminiService {
    */
   evaluateAnswer = async (question: string, answer: string, role: string, expectedTopics: string[]): Promise<AnswerFeedback> => {
     try {
-      const ai = this.getClient();
+      const requestOptions = await this.getRequestOptions();
+      const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
         model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -110,7 +141,7 @@ export class GeminiService {
       });
       
       const prompt = ANSWER_EVALUATION_PROMPT(question, expectedTopics, answer, role);
-      const response = await model.generateContent(prompt);
+      const response = await model.generateContent(prompt, requestOptions);
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeAnswerFeedback(parsed);
@@ -124,7 +155,8 @@ export class GeminiService {
    */
   generateRoadmap = async (goal: string, skills: string[], level: string, timeline: string): Promise<Roadmap> => {
     try {
-      const ai = this.getClient();
+      const requestOptions = await this.getRequestOptions();
+      const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
         model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -132,7 +164,7 @@ export class GeminiService {
       });
       
       const prompt = ROADMAP_PROMPT(goal, skills, level, timeline);
-      const response = await model.generateContent(prompt);
+      const response = await model.generateContent(prompt, requestOptions);
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeRoadmap(parsed);
@@ -146,7 +178,8 @@ export class GeminiService {
    */
   generateQuizQuestions = async (role: string, stack: string[], count: number = 5): Promise<QuizQuestion[]> => {
     try {
-      const ai = this.getClient();
+      const requestOptions = await this.getRequestOptions();
+      const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
         model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -154,7 +187,7 @@ export class GeminiService {
       });
       
       const prompt = QUIZ_PROMPT(role, stack, count);
-      const response = await model.generateContent(prompt);
+      const response = await model.generateContent(prompt, requestOptions);
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       
@@ -186,7 +219,8 @@ export class GeminiService {
     hardCount: number
   ): Promise<any[]> => {
     try {
-      const ai = this.getClient();
+      const requestOptions = await this.getRequestOptions();
+      const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
         model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -194,7 +228,7 @@ export class GeminiService {
       });
 
       const prompt = DSA_QUESTIONS_PROMPT(role, company, count, easyCount, mediumCount, hardCount);
-      const response = await model.generateContent(prompt);
+      const response = await model.generateContent(prompt, requestOptions);
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.questions) ? parsed.questions : []);
@@ -215,7 +249,8 @@ export class GeminiService {
     hardCount: number
   ): Promise<any[]> => {
     try {
-      const ai = this.getClient();
+      const requestOptions = await this.getRequestOptions();
+      const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
         model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -223,7 +258,7 @@ export class GeminiService {
       });
 
       const prompt = THEMATIC_QUESTIONS_PROMPT(role, company, count, easyCount, mediumCount, hardCount);
-      const response = await model.generateContent(prompt);
+      const response = await model.generateContent(prompt, requestOptions);
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.questions) ? parsed.questions : []);
@@ -241,7 +276,8 @@ export class GeminiService {
     testCases: any[]
   ): Promise<any> => {
     try {
-      const ai = this.getClient();
+      const requestOptions = await this.getRequestOptions();
+      const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
         model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -249,7 +285,7 @@ export class GeminiService {
       });
 
       const prompt = AI_COMPILER_PROMPT(code, language, testCases);
-      const response = await model.generateContent(prompt);
+      const response = await model.generateContent(prompt, requestOptions);
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return parsed;
@@ -268,7 +304,8 @@ export class GeminiService {
     interviewerName: string
   ): Promise<string> => {
     try {
-      const ai = this.getClient();
+      const requestOptions = await this.getRequestOptions();
+      const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
         model: 'gemini-2.5-flash',
         systemInstruction: SYSTEM_INSTRUCTION
@@ -287,7 +324,7 @@ Do not provide the full code or solution directly, but guide them if they are st
 Keep your response conversational, concise, and under 70 words.
       `;
 
-      const response = await model.generateContent(prompt);
+      const response = await model.generateContent(prompt, requestOptions);
       return response.response.text();
     } catch (error: any) {
       // Do not log raw provider errors, which may include private request text.
