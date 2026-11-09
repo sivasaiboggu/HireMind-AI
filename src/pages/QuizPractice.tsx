@@ -5,6 +5,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
 import { selectBundledQuestions } from '../services/practice-selection';
+import { buildPythonHarness } from '../services/python-harness';
 import { useAppStore } from '../store/appStore';
 import { 
   MOCK_DSA_QUESTIONS, 
@@ -311,15 +312,7 @@ export const QuizPractice: React.FC = () => {
         for (let idx = 0; idx < filteredTestCases.length; idx++) {
           const tc = filteredTestCases[idx];
           try {
-            const argsJson = JSON.stringify(tc.args);
-            const pythonExecCode = `
-import json
-${activeCode}
-
-args = json.loads('${argsJson}')
-result = solve(*args)
-json.dumps(result)
-`;
+            const pythonExecCode = buildPythonHarness(activeCode, tc.args);
             const pyResult = await pyodide.runPythonAsync(pythonExecCode);
             const actualVal = JSON.parse(pyResult);
             const passed = JSON.stringify(actualVal) === JSON.stringify(tc.expected);
