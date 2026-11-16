@@ -6,6 +6,7 @@ import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
 import { selectBundledQuestions } from '../services/practice-selection';
 import { buildPythonHarness } from '../services/python-harness';
+import { matchesExpected } from '../services/dsa-eval';
 import { useAppStore } from '../store/appStore';
 import { 
   MOCK_DSA_QUESTIONS, 
@@ -269,7 +270,7 @@ export const QuizPractice: React.FC = () => {
           try {
             const args = JSON.parse(JSON.stringify(tc.args));
             const actualVal = solveFn(...args);
-            const passed = JSON.stringify(actualVal) === JSON.stringify(tc.expected);
+            const passed = matchesExpected(actualVal, tc.expected, !!currentQuestion.anyOrder);
             return {
               passed,
               input: tc.inputLabel || JSON.stringify(args),
@@ -315,7 +316,7 @@ export const QuizPractice: React.FC = () => {
             const pythonExecCode = buildPythonHarness(activeCode, tc.args);
             const pyResult = await pyodide.runPythonAsync(pythonExecCode);
             const actualVal = JSON.parse(pyResult);
-            const passed = JSON.stringify(actualVal) === JSON.stringify(tc.expected);
+            const passed = matchesExpected(actualVal, tc.expected, !!currentQuestion.anyOrder);
             
             if (passed) passCount++;
             

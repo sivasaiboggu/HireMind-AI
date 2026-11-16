@@ -9,6 +9,8 @@ export interface MockDsaQuestion {
   difficulty: 'easy' | 'medium' | 'hard';
   category: 'dsa';
   explanation: string;
+  /** Set when the statement allows returned elements in any order (e.g. Two Sum). */
+  anyOrder?: boolean;
   testCases: {
     args: any[];
     expected: any;
@@ -94,6 +96,7 @@ public:
 }`,
       difficulty: 'easy',
       category: 'dsa',
+      anyOrder: true,
       explanation: 'Use a hash map to store the value and its index. For each number, calculate its difference from the target and check if it exists in the hash map. Time Complexity: O(N), Space Complexity: O(N).',
       testCases: [
         { args: [[2, 7, 11, 15], 9], expected: [0, 1], inputLabel: 'nums = [2,7,11,15], target = 9', hidden: false },
