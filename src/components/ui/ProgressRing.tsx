@@ -7,6 +7,8 @@ interface ProgressRingProps {
   size?: number; // width/height in px
   strokeWidth?: number;
   label?: string;
+  /** Screen-reader label, e.g. "ATS Score 82 out of 100". Defaults to "Score {score} out of 100". */
+  ariaLabel?: string;
   animate?: boolean;
 }
 
@@ -15,6 +17,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   size = 96,
   strokeWidth = 8,
   label,
+  ariaLabel,
   animate = true
 }) => {
   const animatedScore = animate ? useCountUp(score, 1200) : score;
@@ -44,7 +47,13 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
         height: `${size}px`
       }}
     >
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <svg
+        width={size}
+        height={size}
+        role="img"
+        aria-label={ariaLabel ?? `Score ${score} out of 100`}
+        style={{ transform: 'rotate(-90deg)' }}
+      >
         {/* Background track circle */}
         <circle
           stroke="var(--bg-elevated)"

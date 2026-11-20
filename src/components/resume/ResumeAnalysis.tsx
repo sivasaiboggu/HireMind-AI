@@ -115,7 +115,14 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {analysis.rewrites.map((rewrite, idx) => (
+              {analysis.rewrites.length === 0 ? (
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  No rewrite proposals here. The offline local audit scores the resume
+                  honestly but cannot write personalised rewrites — run the AI analysis
+                  with a Gemini key to get STAR-framework rewrites for weak bullets.
+                </p>
+              ) : (
+                analysis.rewrites.map((rewrite, idx) => (
                 <div 
                   key={idx}
                   style={{
@@ -145,7 +152,8 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                     </div>
                   </div>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </Card>
         </div>

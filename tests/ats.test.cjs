@@ -68,13 +68,6 @@ test('deterministic: same input gives identical output', () => {
   assert.deepEqual(a, b);
 });
 
-test('keyword extraction drops stopwords and ranks by frequency', () => {
-  const keywords = extractJobKeywords('Python Python Python and the team with React');
-  assert.equal(keywords[0], 'python');
-  assert.ok(!keywords.includes('the'));
-  assert.ok(!keywords.includes('and'));
-});
-
 test('keyword coverage matches whole tokens, never substrings', () => {
   const resume = 'Jordan Lee\njordan@example.com\nWork Experience\nReduced storage costs across distributed systems.';
   const jd = 'Looking for RAG and Red experience.';
@@ -92,6 +85,23 @@ test('dotted keywords like node.js match as whole tokens', () => {
   // node.js must not match a resume that only has "node" or "js"
   const partial = analyzeResumeLocally('Skills\nNode, JS, TypeScript', 'node.js wanted');
   assert.ok(!partial.matchedKeywords.includes('node.js'));
+});
+
+test('keyword matching is whole-token, not substring', () => {
+  // "javascript" must not count as "java", and "reaction" must not count as "react".
+  const result = analyzeResumeLocally(
+    'Jane Doe\nsiva@example.com\nWork Experience\nBuilt a JavaScript app with quick reaction times.',
+    'Java React',
+  );
+  assert.deepEqual(result.matchedKeywords, []);
+  assert.deepEqual(result.missingKeywords.sort(), ['java', 'react']);
+});
+
+test('keyword extraction drops stopwords and ranks by frequency', () => {
+  const keywords = extractJobKeywords('Python Python Python and the team with React');
+  assert.equal(keywords[0], 'python');
+  assert.ok(!keywords.includes('the'));
+  assert.ok(!keywords.includes('and'));
 });
 
 test('scores stay within 0-100 for pathological input', () => {

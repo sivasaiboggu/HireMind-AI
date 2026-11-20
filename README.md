@@ -145,7 +145,10 @@ npm run typecheck
   key, quota, network), it falls back to a deterministic on-device ATS audit
   — keyword coverage vs the job description, section completeness, quantified
   achievements and format — clearly labelled as a local audit. It never
-  invents rewrites.
+  invents rewrites. Keyword matching is whole-token: "javascript" does not
+  count as "java", and "reaction" does not count as "react", so scores are
+  not inflated by substring hits. When the local audit runs, the rewrite
+  section says so plainly instead of rendering an empty card.
 - Every Gemini call is capped at 60s and retried up to 3 times with
   exponential backoff for transient failures (rate limits, 5xx, network).
   Permanent errors (bad key, unknown model) fail fast.

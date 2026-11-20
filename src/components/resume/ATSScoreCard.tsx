@@ -45,7 +45,7 @@ export const ATSScoreCard: React.FC<ATSScoreCardProps> = ({
           gap: '16px'
         }}
       >
-        <ProgressRing score={atsScore} size={88} strokeWidth={8} />
+        <ProgressRing score={atsScore} size={88} strokeWidth={8} ariaLabel={`ATS Score ${atsScore} out of 100`} />
         <span 
           style={{ 
             fontSize: 'var(--text-xs)', 
@@ -72,7 +72,7 @@ export const ATSScoreCard: React.FC<ATSScoreCardProps> = ({
           gap: '16px'
         }}
       >
-        <ProgressRing score={contentScore} size={88} strokeWidth={8} />
+        <ProgressRing score={contentScore} size={88} strokeWidth={8} ariaLabel={`Content Strength ${contentScore} out of 100`} />
         <span 
           style={{ 
             fontSize: 'var(--text-xs)', 
@@ -99,7 +99,7 @@ export const ATSScoreCard: React.FC<ATSScoreCardProps> = ({
           gap: '16px'
         }}
       >
-        <ProgressRing score={formatScore} size={88} strokeWidth={8} />
+        <ProgressRing score={formatScore} size={88} strokeWidth={8} ariaLabel={`Layout and Formatting ${formatScore} out of 100`} />
         <span 
           style={{ 
             fontSize: 'var(--text-xs)', 

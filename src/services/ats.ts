@@ -123,11 +123,11 @@ export function analyzeResumeLocally(resumeText: string, jobDescription?: string
   }
 
   // --- Keyword coverage -------------------------------------------------
-  // Match whole tokens, not substrings: "rag" must not score off "storage"
-  // and "red" must not score off "reduced", or the audit inflates coverage
-  // the resume does not actually have.
-  const keywords = jobDescription ? extractJobKeywords(jobDescription) : [];
+  // Word-boundary matching: a job keyword counts only when it appears as a
+  // whole token in the resume. Substring matching used to credit "java" for
+  // a resume that only mentions "javascript", and "react" for "reaction".
   const resumeTokens = new Set(tokenize(resume));
+  const keywords = jobDescription ? extractJobKeywords(jobDescription) : [];
   const matchedKeywords = keywords.filter((k) => resumeTokens.has(k));
   const missingKeywords = keywords.filter((k) => !resumeTokens.has(k));
   const keywordRate = keywords.length ? matchedKeywords.length / keywords.length : 1;
