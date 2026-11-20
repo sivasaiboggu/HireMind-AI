@@ -9,6 +9,7 @@ import { Button } from '../components/ui/Button';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
 import { analyzeResumeLocally } from '../services/ats';
+import { buildScoreBreakdown } from '../services/score-breakdown';
 import { useAppStore, generateId } from '../store/appStore';
 import { SavedResumeAnalysis } from '../types';
 import { Activity, Terminal, ShieldCheck, Download, Info } from 'lucide-react';
@@ -17,6 +18,7 @@ import '../styles/animations.css';
 
 /** Render the audit as a shareable Markdown report for download. */
 function toMarkdownReport(analysis: SavedResumeAnalysis): string {
+  const breakdown = buildScoreBreakdown(analysis);
   const lines = [
     `# HireMind AI — Resume ATS Report`,
     ``,
@@ -29,6 +31,10 @@ function toMarkdownReport(analysis: SavedResumeAnalysis): string {
     `| Content | ${analysis.contentScore}/100 |`,
     `| Format | ${analysis.formatScore}/100 |`,
     `| Overall | ${analysis.overallScore}/100 |`,
+    ``,
+    `## How the ATS score is built`,
+    ...breakdown.parts.map((p) => `- ${p.label}: ${p.points}/${p.weight} pts — ${p.detail}`),
+    ...(breakdown.nextFix ? [``, `What to fix next: ${breakdown.nextFix.title} — ${breakdown.nextFix.description}`] : []),
     ``,
     `## Matched keywords`,
     analysis.matchedKeywords.length ? analysis.matchedKeywords.join(', ') : 'None',
@@ -137,13 +143,13 @@ export const ResumeAnalyzer: React.FC = () => {
           />
 
           {/* Core Skeletons */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+          <div className="skeleton-grid-3">
             <Skeleton height={140} />
             <Skeleton height={140} />
             <Skeleton height={140} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: '32px' }}>
+          <div className="skeleton-grid-2col">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <Skeleton height={80} />
               <Skeleton height={200} />
@@ -194,7 +200,8 @@ export const ResumeAnalyzer: React.FC = () => {
             analysis={displayAnalysis} 
             jobRole={displayAnalysis.jobRole} 
             experienceLevel={displayAnalysis.experienceLevel} 
-            onReset={handleReset} 
+            onReset={handleReset}
+            analysisId={displayAnalysis.id}
           />
         </div>
       )}

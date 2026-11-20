@@ -152,6 +152,14 @@ npm run typecheck
 - Every Gemini call is capped at 60s and retried up to 3 times with
   exponential backoff for transient failures (rate limits, 5xx, network).
   Permanent errors (bad key, unknown model) fail fast.
+- The results view explains itself: a "How your ATS score is built" panel
+  breaks the score into its four drivers (keywords 40, sections 25, format
+  15, content 20) using only the audit's own numbers, and names the single
+  highest-impact fix. A guided improvement checklist turns every
+  recommendation and failed ATS check into a tickable step, saved per
+  analysis in localStorage — ticking a step never changes a score; only a
+  re-run of the audit does. Rewrite proposals show before/after side by
+  side with copy buttons for each improved bullet.
 - Heavy pages (resume analyzer with pdf.js, interview, roadmap, quiz) are
   code-split, so the first-load bundle is ~700 kB instead of ~1.3 MB.
 - Resume PDFs over 5 MB or with no extractable text are rejected with a

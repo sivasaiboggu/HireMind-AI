@@ -236,6 +236,26 @@ button {
   }
 }
 
+/* Responsive grids used by the resume analyzer loading skeletons. */
+.skeleton-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  width: 100%;
+}
+.skeleton-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .skeleton-grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1024px) {
+  .skeleton-grid-2col { grid-template-columns: 7fr 5fr; }
+}
+
 /* Light variant (TopBar toggle sets data-theme="light") */
 [data-theme='light'] {
   --bg-base: #F5F7F2;

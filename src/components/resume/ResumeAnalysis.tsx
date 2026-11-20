@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SectionFeedback } from './SectionFeedback';
 import { KeywordCloud } from './KeywordCloud';
+import { ScoreBreakdown } from './ScoreBreakdown';
+import { ImprovementChecklist } from './ImprovementChecklist';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 import { ResumeAnalysis as IResumeAnalysis } from '../../types';
-import { Check, X, Award, Info, FileEdit, CheckSquare } from 'lucide-react';
+import { Check, X, Award, Info, FileEdit, CheckSquare, Copy, CheckCheck } from 'lucide-react';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
@@ -13,14 +16,56 @@ interface ResumeAnalysisProps {
   jobRole: string;
   experienceLevel: string;
   onReset: () => void;
+  /** Stable id of the saved analysis, used to persist checklist progress. */
+  analysisId?: string;
+}
+
+/** Copy text to the clipboard, with a fallback for browsers without the API. */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
 
 export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
   analysis,
   jobRole,
   experienceLevel,
-  onReset
+  onReset,
+  analysisId,
 }) => {
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [copiedAll, setCopiedAll] = useState(false);
+
+  const handleCopyOne = async (text: string, index: number) => {
+    if (await copyText(text)) {
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex((cur) => (cur === index ? null : cur)), 2000);
+    }
+  };
+
+  const handleCopyAll = async () => {
+    const all = analysis.rewrites.map((r) => `• ${r.improved}`).join('\n');
+    if (await copyText(all)) {
+      setCopiedAll(true);
+      setTimeout(() => setCopiedAll(false), 2000);
+    }
+  };
   const getPriorityBadge = (priority: 'HIGH' | 'MED' | 'LOW') => {
     switch (priority) {
       case 'HIGH': return <Badge variant="danger">High Priority</Badge>;
@@ -56,6 +101,8 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
       <div 
         style={{
           display: 'flex',
+          flexWrap: 'wrap',
+          gap: '12px',
           justifyContent: 'space-between',
           alignItems: 'center',
           backgroundColor: 'rgba(198, 242, 78, 0.03)',
@@ -77,6 +124,9 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
           <span>ATS SIGNAL ACTIVE</span>
         </div>
       </div>
+
+      {/* How the score is built + what to fix next */}
+      <ScoreBreakdown analysis={analysis} />
 
       {/* Two-Column Grid */}
       <div 
@@ -107,13 +157,21 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
             missingKeywords={analysis.missingKeywords} 
           />
 
-          {/* AI Rewrite Suggestions */}
+          {/* AI Rewrite Suggestions — before / after comparison */}
           <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <FileEdit style={{ width: '18px', height: '18px', color: 'var(--accent-primary)' }} />
-              <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>AI Rewrite Proposals</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <FileEdit style={{ width: '18px', height: '18px', color: 'var(--accent-primary)' }} />
+                <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>AI Rewrite Proposals</h3>
+              </div>
+              {analysis.rewrites.length > 0 && (
+                <Button variant="ghost" onClick={handleCopyAll}>
+                  {copiedAll ? <CheckCheck style={{ width: '16px', height: '16px' }} /> : <Copy style={{ width: '16px', height: '16px' }} />}
+                  {copiedAll ? 'Copied all' : 'Copy all improved bullets'}
+                </Button>
+              )}
             </div>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {analysis.rewrites.length === 0 ? (
                 <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
@@ -123,7 +181,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                 </p>
               ) : (
                 analysis.rewrites.map((rewrite, idx) => (
-                <div 
+                <div
                   key={idx}
                   style={{
                     display: 'flex',
@@ -135,27 +193,52 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                     borderRadius: 'var(--radius-md)'
                   }}
                 >
-                  <div>
-                    <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-danger)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
-                      Original (Weak Bullet)
+                  <div
+                    style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}
+                    className="rewrite-compare-grid"
+                  >
+                    <style dangerouslySetInnerHTML={{__html: `
+                      @media (min-width: 768px) {
+                        .rewrite-compare-grid {
+                          grid-template-columns: 1fr 1fr !important;
+                        }
+                      }
+                    `}} />
+                    <div>
+                      <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-danger)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                        Before (weak bullet)
+                      </div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.5 }}>
+                        “{rewrite.original}”
+                      </div>
                     </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.4 }}>
-                      "{rewrite.original}"
+                    <div>
+                      <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                        After (STAR framework)
+                      </div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.5 }}>
+                        “{rewrite.improved}”
+                      </div>
                     </div>
                   </div>
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
-                    <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
-                      Improved (STAR Framework)
-                    </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.4 }}>
-                      "{rewrite.improved}"
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button variant="ghost" onClick={() => handleCopyOne(rewrite.improved, idx)}>
+                      {copiedIndex === idx ? <CheckCheck style={{ width: '16px', height: '16px' }} /> : <Copy style={{ width: '16px', height: '16px' }} />}
+                      {copiedIndex === idx ? 'Copied' : 'Copy improved bullet'}
+                    </Button>
                   </div>
                 </div>
                 ))
               )}
             </div>
           </Card>
+
+          {/* Guided improvement checklist */}
+          <ImprovementChecklist
+            analysisId={analysisId}
+            recommendations={analysis.recommendations}
+            atsChecklist={analysis.atsChecklist}
+          />
         </div>
 
         {/* Right Column: Recommendations and Checklist */}
