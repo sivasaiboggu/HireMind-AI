@@ -132,6 +132,28 @@ To build the project assets for deployment:
 npm run build
 ```
 
+### 5. Tests
+
+```bash
+npm test        # node:test suites in tests/
+npm run typecheck
+```
+
+### Reliability notes
+
+- No Gemini key? The resume analyzer still works: if the AI call fails (no
+  key, quota, network), it falls back to a deterministic on-device ATS audit
+  — keyword coverage vs the job description, section completeness, quantified
+  achievements and format — clearly labelled as a local audit. It never
+  invents rewrites.
+- Every Gemini call is capped at 60s and retried up to 3 times with
+  exponential backoff for transient failures (rate limits, 5xx, network).
+  Permanent errors (bad key, unknown model) fail fast.
+- Heavy pages (resume analyzer with pdf.js, interview, roadmap, quiz) are
+  code-split, so the first-load bundle is ~700 kB instead of ~1.3 MB.
+- Resume PDFs over 5 MB or with no extractable text are rejected with a
+  clear message instead of failing silently.
+
 ---
 
 ## 👤 Author & Strategy

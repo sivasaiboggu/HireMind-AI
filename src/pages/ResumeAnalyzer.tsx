@@ -8,11 +8,43 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
+import { analyzeResumeLocally } from '../services/ats';
 import { useAppStore, generateId } from '../store/appStore';
 import { SavedResumeAnalysis } from '../types';
-import { Activity, Terminal, ShieldCheck } from 'lucide-react';
+import { Activity, Terminal, ShieldCheck, Download, Info } from 'lucide-react';
 import '../styles/globals.css';
 import '../styles/animations.css';
+
+/** Render the audit as a shareable Markdown report for download. */
+function toMarkdownReport(analysis: SavedResumeAnalysis): string {
+  const lines = [
+    `# HireMind AI — Resume ATS Report`,
+    ``,
+    `Role: ${analysis.jobRole} · Experience: ${analysis.experienceLevel} · ${new Date(analysis.timestamp).toLocaleDateString()}`,
+    analysis.isLocalAudit ? `Method: local deterministic audit (AI was unavailable)` : `Method: AI analysis`,
+    ``,
+    `| Metric | Score |`,
+    `| --- | ---: |`,
+    `| ATS | ${analysis.atsScore}/100 |`,
+    `| Content | ${analysis.contentScore}/100 |`,
+    `| Format | ${analysis.formatScore}/100 |`,
+    `| Overall | ${analysis.overallScore}/100 |`,
+    ``,
+    `## Matched keywords`,
+    analysis.matchedKeywords.length ? analysis.matchedKeywords.join(', ') : 'None',
+    ``,
+    `## Missing keywords`,
+    analysis.missingKeywords.length ? analysis.missingKeywords.join(', ') : 'None',
+    ``,
+    `## Recommendations`,
+    ...analysis.recommendations.map((r) => `- [${r.priority}] ${r.title} — ${r.description}`),
+    ``,
+    `## ATS checklist`,
+    ...analysis.atsChecklist.map((c) => `- [${c.checked ? 'x' : ' '}] ${c.label}`),
+    ``,
+  ];
+  return lines.join('\n');
+}
 
 export const ResumeAnalyzer: React.FC = () => {
   const { addResumeAnalysis, activeResume, setActiveResume } = useAppStore();
@@ -25,7 +57,7 @@ export const ResumeAnalyzer: React.FC = () => {
   const handleAnalyze = async (resumeText: string, jobRole: string, experienceLevel: string, jobDescription?: string) => {
     setCurrentRole(jobRole);
     setCurrentExp(experienceLevel);
-    
+
     const result = await execute(resumeText, jobDescription);
     if (result) {
       const savedAnalysis: SavedResumeAnalysis = {
@@ -37,7 +69,36 @@ export const ResumeAnalyzer: React.FC = () => {
       };
       // Save in Zustand (which updates localStorage)
       addResumeAnalysis(savedAnalysis);
+      return;
     }
+
+    // AI unavailable (no key, quota, network): fall back to the deterministic
+    // local audit instead of leaving the user with only an error. The result
+    // is labelled as a local audit so nobody mistakes it for AI judgement,
+    // and no credits are charged for it.
+    const local = analyzeResumeLocally(resumeText, jobDescription);
+    const savedLocal: SavedResumeAnalysis = {
+      ...local,
+      id: generateId(),
+      timestamp: Date.now(),
+      jobRole,
+      experienceLevel,
+      isLocalAudit: true,
+    };
+    reset();
+    addResumeAnalysis(savedLocal);
+    useAppStore.getState().addToast('info', 'AI analysis was unavailable — showing a local ATS audit instead.');
+  };
+
+  const handleDownloadReport = () => {
+    if (!displayAnalysis) return;
+    const blob = new Blob([toMarkdownReport(displayAnalysis)], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `hiremind-ats-report-${displayAnalysis.jobRole.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'resume'}.md`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleReset = () => {
@@ -106,6 +167,22 @@ export const ResumeAnalyzer: React.FC = () => {
       {/* Results View */}
       {!loading && displayAnalysis && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {displayAnalysis.isLocalAudit && (
+            <Card hoverable={false} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '16px 20px', borderColor: 'var(--accent-warning)' }}>
+              <Info style={{ width: '20px', height: '20px', color: 'var(--accent-warning)', flexShrink: 0, marginTop: '2px' }} />
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                <strong style={{ color: 'var(--text-primary)' }}>Local ATS audit.</strong>{' '}
+                The AI analysis was unavailable, so these scores come from a deterministic on-device audit
+                (keyword coverage, sections, quantified results, format). Connect a Google AI key for the
+                full AI review with rewrites and section feedback.
+              </p>
+            </Card>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={handleDownloadReport}>
+              <Download style={{ width: '16px', height: '16px' }} /> Download report (.md)
+            </Button>
+          </div>
           {/* 3 circular progress ring cards */}
           <ATSScoreCard 
             atsScore={displayAnalysis.atsScore} 

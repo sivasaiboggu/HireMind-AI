@@ -1,4 +1,5 @@
 import { safeApiError } from './api-errors';
+import { withRetry } from './retry';
 import { resolveGeminiApiKey, readStoredGeminiKey } from './ai-key';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { 
@@ -86,7 +87,7 @@ export class GeminiService {
       });
       
       const prompt = RESUME_ANALYSIS_PROMPT(resumeText, jobDescription);
-      const response = await model.generateContent(prompt, requestOptions);
+      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeResumeAnalysis(parsed);
@@ -118,7 +119,7 @@ export class GeminiService {
         config.candidateBackground || ''
       );
       
-      const response = await model.generateContent(prompt, requestOptions);
+      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeInterviewQuestions(parsed);
@@ -141,7 +142,7 @@ export class GeminiService {
       });
       
       const prompt = ANSWER_EVALUATION_PROMPT(question, expectedTopics, answer, role);
-      const response = await model.generateContent(prompt, requestOptions);
+      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeAnswerFeedback(parsed);
@@ -164,7 +165,7 @@ export class GeminiService {
       });
       
       const prompt = ROADMAP_PROMPT(goal, skills, level, timeline);
-      const response = await model.generateContent(prompt, requestOptions);
+      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return sanitizeRoadmap(parsed);
@@ -187,7 +188,7 @@ export class GeminiService {
       });
       
       const prompt = QUIZ_PROMPT(role, stack, count);
-      const response = await model.generateContent(prompt, requestOptions);
+      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       
@@ -228,7 +229,7 @@ export class GeminiService {
       });
 
       const prompt = DSA_QUESTIONS_PROMPT(role, company, count, easyCount, mediumCount, hardCount);
-      const response = await model.generateContent(prompt, requestOptions);
+      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.questions) ? parsed.questions : []);
@@ -258,7 +259,7 @@ export class GeminiService {
       });
 
       const prompt = THEMATIC_QUESTIONS_PROMPT(role, company, count, easyCount, mediumCount, hardCount);
-      const response = await model.generateContent(prompt, requestOptions);
+      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.questions) ? parsed.questions : []);
@@ -285,7 +286,7 @@ export class GeminiService {
       });
 
       const prompt = AI_COMPILER_PROMPT(code, language, testCases);
-      const response = await model.generateContent(prompt, requestOptions);
+      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
       const responseText = response.response.text();
       const parsed = parseGeminiJson<any>(responseText);
       return parsed;
@@ -324,7 +325,7 @@ Do not provide the full code or solution directly, but guide them if they are st
 Keep your response conversational, concise, and under 70 words.
       `;
 
-      const response = await model.generateContent(prompt, requestOptions);
+      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
       return response.response.text();
     } catch (error: any) {
       // Do not log raw provider errors, which may include private request text.

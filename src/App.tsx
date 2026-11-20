@@ -1,14 +1,55 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { Dashboard } from './pages/Dashboard';
-import { ResumeAnalyzer } from './pages/ResumeAnalyzer';
-import { InterviewPractice } from './pages/InterviewPractice';
-import { LearningRoadmap } from './pages/LearningRoadmap';
-import { QuizPractice } from './pages/QuizPractice';
 import { Auth } from './pages/Auth';
 import { useAppStore } from './store/appStore';
 import { hasSupabaseConfig } from './services/supabase';
+
+// Heavy pages are code-split so the first load stays lean: the resume
+// analyzer pulls in pdfjs-dist and the interview page is the largest in
+// the app. They load on demand when the route is visited.
+const ResumeAnalyzer = lazy(() =>
+  import('./pages/ResumeAnalyzer').then((m) => ({ default: m.ResumeAnalyzer })),
+);
+const InterviewPractice = lazy(() =>
+  import('./pages/InterviewPractice').then((m) => ({ default: m.InterviewPractice })),
+);
+const LearningRoadmap = lazy(() =>
+  import('./pages/LearningRoadmap').then((m) => ({ default: m.LearningRoadmap })),
+);
+const QuizPractice = lazy(() =>
+  import('./pages/QuizPractice').then((m) => ({ default: m.QuizPractice })),
+);
+
+/** Branded loading state shown while a code-split page downloads. */
+const PageFallback: React.FC = () => (
+  <div
+    role="status"
+    aria-label="Loading page"
+    style={{
+      minHeight: '60vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '16px',
+      color: 'var(--text-secondary)',
+    }}
+  >
+    <div
+      style={{
+        width: '36px',
+        height: '36px',
+        border: '3px solid var(--accent-primary)',
+        borderTopColor: 'transparent',
+        borderRadius: '50%',
+        animation: 'spinBrain 1s linear infinite',
+      }}
+    />
+    <span style={{ fontSize: 'var(--text-sm)' }}>Loading…</span>
+  </div>
+);
 
 // Protected Route Guard component
 const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -98,7 +139,7 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         {/* Brand name */}
         <div style={{
-          fontSize: '22px', fontWeight: 700, color: '#09090E',
+          fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)',
           letterSpacing: '-0.02em', marginBottom: '6px',
           animation: 'hmFadeUp 0.55s ease forwards',
         }}>
@@ -107,7 +148,7 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         {/* Subtitle */}
         <div style={{
-          fontSize: '12.5px', color: '#7E7989', marginBottom: '28px',
+          fontSize: '12.5px', color: 'var(--text-secondary)', marginBottom: '28px',
           animation: 'hmFadeUp 0.6s ease forwards',
         }}>
           Securing your session…
@@ -158,15 +199,17 @@ const AppRoutes: React.FC = () => {
         element={
           <AuthGuard>
             <Layout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/resume" element={<ResumeAnalyzer />} />
-                <Route path="/interview" element={<InterviewPractice />} />
-                <Route path="/roadmap" element={<LearningRoadmap />} />
-                <Route path="/quiz" element={<QuizPractice />} />
-                <Route path="*" element={<Dashboard />} />
-              </Routes>
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/resume" element={<ResumeAnalyzer />} />
+                  <Route path="/interview" element={<InterviewPractice />} />
+                  <Route path="/roadmap" element={<LearningRoadmap />} />
+                  <Route path="/quiz" element={<QuizPractice />} />
+                  <Route path="*" element={<Dashboard />} />
+                </Routes>
+              </Suspense>
             </Layout>
           </AuthGuard>
         }

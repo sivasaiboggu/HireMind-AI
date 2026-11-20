@@ -42,9 +42,16 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     return fullText;
   };
 
+  const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB — large scans waste parse time
+  const MIN_RESUME_WORDS = 20;
+
   const handleFile = async (file: File) => {
     if (file.type !== 'application/pdf') {
       setParseError('Only PDF resume documents are currently supported.');
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      setParseError(`That PDF is ${(file.size / 1024 / 1024).toFixed(1)} MB — please use a file under 5 MB.`);
       return;
     }
     setParsing(true);
@@ -52,6 +59,11 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     setFileName(file.name);
     try {
       const text = await extractTextFromPdf(file);
+      if (text.split(/\s+/).filter(Boolean).length < MIN_RESUME_WORDS) {
+        setParseError('No readable text was found in this PDF. It may be a scanned image — please paste your resume text instead.');
+        setResumeText('');
+        return;
+      }
       setResumeText(text);
     } catch (err) {
       console.error(err);
@@ -94,6 +106,10 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     }
     if (!resumeText.trim()) {
       setParseError('Please upload a PDF resume or paste your resume text below.');
+      return;
+    }
+    if (resumeText.split(/\s+/).filter(Boolean).length < MIN_RESUME_WORDS) {
+      setParseError('That resume text looks too short to audit — please paste the full resume.');
       return;
     }
     onAnalyze(resumeText, jobRole, experienceLevel, jobDescription);

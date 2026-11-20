@@ -40,6 +40,8 @@ export interface SavedResumeAnalysis extends ResumeAnalysis {
   timestamp: number;
   jobRole: string;
   experienceLevel: string;
+  /** True when scores came from the deterministic offline audit, not Gemini. */
+  isLocalAudit?: boolean;
 }
 
 export interface Question {
