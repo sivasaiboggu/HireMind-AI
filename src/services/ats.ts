@@ -72,7 +72,6 @@ function clampScore(value: number): number {
 
 export function analyzeResumeLocally(resumeText: string, jobDescription?: string): ResumeAnalysis {
   const resume = resumeText || '';
-  const lower = resume.toLowerCase();
   const words = resume.split(/\s+/).filter(Boolean);
   const wordCount = words.length;
 
@@ -124,9 +123,13 @@ export function analyzeResumeLocally(resumeText: string, jobDescription?: string
   }
 
   // --- Keyword coverage -------------------------------------------------
+  // Match whole tokens, not substrings: "rag" must not score off "storage"
+  // and "red" must not score off "reduced", or the audit inflates coverage
+  // the resume does not actually have.
   const keywords = jobDescription ? extractJobKeywords(jobDescription) : [];
-  const matchedKeywords = keywords.filter((k) => lower.includes(k));
-  const missingKeywords = keywords.filter((k) => !lower.includes(k));
+  const resumeTokens = new Set(tokenize(resume));
+  const matchedKeywords = keywords.filter((k) => resumeTokens.has(k));
+  const missingKeywords = keywords.filter((k) => !resumeTokens.has(k));
   const keywordRate = keywords.length ? matchedKeywords.length / keywords.length : 1;
 
   // --- Section completeness ---------------------------------------------

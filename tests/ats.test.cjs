@@ -75,6 +75,25 @@ test('keyword extraction drops stopwords and ranks by frequency', () => {
   assert.ok(!keywords.includes('and'));
 });
 
+test('keyword coverage matches whole tokens, never substrings', () => {
+  const resume = 'Jordan Lee\njordan@example.com\nWork Experience\nReduced storage costs across distributed systems.';
+  const jd = 'Looking for RAG and Red experience.';
+  const result = analyzeResumeLocally(resume, jd);
+  assert.deepEqual(result.matchedKeywords, []);
+  assert.deepEqual(result.missingKeywords.sort(), ['rag', 'red']);
+  const honest = analyzeResumeLocally(resume + '\nSkills\nRAG pipelines', jd);
+  assert.ok(honest.matchedKeywords.includes('rag'));
+  assert.ok(!honest.matchedKeywords.includes('red'));
+});
+
+test('dotted keywords like node.js match as whole tokens', () => {
+  const result = analyzeResumeLocally('Skills\nNode.js, TypeScript', 'node.js wanted');
+  assert.ok(result.matchedKeywords.includes('node.js'));
+  // node.js must not match a resume that only has "node" or "js"
+  const partial = analyzeResumeLocally('Skills\nNode, JS, TypeScript', 'node.js wanted');
+  assert.ok(!partial.matchedKeywords.includes('node.js'));
+});
+
 test('scores stay within 0-100 for pathological input', () => {
   const result = analyzeResumeLocally('x '.repeat(5000), 'a'.repeat(200));
   for (const key of ['atsScore', 'contentScore', 'formatScore', 'overallScore']) {
