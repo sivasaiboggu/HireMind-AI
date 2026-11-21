@@ -359,6 +359,61 @@ company interview histories. AI-generated question quality remains unverified.
 
 ## Changelog
 
+### 0.0.5 (21 Nov 2026)
+- Senior logic review, DSA practice timer: the countdown used to run the
+  expiry handler (toast + auto-submit) from inside a `setSecondsLeft`
+  updater, which React may invoke twice under StrictMode — double toast
+  and double auto-submit — and the handler closed over the code as of the
+  last effect run, so a timeout could submit the starter template instead
+  of what the user typed. The tick is now a pure function
+  (`src/services/dsa-timer.ts`: 20/35/50 minutes by difficulty, tick
+  computed before any state write, expiry handled once outside the
+  updater); the timeout submits the latest editor code via a ref, and the
+  runner executes exactly the code it is handed, so the saved answer and
+  the executed code can no longer disagree. A double-click on Submit
+  Solution used to run the full suite twice and advance two questions,
+  skipping one — a submit guard now drops the second call.
+- Senior logic review, test-case verdicts: public-only runs return fewer
+  results than there are cases, but the problem panel matched them by
+  position, so a hidden case listed first showed the wrong case's
+  pass/fail chip. Results now carry their original case index and the
+  panel looks them up by it.
+- Senior logic review, credits and storage: `useCredit` deducted credits
+  locally and returned success even when the Supabase sync failed, so the
+  spend was silently refunded on the next reload; a failed sync now rolls
+  the deduction back and fails closed. Direct `localStorage.setItem`
+  calls in theme/sidebar toggles, sign-out, guest mode and guest credit
+  writes threw outright when storage was denied or full; they now go
+  through a safe helper that returns false instead, and the Dashboard
+  reads guest name/role through it too. `addToast` finally honours its
+  declared `duration` instead of always using 4000 ms. The report
+  download no longer revokes its object URL synchronously, which could
+  cancel the download in Firefox.
+- Premium UI pass: nine Tailwind-style class names used by the quiz page
+  were dead code with no Tailwind configured — the loading spinner never
+  spun and was not a circle, the Pyodide overlay sat in flow instead of
+  covering the editor, and the interview score ring stacked as blocks
+  above the number. They are now defined as compat utilities in
+  `globals.css` next to `.text-cyan`; the loading ring was verified live
+  in headless Chrome (spinBrain 1s, 95px circle, absolute).
+- Premium UI pass, mobile results: with an analysis that has rewrites
+  (the normal AI case) the results page scrolled horizontally to 399px
+  on a 390px viewport — the `1fr` grid track is `minmax(auto, 1fr)`, so
+  the nowrap rewrite copy-button row sized the track past the viewport.
+  The results grids now use `minmax(0, ...)` and the per-rewrite header
+  row wraps; re-verified live at 390px with zero horizontal overflow.
+  (Round 7's no-overflow check used a rewrite-free seed, which is why
+  this was missed.)
+- Full suite re-verified: 168 tests passed, 0 failed (147 before, 21
+  new: DSA timer service, quiz submit/expiry/chip cases, store credit
+  rollback and storage-denied cases, layout regressions). Typecheck and
+  production build pass. Deno proxy verified by parse + Node harness
+  only — no Deno binary in the VM, as in round 7. Headless Chrome
+  renders of dashboard, uploader, results (desktop + mobile), quiz
+  setup, loading screen and DSA workspace (desktop + mobile) verified
+  with zero JS errors and no horizontal overflow; the only console
+  entries are external font-CDN failures from the sandbox network.
+
 ### 0.0.4 (21 Nov 2026)
 - Premium UI pass: priority badges no longer wrap mid-label; the audit
   banner's signal follows the overall score (Strong / On track / Needs

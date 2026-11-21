@@ -205,6 +205,21 @@ button {
 .text-purple { color: var(--accent-purple) !important; }
 .text-muted { color: var(--text-secondary) !important; }
 
+/* Tailwind-style utilities used by QuizPractice. No Tailwind is configured,
+ * so these class names were dead code: the loading spinner never spun and
+ * was not a circle, the Pyodide overlay sat in flow instead of covering
+ * the editor, and the interview score ring stacked as blocks above the
+ * number instead of circling it. Defined here so the JSX works as written. */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.inset-0 { inset: 0; }
+.rounded-full { border-radius: 9999px; }
+.border-4 { border-width: 4px; border-style: solid; }
+.border-cyan-subtle { border-color: var(--bg-hover); }
+.border-t-cyan { border-top-color: var(--accent-primary); }
+.border-cyan { border-color: var(--accent-primary); }
+.animate-spin { animation: spinBrain 1s linear infinite; }
+
 .bg-cyan-subtle { background-color: rgba(198, 242, 78, 0.1) !important; }
 .bg-amber-subtle { background-color: rgba(94, 234, 200, 0.1) !important; }
 .bg-rose-subtle { background-color: rgba(242, 109, 92, 0.12) !important; }
@@ -281,23 +296,27 @@ button {
 
 /* Resume analyzer grids. These lived as inline <style> blocks injected by
    the components on every render; defined once here they apply the same
-   breakpoints without the re-injection. */
+   breakpoints without the re-injection. Tracks use minmax(0, ...) so a
+   child's min-content (e.g. the nowrap "Copy improved bullet" button row
+   inside a rewrite) cannot size the track past the viewport: plain 1fr is
+   minmax(auto, 1fr), and on a 390px screen the results page scrolled
+   horizontally to 399px whenever an analysis had rewrites. */
 .analysis-layout-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 32px;
   align-items: start;
 }
 @media (min-width: 1024px) {
-  .analysis-layout-grid { grid-template-columns: 7fr 5fr; }
+  .analysis-layout-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
 }
 .rewrite-compare-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 @media (min-width: 768px) {
-  .rewrite-compare-grid { grid-template-columns: 1fr auto 1fr; }
+  .rewrite-compare-grid { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
 }
 /* Arrow between the before/after columns; hidden when they stack. */
 .rewrite-compare-arrow {

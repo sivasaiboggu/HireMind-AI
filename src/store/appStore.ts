@@ -49,7 +49,7 @@ interface AppState {
   toggleTheme: () => void;
   
   // Notification Toast Actions
-  addToast: (type: 'success' | 'error' | 'info', message: string) => void;
+  addToast: (type: 'success' | 'error' | 'info', message: string, duration?: number) => void;
   removeToast: (id: string) => void;
   
   // Credit management Actions
@@ -141,6 +141,26 @@ const historyValidators: Record<string, (v: StoredObject) => boolean> = {
 };
 
 // Safe parsers
+export function safeLocalGet(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+/** Local writes that must never throw: denied or full storage used to
+ * crash theme toggles, sign-out and credit updates outright. Returns false
+ * instead so callers can fail closed. */
+export function safeLocalSet(key: string, value: string): boolean {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const getSavedJson = <T>(key: string, defaultValue: T): T => {
   try {
     const data = localStorage.getItem(key);
@@ -225,7 +245,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleTheme: () => {
     const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
     set({ theme: nextTheme });
-    localStorage.setItem('hiremind_theme_v9', nextTheme);
+    safeLocalSet('hiremind_theme_v9', nextTheme);
     try {
       document.documentElement.setAttribute('data-theme', nextTheme);
     } catch (e) {}
@@ -234,25 +254,26 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleSidebar: () => {
     const nextState = !get().sidebarCollapsed;
     set({ sidebarCollapsed: nextState });
-    localStorage.setItem(KEYS.COLLAPSED, JSON.stringify(nextState));
+    safeLocalSet(KEYS.COLLAPSED, JSON.stringify(nextState));
   },
   
   setSidebarCollapsed: (collapsed) => {
     set({ sidebarCollapsed: collapsed });
-    localStorage.setItem(KEYS.COLLAPSED, JSON.stringify(collapsed));
+    safeLocalSet(KEYS.COLLAPSED, JSON.stringify(collapsed));
   },
   
   setSearchOpen: (searchOpen) => set({ searchOpen }),
   
-  addToast: (type, message) => {
+  addToast: (type, message, duration) => {
     const id = generateId();
     set((state) => ({
-      toasts: [...state.toasts, { id, type, message }]
+      toasts: [...state.toasts, { id, type, message, duration }]
     }));
-    
+
+    // The declared `duration` was ignored and every toast lived 4000 ms.
     setTimeout(() => {
       get().removeToast(id);
-    }, 4000);
+    }, duration ?? 4000);
   },
   
   removeToast: (id) => set((state) => ({
@@ -373,7 +394,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           }
 
           if (!isCurrent()) return;
-          localStorage.setItem('hiremind_guest_v9', 'false');
+          safeLocalSet('hiremind_guest_v9', 'false');
           set({
             user: currentUser,
             profile: userProfile,
@@ -499,7 +520,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   signOutUser: async () => {
-    localStorage.setItem('hiremind_guest_v9', 'false');
+    safeLocalSet('hiremind_guest_v9', 'false');
     set({ guestMode: false });
     if (hasSupabaseConfig) {
       await supabase.auth.signOut();
@@ -508,7 +529,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   setGuestMode: (active: boolean) => {
-    localStorage.setItem('hiremind_guest_v9', JSON.stringify(active));
+    safeLocalSet('hiremind_guest_v9', JSON.stringify(active));
     set({ 
       guestMode: active,
       // Load local storage content immediately if activated
@@ -528,23 +549,33 @@ export const useAppStore = create<AppState>((set, get) => ({
       return false;
     }
     const nextCredits = current - amount;
-    
+    const prevProfile = get().profile;
+
     // Update local state
     set((state) => ({
       credits: nextCredits,
       profile: state.profile ? { ...state.profile, credits: nextCredits } : null
     }));
-    
+
     // Sync to Supabase profile
     const user = get().user;
     if (user && hasSupabaseConfig) {
       try {
         await supabaseService.updateProfile(user.id, { credits: nextCredits });
       } catch (err) {
+        // The server never recorded the spend: roll the local deduction
+        // back instead of leaving credits spent here and refunded on the
+        // next reload, and fail closed so the caller discards the result
+        // rather than handing out a free generation.
         console.error('Failed to sync updated credits to Supabase:', err);
+        set({ credits: current, profile: prevProfile });
+        get().addToast('error', 'AI credits could not be updated. Please try again.');
+        return false;
       }
-    } else {
-      localStorage.setItem(KEYS.CREDITS, JSON.stringify(nextCredits));
+    } else if (!safeLocalSet(KEYS.CREDITS, JSON.stringify(nextCredits))) {
+      set({ credits: current, profile: prevProfile });
+      get().addToast('error', 'AI credits could not be saved. Please try again.');
+      return false;
     }
     return true;
   },
@@ -569,7 +600,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     } else {
       set({ credits: 100 });
-      localStorage.setItem(KEYS.CREDITS, JSON.stringify(100));
+      safeLocalSet(KEYS.CREDITS, JSON.stringify(100));
       get().addToast('info', 'Credits successfully refreshed to 100.');
     }
   },
@@ -610,7 +641,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         await supabaseService.deleteResume(user.id, id);
       } else {
         const nextHistory = get().resumeHistory.filter(record => record.id !== id);
-        localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
+        if (!safeLocalSet(KEYS.RESUMES, JSON.stringify(nextHistory))) {
+          throw new Error('Guest history could not be saved.');
+        }
       }
       if ((get().user?.id ?? null) !== ownerId) return;
       // Read current state after await so unrelated updates are not overwritten.
@@ -663,7 +696,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         await supabaseService.deleteInterview(user.id, id);
       } else {
         const nextHistory = get().interviewHistory.filter(record => record.id !== id);
-        localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
+        if (!safeLocalSet(KEYS.INTERVIEWS, JSON.stringify(nextHistory))) {
+          throw new Error('Guest history could not be saved.');
+        }
       }
       if ((get().user?.id ?? null) !== ownerId) return;
       // Read current state after await so unrelated updates are not overwritten.
@@ -716,7 +751,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         await supabaseService.deleteRoadmap(user.id, id);
       } else {
         const nextHistory = get().roadmapHistory.filter(record => record.id !== id);
-        localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+        if (!safeLocalSet(KEYS.ROADMAPS, JSON.stringify(nextHistory))) {
+          throw new Error('Guest history could not be saved.');
+        }
       }
       if ((get().user?.id ?? null) !== ownerId) return;
       // Read current state after await so unrelated updates are not overwritten.
@@ -753,7 +790,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         } else {
           const history = get().roadmapHistory.map(row => row.id === roadmapId
             ? { ...row, completedPhases: nextCompleted } : row);
-          localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(history));
+          if (!safeLocalSet(KEYS.ROADMAPS, JSON.stringify(history))) {
+            throw new Error('Guest history could not be saved.');
+          }
         }
         if ((get().user?.id ?? null) !== ownerId) return;
         // Preserve unrelated updates and never resurrect a deleted record.

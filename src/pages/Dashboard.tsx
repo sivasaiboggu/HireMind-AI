@@ -4,7 +4,7 @@ import { StatsGrid } from '../components/dashboard/StatsGrid';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { Card } from '../components/ui/Card';
-import { useAppStore, AppView } from '../store/appStore';
+import { useAppStore, AppView, safeLocalGet, safeLocalSet } from '../store/appStore';
 import { supabaseService } from '../services/supabase';
 import { Search, Trash2, Calendar, FileText, Mic, Map, Briefcase, Award, ArrowRight } from 'lucide-react';
 import '../styles/globals.css';
@@ -49,10 +49,10 @@ export const Dashboard: React.FC = () => {
       }
     } else {
       // Guest mode: check local storage role
-      const guestRole = localStorage.getItem('hiremind_guest_role');
+      const guestRole = safeLocalGet('hiremind_guest_role');
       if (!guestRole || guestRole.trim() === '') {
         setShowOnboarding(true);
-        setOnboardingName(localStorage.getItem('hiremind_guest_name') || 'Guest Candidate');
+        setOnboardingName(safeLocalGet('hiremind_guest_name') || 'Guest Candidate');
       }
     }
   }, [user, profile]);
@@ -77,8 +77,8 @@ export const Dashboard: React.FC = () => {
         }
       } else {
         // Save to guest local storage
-        localStorage.setItem('hiremind_guest_name', onboardingName.trim());
-        localStorage.setItem('hiremind_guest_role', onboardingRole.trim());
+        safeLocalSet('hiremind_guest_name', onboardingName.trim());
+        safeLocalSet('hiremind_guest_role', onboardingRole.trim());
       }
       addToast('success', `Profile personalized successfully! Welcome, ${onboardingName.trim()}.`);
       setShowOnboarding(false);
@@ -109,7 +109,7 @@ export const Dashboard: React.FC = () => {
     if (user) {
       return profile?.full_name?.trim().split(' ')[0] || 'Candidate';
     }
-    return localStorage.getItem('hiremind_guest_name')?.trim().split(' ')[0] || 'Candidate';
+    return safeLocalGet('hiremind_guest_name')?.trim().split(' ')[0] || 'Candidate';
   };
 
   const filteredResumeHistory = useMemo(() => {

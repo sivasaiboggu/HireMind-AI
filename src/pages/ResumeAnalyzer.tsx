@@ -122,7 +122,9 @@ export const ResumeAnalyzer: React.FC = () => {
     link.href = url;
     link.download = `hiremind-ats-report-${displayAnalysis.jobRole.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'resume'}.md`;
     link.click();
-    URL.revokeObjectURL(url);
+    // Revoking synchronously can cancel the download in some browsers
+    // (notably Firefox); give the navigation a moment to start first.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const handleReset = () => {

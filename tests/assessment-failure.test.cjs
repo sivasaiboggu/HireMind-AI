@@ -34,13 +34,13 @@ for(const result of [null,{compiled:true,testCaseResults:[{passed:true}]}])test(
 for(const results of [null,[]])test(`missing executed tests ${results?'empty':'unavailable'} cannot submit or advance`,async()=>{
  let writes=0,notice;const run=handler('src/pages/QuizPractice.tsx','handleNextDsaQuestion',{
   runDsaCodeLocally:async()=>results,addToast:(_,s)=>notice=s,
-  setUserAnswers:()=>writes++,setAiEvaluations:()=>writes++,setCurrentIdx:()=>writes++,setQuizState:()=>writes++,
+  setUserAnswers:()=>writes++,setAiEvaluations:()=>writes++,setCurrentIdx:()=>writes++,setQuizState:()=>writes++,dsaSubmittingRef:{current:false},
  });await run('long code');assert.equal(writes,0);assert.match(notice,/No executed test results/);
 });
 test('real nonempty local test results still submit and advance',async()=>{
  let answer,evaluation,index;const run=handler('src/pages/QuizPractice.tsx','handleNextDsaQuestion',{
   runDsaCodeLocally:async()=>[{passed:true},{passed:false}],addToast:()=>{},currentQuestion:{id:'q'},currentIdx:0,questions:[{},{}],selectedLanguage:'javascript',
-  setUserAnswers:fn=>answer=fn({}),setAiEvaluations:fn=>evaluation=fn({}),setCurrentIdx:v=>index=v,
+  setUserAnswers:fn=>answer=fn({}),setAiEvaluations:fn=>evaluation=fn({}),setCurrentIdx:v=>index=v,dsaSubmittingRef:{current:false},
  });await run('solve code');assert.equal(answer.q,'solve code');assert.equal(evaluation.q.passRate,.5);assert.equal(evaluation.q.passed,false);assert.equal(index,1);
 });
 test('mobile shell reserves safe-area space and practice controls can wrap',()=>{

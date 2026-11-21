@@ -198,7 +198,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                     borderRadius: 'var(--radius-md)'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                       Rewrite {idx + 1} of {analysis.rewrites.length}
                     </span>

@@ -7,6 +7,7 @@ import { gemini } from '../services/gemini';
 import { selectBundledQuestions } from '../services/practice-selection';
 import { buildPythonHarness } from '../services/python-harness';
 import { matchesExpected } from '../services/dsa-eval';
+import { dsaQuestionSeconds, tickDsaTimer } from '../services/dsa-timer';
 import { useAppStore } from '../store/appStore';
 import { 
   MOCK_DSA_QUESTIONS, 
@@ -83,7 +84,14 @@ export const QuizPractice: React.FC = () => {
   // Timers
   const [secondsLeft, setSecondsLeft] = useState(1200);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const [questionTimes, setQuestionTimes] = useState<Record<string, number>>({});
+  // Per-question remaining seconds. A ref, not state: the interval reads
+  // and writes it every tick, and state updates from the interval would
+  // lag a render behind the expiry check.
+  const questionTimesRef = useRef<Record<string, number>>({});
+  // Guards the submit path: a double-click on Submit (or a timeout racing
+  // a click) used to run the full test suite twice and advance two
+  // questions, skipping one.
+  const dsaSubmittingRef = useRef(false);
   
   const [totalTime, setTotalTime] = useState(0);
   const totalTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -157,26 +165,27 @@ export const QuizPractice: React.FC = () => {
     if (quizState === 'active' && currentQuestion) {
       if (practiceMode === 'dsa') {
         // Load or initialize remaining time
-        let initialTime = questionTimes[currentQuestion.id];
+        let initialTime = questionTimesRef.current[currentQuestion.id];
         if (initialTime === undefined) {
-          const diff = currentQuestion.difficulty;
-          initialTime = diff === 'easy' ? 1200 : diff === 'medium' ? 2100 : 3000; // 20, 35, 50 mins
-          setQuestionTimes(prev => ({ ...prev, [currentQuestion.id]: initialTime }));
+          initialTime = dsaQuestionSeconds(currentQuestion.difficulty);
+          questionTimesRef.current = { ...questionTimesRef.current, [currentQuestion.id]: initialTime };
         }
         setSecondsLeft(initialTime);
 
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
-          setSecondsLeft(prev => {
-            if (prev <= 1) {
-              clearInterval(timerRef.current!);
-              handleDsaTimeExpired();
-              return 0;
-            }
-            const updated = prev - 1;
-            setQuestionTimes(t => ({ ...t, [currentQuestion.id]: updated }));
-            return updated;
-          });
+          // Pure tick, computed before any state write. The old code ran
+          // the expiry handler from inside setSecondsLeft's updater, which
+          // React may invoke twice under StrictMode — double toast and
+          // double auto-submit. Expiry is now handled once, here, after
+          // the tick is stored.
+          const tick = tickDsaTimer(questionTimesRef.current, currentQuestion.id);
+          questionTimesRef.current = tick.next;
+          setSecondsLeft(tick.remaining);
+          if (tick.expired) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            handleDsaTimeExpired();
+          }
         }, 1000);
       } else {
         // Clear interval for non-dsa (handled as total session time)
@@ -234,6 +243,15 @@ export const QuizPractice: React.FC = () => {
 
   const activeCode = (currentQuestion && editorCodes[currentQuestion.id]?.[selectedLanguage]) || '';
 
+  // Ref-tracked code for timer closures. The countdown effect does not
+  // re-run when the user types, so a closure over `activeCode` would hand
+  // the timeout auto-submit the code as of the last effect run — possibly
+  // the starter template. The ref always holds the latest editor content.
+  const activeCodeRef = useRef(activeCode);
+  useEffect(() => {
+    activeCodeRef.current = activeCode;
+  });
+
   const setCodeForCurrentQuestion = (code: string) => {
     if (!currentQuestion) return;
     setEditorCodes(prev => ({
@@ -246,32 +264,44 @@ export const QuizPractice: React.FC = () => {
   };
 
   const handleDsaTimeExpired = () => {
-    addToast('info', `Timer expired for question: ${currentQuestion.title}. Solution submitted automatically.`);
-    // Automatically submit current code
-    handleNextDsaQuestion(activeCode);
+    addToast('info', `Timer expired for question: ${currentQuestion.title || 'this question'}. Solution submitted automatically.`);
+    // Submit the code as it stands now, not the snapshot the timer effect
+    // closed over when the question started.
+    handleNextDsaQuestion(activeCodeRef.current);
   };
 
   // DSA Local JS and Pyodide Runner
-  const runDsaCodeLocally = async (runOnlyPublic: boolean = true) => {
+  // `codeOverride` is the code to execute. Callers that already hold the
+  // latest code (timeout auto-submit, the Submit button) pass it in; the
+  // runner used to read `activeCode` from its own closure instead, so the
+  // saved answer and the executed code could disagree.
+  const runDsaCodeLocally = async (runOnlyPublic: boolean = true, codeOverride?: string) => {
     if (!currentQuestion) return;
+    const code = codeOverride ?? activeCode;
     setConsoleOutput('Compiling code and checking against test cases...\n');
     setTestCaseResults([]);
     setCompilerTab('testcases');
 
     const tCases = currentQuestion.testCases || [];
-    const filteredTestCases = runOnlyPublic ? tCases.filter((tc: any) => !tc.hidden) : tCases;
+    // Keep each case's original index: a public-only run returns fewer
+    // results than there are cases, so results must be matched to cases by
+    // index, not by position in the filtered list.
+    const runCases = tCases
+      .map((tc: any, caseIndex: number) => ({ tc, caseIndex }))
+      .filter(({ tc }: any) => !runOnlyPublic || !tc.hidden);
 
     if (selectedLanguage === 'javascript') {
       try {
-        const wrappedCode = `${activeCode}\nreturn solve;`;
+        const wrappedCode = `${code}\nreturn solve;`;
         const solveFn = new Function(wrappedCode)();
         
-        const results = filteredTestCases.map((tc: any, index: number) => {
+        const results = runCases.map(({ tc, caseIndex }: any) => {
           try {
             const args = JSON.parse(JSON.stringify(tc.args));
             const actualVal = solveFn(...args);
             const passed = matchesExpected(actualVal, tc.expected, !!currentQuestion.anyOrder);
             return {
+              caseIndex,
               passed,
               input: tc.inputLabel || JSON.stringify(args),
               expected: JSON.stringify(tc.expected),
@@ -281,6 +311,7 @@ export const QuizPractice: React.FC = () => {
             };
           } catch (err: any) {
             return {
+              caseIndex,
               passed: false,
               input: tc.inputLabel || 'Args',
               expected: JSON.stringify(tc.expected),
@@ -303,24 +334,24 @@ export const QuizPractice: React.FC = () => {
     } else if (selectedLanguage === 'python') {
       if (!pyodide) {
         setConsoleOutput('Python runtime is unavailable. Requesting AI review only...\n');
-        return runDsaCodeViaAi(filteredTestCases);
+        return runDsaCodeViaAi(runCases.map(({ tc }: any) => tc));
       }
-      
+
       try {
         const results = [];
         let passCount = 0;
-        
-        for (let idx = 0; idx < filteredTestCases.length; idx++) {
-          const tc = filteredTestCases[idx];
+
+        for (const { tc, caseIndex } of runCases) {
           try {
-            const pythonExecCode = buildPythonHarness(activeCode, tc.args);
+            const pythonExecCode = buildPythonHarness(code, tc.args);
             const pyResult = await pyodide.runPythonAsync(pythonExecCode);
             const actualVal = JSON.parse(pyResult);
             const passed = matchesExpected(actualVal, tc.expected, !!currentQuestion.anyOrder);
-            
+
             if (passed) passCount++;
-            
+
             results.push({
+              caseIndex,
               passed,
               input: tc.inputLabel || JSON.stringify(tc.args),
               expected: JSON.stringify(tc.expected),
@@ -330,6 +361,7 @@ export const QuizPractice: React.FC = () => {
             });
           } catch (err: any) {
             results.push({
+              caseIndex,
               passed: false,
               input: tc.inputLabel || 'Args',
               expected: JSON.stringify(tc.expected),
@@ -350,7 +382,7 @@ export const QuizPractice: React.FC = () => {
       }
     } else {
       // C++ or Java: advisory AI review only, not compiled execution.
-      return runDsaCodeViaAi(filteredTestCases);
+      return runDsaCodeViaAi(runCases.map(({ tc }: any) => tc));
     }
   };
 
@@ -369,30 +401,41 @@ export const QuizPractice: React.FC = () => {
   };
 
   const handleNextDsaQuestion = async (code: string) => {
-    // Run all test cases (including hidden) to compute final score
-    const results = await runDsaCodeLocally(false);
-    if (!results || results.length === 0) {
-      addToast('info', 'No executed test results. Your code is unchanged; retry with the local JavaScript or Python runner.');
-      return;
-    }
-    const passRate = results.filter((r: any) => r.passed).length / results.length;
-    
-    // Save submission
-    setUserAnswers(prev => ({ ...prev, [currentQuestion.id]: code }));
-    setAiEvaluations(prev => ({
-      ...prev,
-      [currentQuestion.id]: {
-        passed: results ? results.every((r: any) => r.passed) : false,
-        passRate,
-        results: results || [],
-        language: selectedLanguage
+    // One submit at a time: a double-click (or a timeout racing a click)
+    // used to run the suite twice and advance two questions, skipping one.
+    if (dsaSubmittingRef.current) return;
+    dsaSubmittingRef.current = true;
+    try {
+      // Run all test cases (including hidden) to compute final score.
+      // The submitted code is the executed code: the old version saved
+      // `code` as the answer but executed the closure's `activeCode`,
+      // so the two could disagree.
+      const results = await runDsaCodeLocally(false, code);
+      if (!results || results.length === 0) {
+        addToast('info', 'No executed test results. Your code is unchanged; retry with the local JavaScript or Python runner.');
+        return;
       }
-    }));
+      const passRate = results.filter((r: any) => r.passed).length / results.length;
 
-    if (currentIdx + 1 < questions.length) {
-      setCurrentIdx(currentIdx + 1);
-    } else {
-      setQuizState('results');
+      // Save submission
+      setUserAnswers(prev => ({ ...prev, [currentQuestion.id]: code }));
+      setAiEvaluations(prev => ({
+        ...prev,
+        [currentQuestion.id]: {
+          passed: results ? results.every((r: any) => r.passed) : false,
+          passRate,
+          results: results || [],
+          language: selectedLanguage
+        }
+      }));
+
+      if (currentIdx + 1 < questions.length) {
+        setCurrentIdx(currentIdx + 1);
+      } else {
+        setQuizState('results');
+      }
+    } finally {
+      dsaSubmittingRef.current = false;
     }
   };
 
@@ -787,16 +830,23 @@ export const QuizPractice: React.FC = () => {
                             {tc.hidden ? `Test Case ${index + 1} (Hidden)` : tc.inputLabel || `Test Case ${index + 1}`}
                           </span>
                           
-                          {/* Test Status Indicators */}
-                          {testCaseResults[index] ? (
-                            testCaseResults[index].passed ? (
-                              <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}><CheckCircle2 style={{ width: '12px' }} /> Passed</span>
+                          {/* Test Status Indicators. Results carry their
+                            original case index: a public-only run returns
+                            fewer results than there are cases, so indexing
+                            by position showed the wrong case's verdict
+                            whenever a hidden case came first. */}
+                          {(() => {
+                            const result = testCaseResults.find((r: any) => r.caseIndex === index);
+                            return result ? (
+                              result.passed ? (
+                                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}><CheckCircle2 style={{ width: '12px' }} /> Passed</span>
+                              ) : (
+                                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-danger)', display: 'flex', alignItems: 'center', gap: '3px' }}><XCircle style={{ width: '12px' }} /> Failed</span>
+                              )
                             ) : (
-                              <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-danger)', display: 'flex', alignItems: 'center', gap: '3px' }}><XCircle style={{ width: '12px' }} /> Failed</span>
-                            )
-                          ) : (
-                            <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Pending</span>
-                          )}
+                              <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Pending</span>
+                            );
+                          })()}
                         </div>
                       ))}
                     </div>
@@ -882,7 +932,7 @@ export const QuizPractice: React.FC = () => {
                     />
 
                     {loadingPyodide && (
-                      <div className="absolute inset-0 bg-opacity-70" style={{ backgroundColor: 'rgba(5, 10, 15, 0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                      <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 10, 15, 0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                         <RefreshCw className="animate-spin text-cyan" />
                         <span style={{ fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 600 }}>Loading browser-local Python runtime...</span>
                       </div>
