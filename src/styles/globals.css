@@ -226,6 +226,27 @@ button {
   justify-content: center;
 }
 
+/* Real hover states. This repo has no Tailwind configured, so Tailwind-style
+   `hover:*` class names in JSX were dead code — the rules below replace them,
+   and the matching class names in the components are the plain ones. */
+.primary-button:hover:not(:disabled) { filter: brightness(1.1); }
+.ghost-button:hover:not(:disabled) { background-color: rgba(198, 242, 78, 0.08); }
+.danger-button:hover:not(:disabled) { background-color: rgba(242, 109, 92, 0.22); }
+.subtle-button:hover:not(:disabled) { background-color: var(--bg-elevated); color: var(--text-primary); }
+.history-row:hover { border-color: var(--border-active); }
+.history-delete:hover { color: var(--accent-danger); }
+.resource-link:hover { border-color: var(--border-active); color: var(--text-primary); }
+.command-item:hover { background-color: var(--bg-hover); }
+.modal-close:hover { background-color: var(--bg-hover); }
+.autofill-hint:hover { background-color: rgba(198, 242, 78, 0.1); }
+.end-call-btn:hover { background-color: #dc2626; }
+.icon-btn:hover { color: var(--accent-primary); }
+
+/* Dashboard bottom grid: two columns on desktop (was an inline <style> block). */
+@media (min-width: 1024px) {
+  .bottom-dashboard-grid { grid-template-columns: 5fr 7fr !important; }
+}
+
 /* Reserve touch space and keep runner controls above the fixed mobile tabs. */
 @media (max-width: 767px) {
   .practice-runner-actions { width: 100%; }

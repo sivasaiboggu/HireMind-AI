@@ -53,7 +53,7 @@ export const ResourceLinks: React.FC<ResourceLinksProps> = ({ resources }) => {
               fontWeight: 500,
               transition: 'all 200ms ease'
             }}
-            className="resource-link hover:border-[var(--border-active)] hover:text-white"
+            className="resource-link"
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {getResourceIcon(res.type)}

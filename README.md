@@ -10,11 +10,11 @@ HireMind AI is an enterprise-grade, single-page career strategic strategy platfo
 HireMind AI implements a custom dark theme visual identity designed using **pure Vanilla CSS** for maximum flexibility and performance.
 
 ### Style Variables (`src/styles/globals.css`)
-*   **Colors**: Deep obsidian backgrounds (`#050A0F`), frosted glass surface modules (`#0A1628`), electric cyan/teal primary highlights (`#00D4AA`), warning ambers (`#F59E0B`), danger roses (`#F43F5E`), and indigo/purple phases (`#818CF8`).
+*   **Colors**: Atlas dark theme — deep base backgrounds (`#0D1110`), frosted glass surface modules (`#141A18`), lime primary highlights (`#C6F24E`), mint secondary (`#5EEAC8`), warm-red danger (`#F26D5C`), and soft-mint phase accents (`#8BE9C8`). A light variant ships too (TopBar toggle sets `data-theme="light"`).
 *   **Typography**:
-    *   **Display Headers**: *Clash Display* (Fontshare CDN)
-    *   **Body & Interfaces**: *DM Sans* (Google Fonts)
-    *   **Stats & Gauges**: *Syne* (Google Fonts)
+    *   **Display Headers**: *Syne* (Google Fonts)
+    *   **Body & Interfaces**: *Inter* (Google Fonts)
+    *   **Stats & Gauges**: *Inter* (numeric)
     *   **Code Elements**: *JetBrains Mono* (Google Fonts)
 *   **Background Detail**: Subtle linear background coordinate grid with 1px border lines displayed at `0.03` opacity for depth.
 *   **Animations**: Custom keyframes managing page fade-ups, button click scaling, card hover highlights, typing indicators, skeleton loading shimmers, and slide-in panels.
@@ -31,7 +31,9 @@ src/
 │   ├── layout/
 │   │   ├── Sidebar.tsx          # Collapsible nav sidebar, AI credits, custom pulse logo
 │   │   ├── TopBar.tsx           # Dynamic header with PRO badge, notifications, and search
-│   │   └── Layout.tsx           # Responsive shell (mobile tab bar, global search CMD+K, toasts)
+│   │   ├── Layout.tsx           # Responsive shell (mobile tab bar, global search CMD+K, toasts)
+│   │   ├── GoogleAIKeyConnect.tsx # API key connection panel
+│   │   └── WebGLBackground.tsx  # Ambient WebGL backdrop
 │   ├── ui/
 │   │   ├── Button.tsx           # Primary, ghost, danger, and subtle variants
 │   │   ├── Card.tsx             # Glass card wrapper with backdrop filter blur
@@ -39,6 +41,7 @@ src/
 │   │   ├── ProgressRing.tsx     # SVG circular gauge (auto count-up, threshold colors)
 │   │   ├── ScoreBar.tsx         # Horizontal indicator bars
 │   │   ├── Skeleton.tsx         # Shimmer loader skeletons
+│   │   ├── ProgressiveLoader.tsx # Staged loading indicator
 │   │   ├── Tooltip.tsx          # Context hover popovers
 │   │   └── Modal.tsx            # Overlay layout with ESC listener
 │   ├── dashboard/
@@ -49,6 +52,8 @@ src/
 │   │   ├── ResumeUploader.tsx   # File drag-drop + local PDF.js text extractor
 │   │   ├── ResumeAnalysis.tsx   # Side-by-side audit report
 │   │   ├── ATSScoreCard.tsx     # Double ring scorecard summaries
+│   │   ├── ScoreBreakdown.tsx   # "How your ATS score is built" driver panel
+│   │   ├── ImprovementChecklist.tsx # Guided tickable fix list (saved per analysis)
 │   │   ├── SectionFeedback.tsx  # Expandable accordion feedbacks
 │   │   └── KeywordCloud.tsx     # Match rate progress + tags clouds
 │   ├── interview/
@@ -65,15 +70,28 @@ src/
 │   ├── Dashboard.tsx            # Main career command board
 │   ├── ResumeAnalyzer.tsx       # ATS document audit page
 │   ├── InterviewPractice.tsx    # Interactive mock simulator page
-│   └── LearningRoadmap.tsx      # Curriculum planner page
+│   ├── QuizPractice.tsx         # Written-quiz practice page
+│   ├── LearningRoadmap.tsx      # Curriculum planner page
+│   └── Auth.tsx                 # Sign-in / sign-up page
 ├── services/
-│   ├── gemini.ts                # central GenerativeModel connector
+│   ├── gemini.ts                # central GenerativeModel connector (gemini-2.5-flash)
+│   ├── ats.ts                   # Deterministic on-device ATS audit (40/25/15/20)
+│   ├── score-breakdown.ts       # Score-driver breakdown + highest-impact fix
 │   ├── prompts.ts               # Strict instruction prompts configurations
-│   └── parsers.ts               # JSON formatting regex cleaners
+│   ├── parsers.ts               # JSON formatting regex cleaners
+│   ├── generation.ts            # Generation orchestration
+│   ├── retry.ts                 # Capped retries with exponential backoff
+│   ├── api-errors.ts            # Provider error classification (fail-fast vs retry)
+│   ├── ai-key.ts                # API key handling
+│   ├── build-safety.ts          # Blocks provider keys from public browser builds
+│   ├── supabase.ts              # Supabase client + history/profile persistence
+│   ├── dsa-eval.ts              # DSA evaluation helpers
+│   ├── python-harness.ts        # Browser-local Python execution (Pyodide)
+│   ├── practice-selection.ts    # Unique bundled-prompt selection, no repeats
+│   └── mockQuestions.ts         # Bundled practice question catalogs
 ├── hooks/
 │   ├── useGemini.ts             # loading, error, and credit spending hooks
-│   ├── useCountUp.ts            # Score reveal animation hooks
-│   └── useLocalStorage.ts       # Storage syncing hooks
+│   └── useCountUp.ts            # Score reveal animation hooks
 ├── store/
 │   └── appStore.ts              # Zustand store for logs, credits, navigation, toasts
 ├── types/
@@ -82,16 +100,20 @@ src/
     ├── globals.css              # Custom property variables and resets
     └── animations.css           # Keyframes libraries
 ```
+supabase/ holds the Postgres schema (`migrations/schema.sql`) and the
+`gemini-proxy` edge function (server-side AI endpoint; the client routes
+through it only when `VITE_GEMINI_PROXY_URL` is set and a user is signed
+in — guests and signed-out users use their own key instead).
 
 ---
 
 ## 🛠 Tech Stack
 
-*   **Runtime Framework**: React 18 + TypeScript (Strict compiler flags)
+*   **Runtime Framework**: React 19 + TypeScript (Strict compiler flags)
 *   **Asset Bundler**: Vite 6
-*   **Routing Shell**: React Router v6 (`HashRouter` for zero-server deployment)
+*   **Routing Shell**: React Router v7 (`HashRouter` for zero-server deployment)
 *   **State Container**: Zustand (localStorage bindings, toast overlays, credits monitoring)
-*   **AI Engine**: Google Gemini 1.5 Flash via `@google/generative-ai` SDK
+*   **AI Engine**: Google Gemini 2.5 Flash via `@google/generative-ai` SDK
 *   **Document Reader**: `pdfjs-dist` (Client-side raw text deconstruction)
 *   **Icon Library**: Lucide React
 
@@ -161,7 +183,9 @@ npm run typecheck
   re-run of the audit does. Rewrite proposals show before/after side by
   side with copy buttons for each improved bullet.
 - Heavy pages (resume analyzer with pdf.js, interview, roadmap, quiz) are
-  code-split, so the first-load bundle is ~700 kB instead of ~1.3 MB.
+  code-split, so the first-load main chunk is ~750 kB (~217 kB gzip)
+  instead of ~1.3 MB all-in. Vite still warns that the main chunk exceeds
+  500 kB after minification — further splitting is open work, not done.
 - Resume PDFs over 5 MB or with no extractable text are rejected with a
   clear message instead of failing silently.
 
@@ -334,6 +358,18 @@ invalid counts and source preservation. These are practice themes, not verified
 company interview histories. AI-generated question quality remains unverified.
 
 ## Changelog
+
+### 0.0.2 (21 Nov 2026)
+- Safe patch/minor dependency updates (React 19.3.1, react-router-dom
+  7.18.6, supabase-js 2.119.2, framer-motion 12.43, lucide-react 1.77,
+  zustand 5.1.0, Vite 6.4.6); removed unused `@google/genai`.
+- Fixed hover states that never worked: Tailwind-style `hover:*` class
+  names were dead code (no Tailwind configured) and two `hover:` keys in
+  React style objects were silently ignored — replaced with real CSS
+  `:hover` rules. Full suite re-verified: 134 tests passed, 0 failed.
+- README corrected to match the code (React 19, Router v7, Gemini
+  2.5 Flash, Atlas lime theme, Syne/Inter/JetBrains Mono, full `src/`
+  tree, ~750 kB first-load main chunk).
 
 ### 0.0.1 (21 Nov 2026)
 - Patch release: no feature changes. Dockerfiles do not exist for this

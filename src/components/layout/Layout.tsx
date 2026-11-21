@@ -472,7 +472,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         cursor: 'pointer',
                         transition: 'all 150ms ease'
                       }}
-                      className="command-item hover:bg-[var(--bg-hover)]"
+                      className="command-item"
                     >
                       <div 
                         style={{

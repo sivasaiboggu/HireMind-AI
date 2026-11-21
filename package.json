@@ -1,7 +1,7 @@
 {
   "name": "hiremind-ai---career-success-platform",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,21 +11,20 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@google/genai": "^1.35.0",
     "@google/generative-ai": "^0.24.1",
-    "@supabase/supabase-js": "^2.108.0",
-    "framer-motion": "^12.40.0",
-    "lucide-react": "^1.17.0",
+    "@supabase/supabase-js": "^2.119.2",
+    "framer-motion": "^12.43.0",
+    "lucide-react": "^1.77.0",
     "pdfjs-dist": "4.10.38",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-router-dom": "^7.17.0",
-    "zustand": "^5.0.14"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.6",
+    "zustand": "^5.1.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.20.5",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.4.6"
   }
 }

@@ -2149,7 +2149,7 @@ export const InterviewPractice: React.FC = () => {
                 transition: 'all 200ms ease',
                 border: 'none'
               }}
-              className="btn-press hover:bg-[#dc2626]"
+              className="btn-press end-call-btn"
             >
               <PhoneOff style={{ width: '18px', height: '18px' }} />
             </button>

@@ -316,15 +316,6 @@ export const Dashboard: React.FC = () => {
         }}
         className="bottom-dashboard-grid"
       >
-        {/* Media queries applied in index.css, style override here for responsive grid on desktop */}
-        <style dangerouslySetInnerHTML={{__html: `
-          @media (min-width: 1024px) {
-            .bottom-dashboard-grid {
-              grid-template-columns: 5fr 7fr !important;
-            }
-          }
-        `}} />
-
         {/* Left Column: Timeline */}
         <RecentActivity />
 
@@ -447,7 +438,7 @@ export const Dashboard: React.FC = () => {
                       cursor: 'pointer',
                       transition: 'all 200ms ease'
                     }}
-                    className="history-row hover:border-[var(--border-active)]"
+                    className="history-row"
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <FileText style={{ width: '18px', height: '18px', color: 'var(--accent-secondary)' }} />
@@ -464,7 +455,7 @@ export const Dashboard: React.FC = () => {
                         deleteResumeAnalysis(res.id);
                       }}
                       style={{ color: 'var(--text-muted)', padding: '6px', backgroundColor: 'transparent' }}
-                      className="btn-press hover:text-[var(--accent-danger)]"
+                      className="btn-press history-delete"
                     >
                       <Trash2 style={{ width: '16px', height: '16px' }} />
                     </button>
@@ -495,7 +486,7 @@ export const Dashboard: React.FC = () => {
                       cursor: 'pointer',
                       transition: 'all 200ms ease'
                     }}
-                    className="history-row hover:border-[var(--border-active)]"
+                    className="history-row"
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <Mic style={{ width: '18px', height: '18px', color: 'var(--accent-primary)' }} />
@@ -514,7 +505,7 @@ export const Dashboard: React.FC = () => {
                         deleteInterviewSession(int.id);
                       }}
                       style={{ color: 'var(--text-muted)', padding: '6px', backgroundColor: 'transparent' }}
-                      className="btn-press hover:text-[var(--accent-danger)]"
+                      className="btn-press history-delete"
                     >
                       <Trash2 style={{ width: '16px', height: '16px' }} />
                     </button>
@@ -545,7 +536,7 @@ export const Dashboard: React.FC = () => {
                       cursor: 'pointer',
                       transition: 'all 200ms ease'
                     }}
-                    className="history-row hover:border-[var(--border-active)]"
+                    className="history-row"
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <Map style={{ width: '18px', height: '18px', color: 'var(--accent-purple)' }} />
@@ -562,7 +553,7 @@ export const Dashboard: React.FC = () => {
                         deleteRoadmap(road.id);
                       }}
                       style={{ color: 'var(--text-muted)', padding: '6px', backgroundColor: 'transparent' }}
-                      className="btn-press hover:text-[var(--accent-danger)]"
+                      className="btn-press history-delete"
                     >
                       <Trash2 style={{ width: '16px', height: '16px' }} />
                     </button>

@@ -43,8 +43,7 @@ export const Button: React.FC<ButtonProps> = ({
           ...base,
           backgroundColor: 'var(--accent-primary)',
           color: '#050A0F',
-          boxShadow: 'var(--glow-primary)',
-          hover: { brightness: 1.1 }
+          boxShadow: 'var(--glow-primary)'
         };
       case 'ghost':
         return {

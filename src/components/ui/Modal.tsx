@@ -96,7 +96,7 @@ export const Modal: React.FC<ModalProps> = ({
               alignItems: 'center',
               justifyContent: 'center'
             }}
-            className="btn-press hover:bg-[var(--bg-hover)]"
+            className="btn-press modal-close"
           >
             <X style={{ width: '18px', height: '18px' }} />
           </button>

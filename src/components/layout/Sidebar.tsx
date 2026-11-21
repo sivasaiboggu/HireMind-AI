@@ -232,9 +232,9 @@ export const Sidebar: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center'
                 }}
-                className="btn-press"
+                className="btn-press icon-btn"
               >
-                <RefreshCw style={{ width: '12px', height: '12px', hover: { color: 'var(--accent-primary)' } }} />
+                <RefreshCw style={{ width: '12px', height: '12px' }} />
               </button>
             </div>
             

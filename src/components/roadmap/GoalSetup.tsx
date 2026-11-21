@@ -84,7 +84,7 @@ export const GoalSetup: React.FC<GoalSetupProps> = ({
             color: 'var(--accent-primary)',
             transition: 'all 200ms ease'
           }}
-          className="btn-press hover:bg-[rgba(0,212,170,0.08)]"
+          className="btn-press autofill-hint"
         >
           <Import style={{ width: '16px', height: '16px' }} />
           <span>Auto-fill target role and skills from your last resume audit ({resumeHistory[0].jobRole})</span>
