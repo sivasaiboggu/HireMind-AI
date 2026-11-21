@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Mic, Map, Calendar, AlertCircle, Award, Zap } from 'lucide-react';
+import { FileText, Mic, Map, Calendar, Award, Zap } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { Card } from '../ui/Card';
 import '../../styles/globals.css';
@@ -133,20 +133,21 @@ export const RecentActivity: React.FC = () => {
             gap: '16px'
           }}
         >
-          <svg 
-            width="80" 
-            height="80" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="var(--text-muted)" 
-            strokeWidth="1.5" 
-            strokeLinecap="round" 
+          {/* Neutral activity pulse for the empty state — the old "!" in a
+              circle read as an error for a dashboard that simply has no
+              history yet. */}
+          <svg
+            width="80"
+            height="80"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--text-muted)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
             strokeLinejoin="round"
             style={{ opacity: 0.4 }}
           >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 8v4" />
-            <path d="M12 16h.01" />
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
           </svg>
           <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>
             No activities recorded yet

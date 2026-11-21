@@ -81,6 +81,25 @@ Deno.test('oversized body is 413', async () => {
   assertEquals((await handler(post('x'.repeat(1_000_001)), deps)).status, 413);
 });
 
+Deno.test('chunked oversized body without Content-Length is 413 and never reaches upstream', async () => {
+  const { deps, captured } = makeDeps();
+  const big = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode('x'.repeat(1_000_001)));
+      controller.close();
+    }
+  });
+  const req = new Request('https://fn.example/v1beta/models/gemini-2.5-flash:generateContent', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer tok', 'Content-Type': 'application/json' },
+    body: big,
+    // Stream bodies need an explicit duplex mode.
+    duplex: 'half'
+  } as RequestInit);
+  assertEquals((await handler(req, deps)).status, 413);
+  assertEquals(captured.length, 0);
+});
+
 Deno.test('invalid JSON body is 400', async () => {
   const { deps } = makeDeps();
   assertEquals((await handler(post('not json'), deps)).status, 400);

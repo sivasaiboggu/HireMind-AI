@@ -28,3 +28,19 @@ for(const [action,history,method] of [['deleteResumeAnalysis','resumeHistory','d
   const {store:s,service}=store();let finish;service[method]=()=>new Promise(resolve=>{finish=resolve});s.setState({user:{id:'one'},[history]:[{id:'same'}]});const pending=s.getState()[action]('same');s.setState({user:{id:'two'},[history]:[{id:'same'}]});finish();await pending;assert.equal(s.getState()[history].length,1);assert.equal(s.getState().toasts.length,0);
  });
 }
+
+for(const [action,history,active,key] of [['addResumeAnalysis','resumeHistory','activeResume','hiremind_resume_v9'],['addInterviewSession','interviewHistory','activeInterview','hiremind_interview_v9'],['addRoadmap','roadmapHistory','activeRoadmap','hiremind_roadmap_v9']]){
+ test(action+' caps guest history at 20 instead of growing localStorage without bound',async()=>{
+  // Guest mode: no Supabase config, so the add path writes localStorage.
+  const {store:s,storage}=store(false);
+  const old=Array.from({length:20},(_,i)=>({id:'old-'+i}));
+  s.setState({[history]:old});
+  await s.getState()[action]({id:'new'});
+  assert.equal(s.getState()[history].length,20);
+  assert.equal(s.getState()[history][0].id,'new');
+  assert.equal(s.getState()[active].id,'new');
+  assert.equal(JSON.parse(storage.get(key)).length,20);
+  assert.equal(JSON.parse(storage.get(key))[0].id,'new');
+  assert.ok(!JSON.parse(storage.get(key)).some(r=>r.id==='old-19'),'oldest record is dropped');
+ });
+}

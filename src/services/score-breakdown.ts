@@ -6,7 +6,10 @@ import type { ResumeAnalysis } from '../types';
  * The weights mirror src/services/ats.ts exactly (keywords 40, sections 25,
  * format 15, content 20), and every rate is derived from the audit result
  * itself — matched/missing keywords, passed sections, format and content
- * scores — so the breakdown can never disagree with the score it explains.
+ * scores — so for a local audit the parts add up to the ATS score (±1 from
+ * rounding). For an AI analysis the model's own atsScore is its judgement
+ * and can differ from this recomputation; callers must not claim the parts
+ * sum to it — they show where the points come from, not a second total.
  * Nothing here invents a number: a part with no evidence behind it scores 0.
  */
 
@@ -25,7 +28,9 @@ export interface ScorePart {
 
 export interface ScoreBreakdown {
   parts: ScorePart[];
-  /** Points the four parts add up to (equals the ATS score, ±1 from rounding). */
+  /** Points the four parts add up to. For a local audit this equals the ATS
+   * score (±1 from rounding); for an AI analysis it can differ from the
+   * model's own atsScore, which is the model's judgement. */
   totalPoints: number;
   /** The single highest-impact fix, or null when every driver is already full. */
   nextFix: { title: string; description: string } | null;

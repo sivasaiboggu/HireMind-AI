@@ -74,6 +74,16 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
     }
   };
 
+  // The signal label follows the overall score. It used to read "ATS SIGNAL
+  // ACTIVE" for every resume, including a 40/100 one — a green-looking claim
+  // next to a failing score.
+  const signal =
+    analysis.overallScore >= 80
+      ? { label: 'Strong ATS signal', color: 'var(--accent-primary)' }
+      : analysis.overallScore >= 60
+        ? { label: 'ATS signal on track', color: 'var(--accent-secondary)' }
+        : { label: 'ATS signal needs work', color: 'var(--accent-danger)' };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
       {/* Navigation Re-Audit Trigger */}
@@ -129,9 +139,9 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
               <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>/100</span>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontSize: 'var(--text-xs)', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: signal.color, fontSize: 'var(--text-xs)', fontWeight: 600 }}>
             <Award style={{ width: '18px', height: '18px' }} />
-            <span>ATS SIGNAL ACTIVE</span>
+            <span>{signal.label}</span>
           </div>
         </div>
       </div>
@@ -160,7 +170,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                 <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>AI Rewrite Proposals</h3>
               </div>
               {analysis.rewrites.length > 0 && (
-                <Button variant="ghost" onClick={handleCopyAll}>
+                <Button variant="ghost" onClick={handleCopyAll} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
                   {copiedAll ? <CheckCheck style={{ width: '16px', height: '16px' }} /> : <Copy style={{ width: '16px', height: '16px' }} />}
                   {copiedAll ? 'Copied all' : 'Copy all improved bullets'}
                 </Button>
@@ -192,7 +202,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                     <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                       Rewrite {idx + 1} of {analysis.rewrites.length}
                     </span>
-                    <Button variant="ghost" onClick={() => handleCopyOne(rewrite.improved, idx)}>
+                    <Button variant="ghost" onClick={() => handleCopyOne(rewrite.improved, idx)} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
                       {copiedIndex === idx ? <CheckCheck style={{ width: '16px', height: '16px' }} /> : <Copy style={{ width: '16px', height: '16px' }} />}
                       {copiedIndex === idx ? 'Copied' : 'Copy improved bullet'}
                     </Button>

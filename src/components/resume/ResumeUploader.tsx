@@ -24,6 +24,10 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
   const [fileName, setFileName] = useState('');
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState('');
+  // Drag-enter/leave fire per child element, so a bare boolean flickers as
+  // the pointer crosses the dropzone's children. Count depth instead: the
+  // highlight stays on until the drag truly leaves the whole dropzone.
+  const dragDepth = useRef(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -88,17 +92,24 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     }
   };
 
-  const onDragOver = (e: React.DragEvent) => {
+  const onDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
+    dragDepth.current += 1;
     setIsDragging(true);
   };
 
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
   const onDragLeave = () => {
-    setIsDragging(false);
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setIsDragging(false);
   };
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    dragDepth.current = 0;
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
@@ -115,6 +126,10 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
 
   const handleSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // Clear the input so picking the same file again still fires onChange.
+    // Without this, re-selecting a file that failed to parse did nothing —
+    // the value never changed, so no event fired and the user was stuck.
+    e.target.value = '';
     if (file) handleFile(file);
   };
 
@@ -174,6 +189,7 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
         role="button"
         tabIndex={0}
         aria-label={fileName ? `Resume file ${fileName} loaded. Activate to choose a different PDF.` : 'Upload resume PDF. Activate to browse for a file, or drop a PDF here.'}
+        onDragEnter={onDragEnter}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}

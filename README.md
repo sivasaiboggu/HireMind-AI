@@ -359,6 +359,31 @@ company interview histories. AI-generated question quality remains unverified.
 
 ## Changelog
 
+### 0.0.4 (21 Nov 2026)
+- Premium UI pass: priority badges no longer wrap mid-label; the audit
+  banner's signal follows the overall score (Strong / On track / Needs
+  work) instead of claiming "ATS SIGNAL ACTIVE" for every resume; the
+  auth loading screen now uses the Atlas lime/mint theme and the sidebar
+  "H" mark instead of an orange/purple gradient and a pause icon; the
+  empty dashboard ATS stat is a muted dash and the empty Recent
+  Activities state is a neutral pulse, not an alert icon; copy buttons
+  stay on one line on narrow screens.
+- Senior logic review: `Node.js` and `Node` now match as one skill (in
+  either direction) without letting "js" alone claim `node.js`, and
+  version numbers still never cross-match; en-dash, middle-dot and
+  numbered bullets count toward content; the ATS checklist looks sections
+  up by name instead of by position; one unscorable AI section degrades
+  to "could not be scored" instead of discarding the whole analysis; the
+  score breakdown no longer claims its four drivers sum to an AI score
+  they did not produce; guest history is capped at 20 records with a
+  quota-safe retry; same-tick double submits are dropped by a
+  synchronous guard; re-selecting a failed PDF fires again and the
+  dropzone no longer flickers on drag; the gemini-proxy reads chunked
+  bodies through a capped stream instead of buffering them unbounded.
+  Full suite re-verified: 147 tests passed, 0 failed. Headless renders
+  of dashboard, uploader and results (desktop + mobile) verified with
+  zero console errors and no horizontal overflow.
+
 ### 0.0.3 (21 Nov 2026)
 - Premium resume UI pass: defined the missing `--text-md` and
   `--accent-warning` design tokens (24 headings and the warning accents

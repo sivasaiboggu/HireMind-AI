@@ -53,6 +53,9 @@ export const Badge: React.FC<BadgeProps> = ({
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
         lineHeight: 1,
+        // Badges are labels, not sentences: "HIGH PRIORITY" wrapped mid-word
+        // in the recommendations column and read as two broken chips.
+        whiteSpace: 'nowrap',
         ...getBadgeColors(),
         ...style
       }}

@@ -44,6 +44,36 @@ function json(payload: unknown, status: number): Response {
   });
 }
 
+/**
+ * Read the request body as text, stopping as soon as it exceeds `limit`
+ * bytes. Returns the decoded text, or null when the cap is exceeded — the
+ * reader is cancelled so the socket stops feeding the isolate. An empty
+ * body reads as ''.
+ */
+async function readCappedBody(req: Request, limit: number): Promise<string | null> {
+  if (!req.body) return '';
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > limit) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(merged);
+}
+
 // Best-effort per-instance limiter: user id -> recent request timestamps.
 const recentRequests = new Map<string, number[]>();
 
@@ -127,8 +157,12 @@ export async function handler(req: Request, deps: ProxyDeps = liveDeps): Promise
   if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
     return json({ error: 'Request too large.' }, 413);
   }
-  const body = await req.text();
-  if (new TextEncoder().encode(body).length > MAX_BODY_BYTES) {
+  // Read the body through the stream with an early abort instead of
+  // req.text(): a chunked request with no Content-Length used to be read
+  // fully into memory before the byte check ran, so an unbounded body
+  // could exhaust the isolate before it was ever rejected.
+  const body = await readCappedBody(req, MAX_BODY_BYTES);
+  if (body === null) {
     return json({ error: 'Request too large.' }, 413);
   }
 

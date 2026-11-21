@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ResumeUploader } from '../components/resume/ResumeUploader';
 import { ATSScoreCard } from '../components/resume/ATSScoreCard';
 import { ResumeAnalysis } from '../components/resume/ResumeAnalysis';
@@ -60,13 +60,25 @@ export const ResumeAnalyzer: React.FC = () => {
   const [currentRole, setCurrentRole] = useState(activeResume?.jobRole || '');
   const [currentExp, setCurrentExp] = useState(activeResume?.experienceLevel || '');
 
+  // Synchronous in-flight guard. The `loading` state above lags a tick, so
+  // two submits in the same tick (double-click, Enter + click) both passed
+  // the old check: the second hit useGemini's guard, returned null, and was
+  // misread as "AI unavailable", saving a spurious local audit while the
+  // real AI call was still running. A ref updates synchronously, so the
+  // second submit is dropped before it can do anything.
+  const submittingRef = useRef(false);
+
   const handleAnalyze = async (resumeText: string, jobRole: string, experienceLevel: string, jobDescription?: string) => {
-    // The submit button is disabled while loading, but Enter in a text
-    // field still submits the form — without this guard the second submit
-    // hit useGemini's in-flight guard, returned null, and was misread as
-    // "AI unavailable", saving a spurious local audit while the real AI
-    // call was still running.
-    if (loading) return;
+    if (loading || submittingRef.current) return;
+    submittingRef.current = true;
+    try {
+      await runAnalysis(resumeText, jobRole, experienceLevel, jobDescription);
+    } finally {
+      submittingRef.current = false;
+    }
+  };
+
+  const runAnalysis = async (resumeText: string, jobRole: string, experienceLevel: string, jobDescription?: string) => {
     setCurrentRole(jobRole);
     setCurrentExp(experienceLevel);
 

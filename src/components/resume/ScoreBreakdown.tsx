@@ -11,20 +11,28 @@ import '../../styles/animations.css';
  * "How your score is built" — a plain-language breakdown of the ATS score.
  *
  * Every bar is derived from the audit result itself (see
- * src/services/score-breakdown.ts), so the numbers shown here always agree
- * with the score rings above. The "What to fix next" line names the single
- * highest-weight driver that is not yet full.
+ * src/services/score-breakdown.ts). For a local audit the bars add up to the
+ * ATS score; for an AI analysis the model's own score is its judgement and
+ * can differ from this recomputation, so the copy never claims the parts
+ * sum to the score — they show where the points come from.
  */
 export const ScoreBreakdown: React.FC<{ analysis: ResumeAnalysis }> = ({ analysis }) => {
   const { parts, totalPoints, nextFix } = buildScoreBreakdown(analysis);
+  // A local audit's parts sum to its ATS score (±1 rounding). An AI score
+  // is the model's own judgement, so a wider gap is expected, not an error
+  // — say so instead of printing two numbers that quietly disagree.
+  const partsAgree = Math.abs(totalPoints - analysis.atsScore) <= 2;
 
   return (
     <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
         <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>How your ATS score is built</h3>
         <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.5 }}>
-          {totalPoints} of 100 points come from four drivers below. Nothing here is a guess —
-          each bar is calculated from the audit on this page.
+          Your ATS score is {analysis.atsScore}/100. Four drivers shape it — each bar is
+          calculated from the audit on this page.
+          {!partsAgree && (
+            <> The drivers below add up to {totalPoints}: the AI's own score is its judgement on top of them.</>
+          )}
         </p>
       </div>
 

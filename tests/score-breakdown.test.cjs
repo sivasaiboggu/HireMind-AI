@@ -95,3 +95,30 @@ test('keyword rate uses whole tokens, matching the audit', () => {
   assert.equal(keywords.rate, analysis.matchedKeywords.length /
     (analysis.matchedKeywords.length + analysis.missingKeywords.length));
 });
+
+test('an AI score that disagrees with its drivers still breaks down honestly', () => {
+  // The model's own atsScore is its judgement: with 0 of 10 keywords matched
+  // the drivers add up to far less than the 82 the model claimed. The
+  // breakdown must report the drivers as they are — not rescale them to
+  // match the score, and not crash — so the UI can say the two differ
+  // instead of printing a sum that contradicts the rings.
+  const aiStyle = {
+    atsScore: 82,
+    contentScore: 70,
+    formatScore: 80,
+    overallScore: 78,
+    sections: [
+      { name: 'Contact Information', score: 100, status: 'pass', feedback: ['found'] },
+      { name: 'Skills', score: 0, status: 'fail', feedback: ['missing'] },
+    ],
+    recommendations: [],
+    matchedKeywords: [],
+    missingKeywords: ['react', 'typescript', 'node', 'aws', 'docker', 'testing', 'graphql', 'redis', 'kafka', 'ci'],
+    atsChecklist: [],
+    rewrites: [],
+  };
+  const { parts, totalPoints, nextFix } = buildScoreBreakdown(aiStyle);
+  assert.ok(totalPoints < aiStyle.atsScore, `drivers ${totalPoints} should sit below the AI score ${aiStyle.atsScore}`);
+  assert.equal(parts.find((p) => p.label === 'Job keywords').points, 0);
+  assert.ok(nextFix, 'a weakest driver still produces a next fix');
+});

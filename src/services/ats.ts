@@ -147,8 +147,24 @@ export function analyzeResumeLocally(resumeText: string, jobDescription?: string
   // a resume that only mentions "javascript", and "react" for "reaction".
   const resumeTokens = new Set(tokenize(resume));
   const keywords = jobDescription ? extractJobKeywords(jobDescription) : [];
-  const matchedKeywords = keywords.filter((k) => resumeTokens.has(k));
-  const missingKeywords = keywords.filter((k) => !resumeTokens.has(k));
+  // A dotted token and its head name the same skill: "Node.js" in the resume
+  // satisfies a "Node" keyword and vice versa. Without this, a resume that
+  // writes "Node.js" lost points against a JD asking for "Node" (and the
+  // reverse), even though any recruiter treats them as one skill. The match
+  // stays whole-token — "js" alone never satisfies "node.js" — and version
+  // numbers do not cross-match ("3.11" only matches "3.11").
+  const keywordMatches = (keyword: string): boolean => {
+    if (resumeTokens.has(keyword)) return true;
+    const dot = keyword.indexOf('.');
+    if (dot > 0 && resumeTokens.has(keyword.slice(0, dot))) return true;
+    for (const token of resumeTokens) {
+      const tokenDot = token.indexOf('.');
+      if (tokenDot > 0 && token.slice(0, tokenDot) === keyword) return true;
+    }
+    return false;
+  };
+  const matchedKeywords = keywords.filter(keywordMatches);
+  const missingKeywords = keywords.filter((k) => !keywordMatches(k));
   const keywordRate = keywords.length ? matchedKeywords.length / keywords.length : 1;
 
   // --- Section completeness ---------------------------------------------
@@ -168,7 +184,10 @@ export function analyzeResumeLocally(resumeText: string, jobDescription?: string
   // --- Content signals ---------------------------------------------------
   const quantified = (resume.match(/\d+(\.\d+)?\s*(%|percent|\+|x\b|users|customers|requests|ms|s\b)/gi) || []).length;
   const verbHits = ACTION_VERBS.filter((v) => new RegExp(`\\b${v}\\b`, 'i').test(resume)).length;
-  const bulletCount = (resume.match(/^[•\-\*]\s/mg) || []).length;
+  // PDF text extraction preserves the bullet glyphs resumes actually use:
+  // en/em dashes, middle dots, guillemets and arrows, plus numbered lists.
+  // Counting only • - * missed most pasted resumes' bullets entirely.
+  const bulletCount = (resume.match(/^(?:[•\-*–—·›→▪]|\d+[.)])\s/mg) || []).length;
   const contentRate = Math.min(
     1,
     0.45 * Math.min(1, quantified / 5) +
@@ -241,12 +260,18 @@ export function analyzeResumeLocally(resumeText: string, jobDescription?: string
     });
   }
 
+  // Look sections up by name: the checklist used to index sections[2] /
+  // sections[4] / sections[3], so reordering SECTION_PATTERNS silently
+  // checked the wrong section. A missing section can never pass its check.
+  const sectionPassed = (name: string) =>
+    sections.find((s) => s.name === name)?.score === 100;
+
   const atsChecklist: ResumeAnalysis['atsChecklist'] = [
     { label: 'Contact email present', checked: hasEmail },
     { label: 'Phone number present', checked: hasPhone },
-    { label: 'Work experience section', checked: sections[2].score === 100 },
-    { label: 'Skills section', checked: sections[4].score === 100 },
-    { label: 'Education section', checked: sections[3].score === 100 },
+    { label: 'Work experience section', checked: sectionPassed('Work Experience') },
+    { label: 'Skills section', checked: sectionPassed('Skills') },
+    { label: 'Education section', checked: sectionPassed('Education') },
     { label: 'Quantified achievements (3+)', checked: quantified >= 3 },
     { label: 'Resume length 250–1200 words', checked: lengthOk },
     { label: 'Job keywords covered (50%+)', checked: keywordRate >= 0.5 },

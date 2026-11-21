@@ -50,7 +50,7 @@ export const StatsGrid: React.FC = () => {
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--accent-secondary)', lineHeight: 1, marginTop: '16px' }}>
+          <div style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: lastAtsScore > 0 ? 'var(--accent-secondary)' : 'var(--text-muted)', lineHeight: 1, marginTop: '16px' }}>
             {lastAtsScore > 0 ? lastAtsScore : '—'}
           </div>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginTop: '6px', letterSpacing: '0.05em' }}>

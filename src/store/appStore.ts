@@ -160,6 +160,30 @@ const getSavedJson = <T>(key: string, defaultValue: T): T => {
   }
 };
 
+// Guest history is append-only in the add actions, so without a cap it
+// grows until localStorage.setItem throws (quota) and the new record is
+// lost. Keep the newest 20; a full quota drops the oldest half and retries
+// once instead of losing the record. Total failure still throws so callers
+// keep their existing fail-closed error path.
+const MAX_GUEST_HISTORY = 20;
+
+function saveGuestHistory(key: string, next: unknown[]): boolean {
+  try {
+    localStorage.setItem(key, JSON.stringify(next.slice(0, MAX_GUEST_HISTORY)));
+    return true;
+  } catch {
+    try {
+      localStorage.setItem(
+        key,
+        JSON.stringify(next.slice(0, Math.floor(MAX_GUEST_HISTORY / 2))),
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
 export const generateId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
@@ -554,17 +578,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     const ownerId = get().user?.id ?? null;
     try {
       let saved = analysis;
+      let guestHistory: SavedResumeAnalysis[] | null = null;
       if (ownerId && hasSupabaseConfig) {
         const record = await supabaseService.insertResume(ownerId, analysis);
         if (!record?.id) throw new Error('Save did not return a record ID.');
         saved = { ...analysis, id: record.id };
       } else {
         const nextHistory = [analysis, ...get().resumeHistory];
-        localStorage.setItem(KEYS.RESUMES, JSON.stringify(nextHistory));
+        if (!saveGuestHistory(KEYS.RESUMES, nextHistory)) {
+          throw new Error('Guest history could not be saved.');
+        }
+        guestHistory = nextHistory.slice(0, MAX_GUEST_HISTORY);
       }
       // A response for a prior account must never enter the current workspace.
       if ((get().user?.id ?? null) !== ownerId) return;
-      set({ resumeHistory: [saved, ...get().resumeHistory.filter(row => row.id !== saved.id)],
+      set({ resumeHistory: guestHistory ?? [saved, ...get().resumeHistory.filter(row => row.id !== saved.id)],
             activeResume: saved });
       get().addToast('success', 'Resume analysis saved.');
     } catch (err) {
@@ -603,17 +631,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     const ownerId = get().user?.id ?? null;
     try {
       let saved = session;
+      let guestHistory: SavedInterview[] | null = null;
       if (ownerId && hasSupabaseConfig) {
         const record = await supabaseService.insertInterview(ownerId, session);
         if (!record?.id) throw new Error('Save did not return a record ID.');
         saved = { ...session, id: record.id };
       } else {
         const nextHistory = [session, ...get().interviewHistory];
-        localStorage.setItem(KEYS.INTERVIEWS, JSON.stringify(nextHistory));
+        if (!saveGuestHistory(KEYS.INTERVIEWS, nextHistory)) {
+          throw new Error('Guest history could not be saved.');
+        }
+        guestHistory = nextHistory.slice(0, MAX_GUEST_HISTORY);
       }
       // A response for a prior account must never enter the current workspace.
       if ((get().user?.id ?? null) !== ownerId) return;
-      set({ interviewHistory: [saved, ...get().interviewHistory.filter(row => row.id !== saved.id)],
+      set({ interviewHistory: guestHistory ?? [saved, ...get().interviewHistory.filter(row => row.id !== saved.id)],
             activeInterview: saved });
       get().addToast('success', 'Interview session saved.');
     } catch (err) {
@@ -652,17 +684,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     const ownerId = get().user?.id ?? null;
     try {
       let saved = roadmap;
+      let guestHistory: SavedRoadmap[] | null = null;
       if (ownerId && hasSupabaseConfig) {
         const record = await supabaseService.insertRoadmap(ownerId, roadmap);
         if (!record?.id) throw new Error('Save did not return a record ID.');
         saved = { ...roadmap, id: record.id };
       } else {
         const nextHistory = [roadmap, ...get().roadmapHistory];
-        localStorage.setItem(KEYS.ROADMAPS, JSON.stringify(nextHistory));
+        if (!saveGuestHistory(KEYS.ROADMAPS, nextHistory)) {
+          throw new Error('Guest history could not be saved.');
+        }
+        guestHistory = nextHistory.slice(0, MAX_GUEST_HISTORY);
       }
       // A response for a prior account must never enter the current workspace.
       if ((get().user?.id ?? null) !== ownerId) return;
-      set({ roadmapHistory: [saved, ...get().roadmapHistory.filter(row => row.id !== saved.id)],
+      set({ roadmapHistory: guestHistory ?? [saved, ...get().roadmapHistory.filter(row => row.id !== saved.id)],
             activeRoadmap: saved });
       get().addToast('success', 'Learning roadmap saved.');
     } catch (err) {

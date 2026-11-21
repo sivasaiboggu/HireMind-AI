@@ -52,7 +52,21 @@ test('resume missing or malformed scores are not replaced by a fabricated70',()=
   assert.throws(()=>sanitizeResumeAnalysis({...valid,atsScore:score}),/valid scores/);
  }
  assert.throws(()=>sanitizeResumeAnalysis({}),/valid scores/);
- assert.throws(()=>sanitizeResumeAnalysis({...valid,sections:[{score:undefined}]}),/valid scores/);
+});
+test('one unscorable section degrades instead of discarding the whole analysis',()=>{
+ // A single section with a missing score used to throw and lose the entire
+ // AI analysis (falling back to a local audit). Top-level scores are still
+ // strict — only the broken section degrades, labelled as unscored.
+ const valid={atsScore:82,contentScore:80,formatScore:90,overallScore:84,
+  sections:[{name:'Skills',score:90,status:'pass',feedback:['Skills section found.']},{name:'Projects',score:undefined}],
+  recommendations:[],matchedKeywords:[],missingKeywords:[],atsChecklist:[],rewrites:[]};
+ const out=sanitizeResumeAnalysis(valid);
+ assert.equal(out.atsScore,82);
+ assert.equal(out.sections[0].score,90);
+ assert.equal(out.sections[0].status,'pass');
+ assert.equal(out.sections[1].score,0);
+ assert.equal(out.sections[1].status,'warn');
+ assert.match(out.sections[1].feedback[0],/could not be scored/);
 });
 test('interview missing or malformed ratings are not replaced by a fabricated5',()=>{
  const valid={overallScore:0,accuracy:8,clarity:'9',depth:7,examples:6};

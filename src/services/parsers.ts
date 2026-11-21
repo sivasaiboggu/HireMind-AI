@@ -74,14 +74,31 @@ export function sanitizeResumeAnalysis(data: any): ResumeAnalysis {
   const formatScore = getScore(data.formatScore ?? data.format_score);
   const overallScore = getScore(data.overallScore ?? data.overall_score ?? data.overall);
 
-  // Normalize checklist guidelines and pass/warn/fail indicators
-  const sections = Array.isArray(data.sections) 
-    ? data.sections.map((s: any) => ({
-        name: String(s?.name || 'Section'),
-        score: getScore(s?.score),
-        status: ['pass', 'warn', 'fail'].includes(s?.status) ? s.status : 'warn',
-        feedback: Array.isArray(s?.feedback) ? s.feedback.map(String) : []
-      }))
+  // Normalize checklist guidelines and pass/warn/fail indicators. A single
+  // section with a missing or out-of-range score degrades to unscored
+  // instead of discarding the whole AI analysis — the rest of the audit is
+  // still usable, and the gap is labelled rather than hidden.
+  const sections = Array.isArray(data.sections)
+    ? data.sections.map((s: any) => {
+        const name = String(s?.name || 'Section');
+        let score: number;
+        try {
+          score = getScore(s?.score);
+        } catch {
+          return {
+            name,
+            score: 0,
+            status: 'warn' as const,
+            feedback: ['This section could not be scored — the AI response was incomplete.'],
+          };
+        }
+        return {
+          name,
+          score,
+          status: ['pass', 'warn', 'fail'].includes(s?.status) ? s.status : 'warn',
+          feedback: Array.isArray(s?.feedback) ? s.feedback.map(String) : []
+        };
+      })
     : [];
 
   // Parse recommendations and assign priority levels

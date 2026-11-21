@@ -90,17 +90,17 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           }
         `}</style>
 
-        {/* Ambient glow blobs */}
+        {/* Ambient glow blobs — Atlas lime/mint, matching the rest of the app */}
         <div style={{
           position: 'absolute', width: '500px', height: '500px',
           borderRadius: '50%', top: '-180px', left: '-180px',
-          background: 'radial-gradient(circle, rgba(255,106,85,0.07) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(198,242,78,0.07) 0%, transparent 70%)',
           filter: 'blur(60px)', pointerEvents: 'none'
         }} />
         <div style={{
           position: 'absolute', width: '500px', height: '500px',
           borderRadius: '50%', bottom: '-180px', right: '-180px',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(94,234,200,0.07) 0%, transparent 70%)',
           filter: 'blur(60px)', pointerEvents: 'none'
         }} />
 
@@ -110,7 +110,7 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div style={{
             position: 'absolute', inset: '-16px',
             borderRadius: '50%',
-            border: '1.5px solid rgba(255,106,85,0.3)',
+            border: '1.5px solid rgba(198,242,78,0.3)',
             animation: 'hmPulseRing 2s ease-in-out infinite',
           }} />
           {/* Spinning arc */}
@@ -118,28 +118,30 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             position: 'absolute', inset: '-8px',
             borderRadius: '50%',
             border: '2.5px solid transparent',
-            borderTopColor: '#FF6A55',
-            borderRightColor: 'rgba(255,106,85,0.35)',
+            borderTopColor: 'var(--accent-primary)',
+            borderRightColor: 'rgba(198,242,78,0.35)',
             animation: 'hmSpin 0.9s linear infinite',
           }} />
-          {/* Logo mark */}
+          {/* Logo mark — the same lime "H" as the sidebar, not a foreign brand */}
           <div style={{
             width: '64px', height: '64px',
             borderRadius: '18px',
-            background: 'linear-gradient(135deg, #FF6A55 0%, #8B5CF6 100%)',
+            background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 12px 32px rgba(255,106,85,0.25), 0 4px 10px rgba(0,0,0,0.06)',
+            boxShadow: '0 12px 32px rgba(198,242,78,0.25), 0 4px 10px rgba(0,0,0,0.06)',
+            color: '#050A0F',
+            fontFamily: "'Syne', 'Inter', sans-serif",
+            fontSize: '30px',
+            fontWeight: 800,
           }}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"
-                fill="white" opacity="0.9"/>
-            </svg>
+            H
           </div>
         </div>
 
         {/* Brand name */}
         <div style={{
           fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)',
+          fontFamily: "'Syne', 'Inter', sans-serif",
           letterSpacing: '-0.02em', marginBottom: '6px',
           animation: 'hmFadeUp 0.55s ease forwards',
         }}>
@@ -162,7 +164,7 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {[0, 150, 300].map((delay) => (
             <div key={delay} style={{
               width: '7px', height: '7px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, #FF6A55, #8B5CF6)',
+              background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
               animation: `hmDotBounce 1.1s ease-in-out ${delay}ms infinite`,
             }} />
           ))}
