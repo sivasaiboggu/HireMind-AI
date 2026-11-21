@@ -61,6 +61,12 @@ export const ResumeAnalyzer: React.FC = () => {
   const [currentExp, setCurrentExp] = useState(activeResume?.experienceLevel || '');
 
   const handleAnalyze = async (resumeText: string, jobRole: string, experienceLevel: string, jobDescription?: string) => {
+    // The submit button is disabled while loading, but Enter in a text
+    // field still submits the form — without this guard the second submit
+    // hit useGemini's in-flight guard, returned null, and was misread as
+    // "AI unavailable", saving a spurious local audit while the real AI
+    // call was still running.
+    if (loading) return;
     setCurrentRole(jobRole);
     setCurrentExp(experienceLevel);
 

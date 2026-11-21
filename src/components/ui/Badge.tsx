@@ -22,9 +22,9 @@ export const Badge: React.FC<BadgeProps> = ({
         };
       case 'warning':
         return {
-          backgroundColor: 'rgba(245, 158, 11, 0.1)',
-          color: 'var(--accent-secondary)',
-          border: '1px solid rgba(245, 158, 11, 0.2)'
+          backgroundColor: 'color-mix(in srgb, var(--accent-warning) 10%, transparent)',
+          color: 'var(--accent-warning)',
+          border: '1px solid color-mix(in srgb, var(--accent-warning) 20%, transparent)'
         };
       case 'danger':
         return {

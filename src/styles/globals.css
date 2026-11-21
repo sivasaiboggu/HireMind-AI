@@ -10,6 +10,7 @@
 
   --accent-primary: #C6F24E;    /* Lime */
   --accent-secondary: #5EEAC8;  /* Mint */
+  --accent-warning: #F5A623;    /* Amber — warnings, medium priority */
   --accent-danger: #F26D5C;     /* Warm red */
   --accent-purple: #8BE9C8;     /* Soft mint (compat token) */
 
@@ -43,6 +44,7 @@
   --text-xs: 12px;
   --text-sm: 12px;
   --text-base: 14px;
+  --text-md: 16px;
   --text-lg: 16px;
   --text-xl: 18px;
   --text-2xl: 24px;
@@ -277,6 +279,55 @@ button {
   .skeleton-grid-2col { grid-template-columns: 7fr 5fr; }
 }
 
+/* Resume analyzer grids. These lived as inline <style> blocks injected by
+   the components on every render; defined once here they apply the same
+   breakpoints without the re-injection. */
+.analysis-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .analysis-layout-grid { grid-template-columns: 7fr 5fr; }
+}
+.rewrite-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .rewrite-compare-grid { grid-template-columns: 1fr auto 1fr; }
+}
+/* Arrow between the before/after columns; hidden when they stack. */
+.rewrite-compare-arrow {
+  display: none;
+}
+@media (min-width: 768px) {
+  .rewrite-compare-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+  }
+}
+.score-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .score-cards-grid { grid-template-columns: 1fr; }
+}
+.uploader-config-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+@media (min-width: 768px) {
+  .uploader-config-grid { grid-template-columns: 1fr 1fr; }
+}
+
 /* Light variant (TopBar toggle sets data-theme="light") */
 [data-theme='light'] {
   --bg-base: #F5F7F2;
@@ -286,6 +337,7 @@ button {
 
   --accent-primary: #5E9E08;
   --accent-secondary: #0C9E7C;
+  --accent-warning: #8A6100;
   --accent-danger: #D94836;
   --accent-purple: #0C9E7C;
 

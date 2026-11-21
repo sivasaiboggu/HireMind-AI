@@ -53,6 +53,11 @@ export const ScoreBar: React.FC<ScoreBarProps> = ({
           width: '100%',
           position: 'relative'
         }}
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={max}
+        aria-label={label ?? 'Score'}
       >
         <div
           className="progress-bar-fill"

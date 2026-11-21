@@ -359,6 +359,26 @@ company interview histories. AI-generated question quality remains unverified.
 
 ## Changelog
 
+### 0.0.3 (21 Nov 2026)
+- Premium resume UI pass: defined the missing `--text-md` and
+  `--accent-warning` design tokens (24 headings and the warning accents
+  were silently falling back); staggered score-ring entrance with
+  Strong / On track / Needs work verdicts; overall score now shown in
+  the audit banner; before/after rewrites numbered with tinted rails
+  and a desktop arrow divider; resume grids moved from per-render
+  inline `<style>` blocks to `globals.css`; warning badge/section
+  accents now derive from the warning token; score bars expose
+  `role=progressbar`; accordion headers and the upload dropzone are
+  keyboard-operable.
+- Senior logic review: education year ranges no longer count as a
+  phone number (needs a 10+ digit run); `C++`/`C#` survive tokenizing
+  and match job keywords; PDF upload claims success only after text
+  is extracted, tolerates missing MIME types, and caps parsing at 40
+  pages; re-submitting while an analysis runs no longer saves a
+  spurious local audit; gemini-proxy enforces its 1 MB cap in bytes
+  (with a Content-Length pre-check) and prunes stale rate-limit
+  entries. Full suite re-verified: 137 tests passed, 0 failed.
+
 ### 0.0.2 (21 Nov 2026)
 - Safe patch/minor dependency updates (React 19.3.1, react-router-dom
   7.18.6, supabase-js 2.119.2, framer-motion 12.43, lucide-react 1.77,

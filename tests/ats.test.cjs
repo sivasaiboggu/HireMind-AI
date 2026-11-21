@@ -110,3 +110,33 @@ test('scores stay within 0-100 for pathological input', () => {
     assert.ok(result[key] >= 0 && result[key] <= 100, `${key}=${result[key]}`);
   }
 });
+
+test('education year ranges are not mistaken for a phone number', () => {
+  // "2023-2027" used to match the phone regex, crediting a phone number
+  // the resume never had — both in the format score and the Contact
+  // Information section.
+  const result = analyzeResumeLocally(
+    'Jane Doe\nEducation\nBTech Computer Science, 2023-2027\nWork Experience\nBuilt things.',
+    'Python developer',
+  );
+  assert.equal(result.atsChecklist.find((c) => c.label === 'Phone number present').checked, false);
+  assert.equal(result.sections.find((s) => s.name === 'Contact Information').score, 0);
+  // A real 10-digit number still counts, with or without a country code.
+  const withPhone = analyzeResumeLocally(
+    'Jane Doe\njane@example.com | +91 9573719115\nEducation\nBTech, 2023-2027\nWork Experience\nBuilt things.',
+    'Python developer',
+  );
+  assert.equal(withPhone.atsChecklist.find((c) => c.label === 'Phone number present').checked, true);
+  assert.equal(withPhone.sections.find((s) => s.name === 'Contact Information').score, 100);
+});
+
+test('C++ and C# survive tokenizing and match as whole keywords', () => {
+  const result = analyzeResumeLocally(
+    'Dev\ndev@example.com\nSkills\nC++, C#, Python\nWork Experience\nBuilt systems.',
+    'We need C++ and C# developers.',
+  );
+  assert.ok(result.matchedKeywords.includes('c++'), `matched: ${result.matchedKeywords}`);
+  assert.ok(result.matchedKeywords.includes('c#'), `matched: ${result.matchedKeywords}`);
+  assert.ok(!result.missingKeywords.includes('c++'));
+  assert.ok(!result.missingKeywords.includes('c#'));
+});

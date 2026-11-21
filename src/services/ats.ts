@@ -35,8 +35,11 @@ const ACTION_VERBS = [
   'mentored', 'collaborated', 'analyzed', 'engineered', 'refactored',
 ];
 
-const SECTION_PATTERNS: Array<{ name: string; pattern: RegExp }> = [
-  { name: 'Contact Information', pattern: /@|\+?\d[\d\s\-()]{7,}\d|linkedin\.com|github\.com/i },
+const SECTION_PATTERNS: Array<{ name: string; pattern?: RegExp; test?: (text: string) => boolean }> = [
+  // Contact counts only on a real contact signal. The old phone regex also
+  // matched year ranges such as "2023-2027", so a resume with no phone
+  // number passed this section on its education dates alone.
+  { name: 'Contact Information', test: (text) => /@|linkedin\.com|github\.com/i.test(text) || hasPhoneNumber(text) },
   { name: 'Professional Summary', pattern: /^\s*(summary|profile|objective|about)\b/im },
   { name: 'Work Experience', pattern: /^\s*(work\s+experience|experience|employment|professional\s+experience)\b/im },
   { name: 'Education', pattern: /^\s*(education|academic)\b/im },
@@ -45,13 +48,29 @@ const SECTION_PATTERNS: Array<{ name: string; pattern: RegExp }> = [
   { name: 'Certifications', pattern: /^\s*(certifications?|licenses?|awards?)\b/im },
 ];
 
+/**
+ * A phone number is a digit run of at least 10 digits (international and
+ * Indian mobile numbers). The naive span regex also matched year ranges
+ * like "2020-2024" (8 digits), crediting a phone number the resume never
+ * had. Short local numbers (7 digits) are not credited — they are
+ * indistinguishable from dates in plain text.
+ */
+export function hasPhoneNumber(text: string): boolean {
+  for (const match of text.matchAll(/\+?[\d][\d\s\-().]{7,}\d/g)) {
+    if (match[0].replace(/\D/g, '').length >= 10) return true;
+  }
+  return false;
+}
+
 function tokenize(text: string): string[] {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9+#./-]/g, ' ')
     .split(/\s+/)
-    .map((t) => t.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ''))
-    .filter((t) => t.length >= 3 && !STOPWORDS.has(t));
+    // Keep a trailing + or # so "c++" and "c#" survive as tokens instead of
+    // collapsing to "c" (length 1, dropped) and never matching a job keyword.
+    .map((t) => t.replace(/^[^a-z0-9]+|[^a-z0-9+#]+$/g, ''))
+    .filter((t) => (t.length >= 3 || /[+#]$/.test(t)) && !STOPWORDS.has(t));
 }
 
 /** Keywords from the job description, most frequent first, capped for focus. */
@@ -133,8 +152,8 @@ export function analyzeResumeLocally(resumeText: string, jobDescription?: string
   const keywordRate = keywords.length ? matchedKeywords.length / keywords.length : 1;
 
   // --- Section completeness ---------------------------------------------
-  const sections = SECTION_PATTERNS.map(({ name, pattern }) => {
-    const present = pattern.test(resume);
+  const sections = SECTION_PATTERNS.map(({ name, pattern, test }) => {
+    const present = test ? test(resume) : pattern!.test(resume);
     return {
       name,
       score: present ? 100 : 0,
@@ -159,7 +178,7 @@ export function analyzeResumeLocally(resumeText: string, jobDescription?: string
 
   // --- Format signals ----------------------------------------------------
   const hasEmail = /[\w.+-]+@[\w-]+\.[\w.]+/.test(resume);
-  const hasPhone = /\+?\d[\d\s\-()]{7,}\d/.test(resume);
+  const hasPhone = hasPhoneNumber(resume);
   const lengthOk = wordCount >= 250 && wordCount <= 1200;
   const excessiveSymbols = (resume.match(/[|■◆●★]/g) || []).length > 20;
   const formatRate =

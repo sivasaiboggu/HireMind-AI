@@ -7,7 +7,7 @@ import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { ResumeAnalysis as IResumeAnalysis } from '../../types';
-import { Check, X, Award, Info, FileEdit, CheckSquare, Copy, CheckCheck } from 'lucide-react';
+import { Check, X, Award, Info, FileEdit, CheckSquare, Copy, CheckCheck, ArrowRight } from 'lucide-react';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
@@ -119,9 +119,20 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
             Target: <span className="text-cyan" style={{ fontWeight: 600 }}>{jobRole}</span> ({experienceLevel})
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontSize: 'var(--text-xs)', fontWeight: 600 }}>
-          <Award style={{ width: '18px', height: '18px' }} />
-          <span>ATS SIGNAL ACTIVE</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
+              Overall
+            </div>
+            <div style={{ fontSize: 'var(--text-xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--text-primary)', lineHeight: 1.2 }}>
+              {analysis.overallScore}
+              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>/100</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontSize: 'var(--text-xs)', fontWeight: 600 }}>
+            <Award style={{ width: '18px', height: '18px' }} />
+            <span>ATS SIGNAL ACTIVE</span>
+          </div>
         </div>
       </div>
 
@@ -129,23 +140,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
       <ScoreBreakdown analysis={analysis} />
 
       {/* Two-Column Grid */}
-      <div 
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: '32px',
-          alignItems: 'start'
-        }}
-        className="analysis-layout-grid"
-      >
-        <style dangerouslySetInnerHTML={{__html: `
-          @media (min-width: 1024px) {
-            .analysis-layout-grid {
-              grid-template-columns: 7fr 5fr !important;
-            }
-          }
-        `}} />
-
+      <div className="analysis-layout-grid">
         {/* Left Column: Sections, Keywords, and Rewrite Proposals */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {/* Section audits accordion */}
@@ -193,18 +188,17 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                     borderRadius: 'var(--radius-md)'
                   }}
                 >
-                  <div
-                    style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}
-                    className="rewrite-compare-grid"
-                  >
-                    <style dangerouslySetInnerHTML={{__html: `
-                      @media (min-width: 768px) {
-                        .rewrite-compare-grid {
-                          grid-template-columns: 1fr 1fr !important;
-                        }
-                      }
-                    `}} />
-                    <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                      Rewrite {idx + 1} of {analysis.rewrites.length}
+                    </span>
+                    <Button variant="ghost" onClick={() => handleCopyOne(rewrite.improved, idx)}>
+                      {copiedIndex === idx ? <CheckCheck style={{ width: '16px', height: '16px' }} /> : <Copy style={{ width: '16px', height: '16px' }} />}
+                      {copiedIndex === idx ? 'Copied' : 'Copy improved bullet'}
+                    </Button>
+                  </div>
+                  <div className="rewrite-compare-grid">
+                    <div style={{ borderLeft: '2px solid rgba(242, 109, 92, 0.4)', paddingLeft: '12px' }}>
                       <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-danger)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
                         Before (weak bullet)
                       </div>
@@ -212,7 +206,10 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                         “{rewrite.original}”
                       </div>
                     </div>
-                    <div>
+                    <div className="rewrite-compare-arrow" aria-hidden="true">
+                      <ArrowRight style={{ width: '18px', height: '18px' }} />
+                    </div>
+                    <div style={{ borderLeft: '2px solid rgba(198, 242, 78, 0.4)', paddingLeft: '12px' }}>
                       <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
                         After (STAR framework)
                       </div>
@@ -220,12 +217,6 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                         “{rewrite.improved}”
                       </div>
                     </div>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button variant="ghost" onClick={() => handleCopyOne(rewrite.improved, idx)}>
-                      {copiedIndex === idx ? <CheckCheck style={{ width: '16px', height: '16px' }} /> : <Copy style={{ width: '16px', height: '16px' }} />}
-                      {copiedIndex === idx ? 'Copied' : 'Copy improved bullet'}
-                    </Button>
                   </div>
                 </div>
                 ))
@@ -265,7 +256,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                     borderRadius: 'var(--radius-md)'
                   }}
                 >
-                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {index + 1}. {rec.title}
                     </span>

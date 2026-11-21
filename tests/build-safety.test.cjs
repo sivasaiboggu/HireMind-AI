@@ -29,3 +29,18 @@ test('Vite does not inject private process env keys',()=>{
   assert.doesNotMatch(service,/process\.env/);
   assert.match(service,/import\.meta\.env\.DEV/);
 });
+test('every CSS custom property used in src is defined in globals.css',()=>{
+  // Two tokens shipped undefined for months (--text-md in 24 places,
+  // --accent-warning in the local-audit banner and checklist), so headings
+  // silently fell back to inherited sizes and warning accents to inherit.
+  // This test fails the build if any var(--x) has no --x: definition.
+  const {readdirSync}=require('node:fs');
+  const css=readFileSync('src/styles/globals.css','utf8');
+  const defined=new Set([...css.matchAll(/--([a-z0-9-]+)\s*:/g)].map(m=>m[1]));
+  const used=new Map();
+  const walk=(dir)=>{for(const e of readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory())walk(p);else if(/\.(ts|tsx|css)$/.test(e.name)){for(const m of readFileSync(p,'utf8').matchAll(/var\(--([a-z0-9-]+)\)/g)){if(!used.has(m[1]))used.set(m[1],p);}}}};
+  walk('src');
+  for(const [name,firstUse] of used){assert.ok(defined.has(name),`--${name} used in ${firstUse} has no definition in src/styles/globals.css`);}
+  assert.ok(defined.has('text-md'));
+  assert.ok(defined.has('accent-warning'));
+});

@@ -33,7 +33,7 @@ export const SectionFeedback: React.FC<SectionFeedbackProps> = ({ sections }) =>
       case 'pass':
         return <CheckCircle2 style={{ width: '16px', height: '16px', color: 'var(--accent-primary)', flexShrink: 0, marginTop: '2px' }} />;
       case 'warn':
-        return <AlertTriangle style={{ width: '16px', height: '16px', color: 'var(--accent-secondary)', flexShrink: 0, marginTop: '2px' }} />;
+        return <AlertTriangle style={{ width: '16px', height: '16px', color: 'var(--accent-warning)', flexShrink: 0, marginTop: '2px' }} />;
       case 'fail':
         return <XCircle style={{ width: '16px', height: '16px', color: 'var(--accent-danger)', flexShrink: 0, marginTop: '2px' }} />;
     }
@@ -43,7 +43,7 @@ export const SectionFeedback: React.FC<SectionFeedbackProps> = ({ sections }) =>
     if (!isExpanded) return 'var(--border-subtle)';
     switch (status) {
       case 'pass': return 'rgba(198, 242, 78, 0.3)';
-      case 'warn': return 'rgba(245, 158, 11, 0.3)';
+      case 'warn': return 'color-mix(in srgb, var(--accent-warning) 30%, transparent)';
       case 'fail': return 'rgba(244, 63, 94, 0.3)';
     }
   };
@@ -67,16 +67,25 @@ export const SectionFeedback: React.FC<SectionFeedbackProps> = ({ sections }) =>
               transition: 'all 200ms ease'
             }}
           >
-            {/* Header Accordion Bar */}
-            <div
+            {/* Header Accordion Bar — a real button so keyboard users can
+                expand sections too; previously a clickable div. */}
+            <button
+              type="button"
               onClick={() => toggleSection(idx)}
+              aria-expanded={isExpanded}
+              aria-controls={`section-panel-${idx}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '20px 24px',
                 cursor: 'pointer',
-                userSelect: 'none'
+                userSelect: 'none',
+                width: '100%',
+                background: 'none',
+                border: 'none',
+                textAlign: 'left',
+                fontFamily: 'inherit'
               }}
               className="accordion-header"
             >
@@ -104,11 +113,12 @@ export const SectionFeedback: React.FC<SectionFeedbackProps> = ({ sections }) =>
                   <ChevronDown style={{ width: '18px', height: '18px', color: 'var(--text-secondary)' }} />
                 )}
               </div>
-            </div>
+            </button>
 
             {/* Expanded Content Panel */}
             {isExpanded && (
-              <div 
+              <div
+                id={`section-panel-${idx}`}
                 style={{ 
                   padding: '0 24px 24px 24px',
                   borderTop: '1px solid var(--border-subtle)',

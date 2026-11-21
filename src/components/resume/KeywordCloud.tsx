@@ -35,7 +35,14 @@ export const KeywordCloud: React.FC<KeywordCloudProps> = ({
             {percentage}%
           </span>
         </div>
-        <div style={{ height: '6px', backgroundColor: 'var(--bg-elevated)', borderRadius: '3px', overflow: 'hidden' }}>
+        <div
+          style={{ height: '6px', backgroundColor: 'var(--bg-elevated)', borderRadius: '3px', overflow: 'hidden' }}
+          role="progressbar"
+          aria-valuenow={percentage}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Keyword match rate"
+        >
           <div 
             style={{ 
               height: '100%', 

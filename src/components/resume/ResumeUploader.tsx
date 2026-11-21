@@ -33,20 +33,31 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     let fullText = '';
     
-    // Iterate through pages to pull token strings sequentially
-    for (let i = 1; i <= pdf.numPages; i++) {
+    // Resumes are a few pages; cap the work so a pathological multi-hundred
+    // page PDF cannot hang the tab parsing page after page.
+    const pages = Math.min(pdf.numPages, MAX_PDF_PAGES);
+    for (let i = 1; i <= pages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      fullText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+      // TextMarkedContent items carry no .str — guard so "undefined" never
+      // leaks into the extracted text.
+      fullText += textContent.items.map((item: any) => item.str ?? '').join(' ') + '\n';
     }
     return fullText;
   };
 
   const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB — large scans waste parse time
+  const MAX_PDF_PAGES = 40;
   const MIN_RESUME_WORDS = 20;
 
   const handleFile = async (file: File) => {
-    if (file.type !== 'application/pdf') {
+    // Some browsers and OS share dialogs report no MIME type (or a generic
+    // octet-stream) for PDFs — accept by extension in that case instead of
+    // rejecting a valid resume.
+    const looksLikePdf = file.type === 'application/pdf' ||
+      file.type === '' ||
+      file.type === 'application/octet-stream';
+    if (!looksLikePdf || !file.name.toLowerCase().endsWith('.pdf')) {
       setParseError('Only PDF resume documents are currently supported.');
       return;
     }
@@ -56,18 +67,22 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     }
     setParsing(true);
     setParseError('');
-    setFileName(file.name);
     try {
       const text = await extractTextFromPdf(file);
       if (text.split(/\s+/).filter(Boolean).length < MIN_RESUME_WORDS) {
         setParseError('No readable text was found in this PDF. It may be a scanned image — please paste your resume text instead.');
         setResumeText('');
+        setFileName('');
         return;
       }
+      // Only claim success once the text is actually extracted — previously
+      // the name was shown as "loaded successfully" even when parsing failed.
+      setFileName(file.name);
       setResumeText(text);
     } catch (err) {
       console.error(err);
       setParseError('Failed to parse text from the uploaded PDF document. Please try copy-pasting.');
+      setFileName('');
     } finally {
       setParsing(false);
     }
@@ -87,6 +102,15 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
+  };
+
+  // Keyboard users cannot click the dropzone: Enter/Space opens the file
+  // picker, and the focus ring comes from the global :focus-visible rule.
+  const onDropzoneKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      triggerFileSelect();
+    }
   };
 
   const handleSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,21 +142,7 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Target Config */}
-      <div 
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: '24px',
-        }}
-        className="uploader-config-grid"
-      >
-        <style dangerouslySetInnerHTML={{__html: `
-          @media (min-width: 768px) {
-            .uploader-config-grid {
-              grid-template-columns: 1fr 1fr !important;
-            }
-          }
-        `}} />
+      <div className="uploader-config-grid">
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label>Target Job Title</label>
@@ -161,10 +171,14 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
 
       {/* Drag & Drop Box */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={fileName ? `Resume file ${fileName} loaded. Activate to choose a different PDF.` : 'Upload resume PDF. Activate to browse for a file, or drop a PDF here.'}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         onClick={triggerFileSelect}
+        onKeyDown={onDropzoneKeyDown}
         style={{
           border: isDragging ? '2px dashed var(--accent-primary)' : '2px dashed var(--border-active)',
           backgroundColor: isDragging ? 'var(--bg-hover)' : 'var(--bg-surface)',

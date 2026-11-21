@@ -49,6 +49,13 @@ const recentRequests = new Map<string, number[]>();
 
 function rateLimited(userId: string, now: number): boolean {
   const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  // Opportunistic sweep so user ids that never return do not accumulate
+  // forever in this per-instance map.
+  if (recentRequests.size > 10000) {
+    for (const [id, times] of recentRequests) {
+      if (times.every((t) => t <= windowStart)) recentRequests.delete(id);
+    }
+  }
   const hits = (recentRequests.get(userId) || []).filter((t) => t > windowStart);
   if (hits.length >= RATE_LIMIT_MAX) {
     recentRequests.set(userId, hits);
@@ -113,8 +120,17 @@ export async function handler(req: Request, deps: ProxyDeps = liveDeps): Promise
     return json({ error: 'This model or action is not supported.' }, 400);
   }
 
+  // Reject oversized bodies before reading them into memory, and measure
+  // bytes rather than UTF-16 code units so multi-byte text cannot slip
+  // past the cap (a 1 MB string of astral characters is ~2 MB of UTF-8).
+  const contentLength = Number(req.headers.get('Content-Length') || '');
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+    return json({ error: 'Request too large.' }, 413);
+  }
   const body = await req.text();
-  if (body.length > MAX_BODY_BYTES) return json({ error: 'Request too large.' }, 413);
+  if (new TextEncoder().encode(body).length > MAX_BODY_BYTES) {
+    return json({ error: 'Request too large.' }, 413);
+  }
 
   // Clamp generation length so one request cannot spend unbounded tokens.
   let outbound = body;
