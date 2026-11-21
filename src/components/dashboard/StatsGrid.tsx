@@ -4,6 +4,7 @@ import { Card } from '../ui/Card';
 import { ProgressRing } from '../ui/ProgressRing';
 import { useAppStore } from '../../store/appStore';
 import '../../styles/globals.css';
+import '../../styles/animations.css';
 
 export const StatsGrid: React.FC = () => {
   const { resumeHistory, activeResume, interviewHistory, activeRoadmap } = useAppStore();
@@ -32,7 +33,8 @@ export const StatsGrid: React.FC = () => {
   }
 
   return (
-    <div 
+    <div
+      className="stagger"
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',

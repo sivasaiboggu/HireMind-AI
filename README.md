@@ -332,3 +332,10 @@ shows its actual easy/medium/hard mix instead of asserting Equal Split.
 Five selector tests cover both bundled catalogs, short tiers, duplicate text,
 invalid counts and source preservation. These are practice themes, not verified
 company interview histories. AI-generated question quality remains unverified.
+
+## Changelog
+
+### 0.0.1 (21 Nov 2026)
+- Patch release: no feature changes. Dockerfiles do not exist for this
+  repo (Vite SPA, deployed on Vercel), so there was nothing to
+  build-test. Full suite re-verified: 134 tests passed, 0 failed.
