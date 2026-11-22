@@ -1,0 +1,21 @@
+@import "tailwindcss/theme.css";
+@import "tailwindcss/utilities.css";
+
+@theme inline {
+  --color-paper: var(--bg-base);
+  --color-sheet: var(--bg-surface);
+  --color-ink: var(--text-primary);
+  --color-note: var(--text-secondary);
+  --color-mark: var(--accent-primary);
+  --color-on-mark: var(--on-accent);
+  --color-rule: var(--border-subtle);
+  --color-error: var(--accent-danger);
+  --color-warning: var(--accent-warning);
+  --color-success: var(--accent-success);
+  --font-sans: var(--font-body);
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --spacing: 4px;
+  --radius-sheet: var(--radius-md);
+  --shadow-raised: var(--shadow-depth-2);
+  --shadow-dialog: var(--shadow-depth-3);
+}

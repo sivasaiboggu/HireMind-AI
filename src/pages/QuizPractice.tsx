@@ -1,3 +1,4 @@
+import { PageHeading, WorkSheet } from '../components/ui/PageHeading';
 import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -548,62 +549,23 @@ export const QuizPractice: React.FC = () => {
   const splitDetails = calculateProportionalSplit(questionCount);
 
   return (
-    <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      
-      {/* Header Scaffolding */}
-      {quizState === 'setup' && (
-        <div className="page-enter" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-              Practice coding interviews with browser-local JavaScript and Python, plus AI reviews of your answers.
-            </p>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '8px', backgroundColor: 'var(--bg-surface)', padding: '6px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
-            <button
-              onClick={() => setPracticeMode('dsa')}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--text-xs)',
-                fontWeight: 600,
-                color: practiceMode === 'dsa' ? 'var(--bg-base)' : 'var(--text-secondary)',
-                backgroundColor: practiceMode === 'dsa' ? 'var(--accent-primary)' : 'transparent',
-                transition: 'all 200ms ease'
-              }}
-            >
-              DSA Practice IDE
-            </button>
-            <button
-              onClick={() => setPracticeMode('interview')}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--text-xs)',
-                fontWeight: 600,
-                color: practiceMode === 'interview' ? 'var(--bg-base)' : 'var(--text-secondary)',
-                backgroundColor: practiceMode === 'interview' ? 'var(--accent-primary)' : 'transparent',
-                transition: 'all 200ms ease'
-              }}
-            >
-              Interview Prep (Tech/HR)
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="container tool-page page-enter">
+      <PageHeading title={quizState === 'results' ? 'Practice review' : 'Practice lab'}>
+        {quizState === 'setup' && 'Run code against test cases or rehearse open-ended interview answers.'}
+      </PageHeading>
 
       {/* LOADING STATE SCREEN */}
       {quizState === 'loading' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', justifyContent: 'center', padding: '100px 0', textAlign: 'center' }} className="page-enter">
+        <div role="status" style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', justifyContent: 'center', padding: '100px 0', textAlign: 'center' }} className="page-enter">
           <div className="relative" style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="absolute inset-0 rounded-full border-4 border-cyan-subtle border-t-cyan animate-spin" style={{ borderTopColor: 'var(--accent-primary)' }} />
             <BookOpen className="text-cyan" style={{ width: '32px', height: '32px' }} />
           </div>
           <div className="typing-cursor" style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--accent-primary)', letterSpacing: '0.05em' }}>
-            TAILORING INTERVIEW EXPERIENCES...
+            Preparing your questions…
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', maxWidth: '480px' }}>
-            Preparing practice questions themed for <span className="text-cyan">{targetCompany}</span>. Formulating difficulty proportionality maps ({splitDetails.easy} Easy, {splitDetails.medium} Medium, {splitDetails.hard} Hard).
+            {targetCompany} · {splitDetails.easy} easy, {splitDetails.medium} medium, {splitDetails.hard} hard
           </p>
           <div style={{ width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
             <Skeleton height={16} />
@@ -614,33 +576,26 @@ export const QuizPractice: React.FC = () => {
 
       {/* SETUP CONFIGURATION CARD */}
       {quizState === 'setup' && (
-        <Card hoverable={false} style={{ maxWidth: '800px', margin: '0 auto', width: '100%', padding: '32px', border: '1px solid var(--border-active)' }} className="page-enter">
-          <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            
-            {/* Mode Intro Banner */}
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(198, 242, 78, 0.03)', border: '1px dashed var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ padding: '10px', backgroundColor: 'color-mix(in srgb, var(--accent-primary) 8%, transparent)', borderRadius: '8px', color: 'var(--accent-primary)' }}>
-                {practiceMode === 'dsa' ? <Code /> : <Layers />}
-              </div>
-              <div>
-                <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-                  Active Focus: {practiceMode === 'dsa' ? 'Data Structures & Algorithms' : 'Technical, Behavioral, & Cultural HR Queries'}
-                </h4>
-                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                  {practiceMode === 'dsa' 
-                    ? 'Write, test, and debug code in the interactive compiler IDE with real-time test case verification.'
-                    : 'Simulate open-ended behavioral, leadership, and system design interviews evaluated by Gemini AI.'
-                  }
-                </p>
-              </div>
+        <WorkSheet note={
+          <>
+            <h2>{practiceMode === 'dsa' ? 'Writing code' : 'Reviewing answers'}</h2>
+            <p>{practiceMode === 'dsa'
+              ? 'Run JavaScript and Python in your browser. For C++ and Java, compare your answer with the reference solution.'
+              : 'Write answers to technical or behavioural questions. AI feedback explains what worked and what to improve.'}</p>
+            <p>The company sets the practice theme.</p>
+          </>
+        }>
+          <form onSubmit={handleGenerate} className="form-stack lab-setup">
+            <div className="tabs" role="group" aria-label="Practice mode">
+              <button type="button" aria-pressed={practiceMode === 'dsa'} onClick={() => setPracticeMode('dsa')}>Coding problems</button>
+              <button type="button" aria-pressed={practiceMode === 'interview'} onClick={() => setPracticeMode('interview')}>Interview questions</button>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              
+            <div className="control-pair">
               {/* Job Target */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Cpu style={{ width: '14px' }} /> Target Job Role</label>
+                <label htmlFor="practice-role" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Cpu style={{ width: '14px' }} /> Target role</label>
                 <input
+                  id="practice-role"
                   type="text"
                   required
                   placeholder="e.g. Frontend Developer"
@@ -652,8 +607,8 @@ export const QuizPractice: React.FC = () => {
 
               {/* Company Selector */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Building style={{ width: '14px' }} /> Target Company</label>
-                <select 
+                <label htmlFor="practice-company" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Building style={{ width: '14px' }} /> Company theme</label>
+                <select id="practice-company"
                   value={targetCompany}
                   onChange={(e) => setTargetCompany(e.target.value)}
                   style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', cursor: 'pointer' }}
@@ -676,12 +631,13 @@ export const QuizPractice: React.FC = () => {
             {/* Questions count selector */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Layers style={{ width: '14px' }} /> Question Quantity</label>
+                <label htmlFor="practice-count" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Layers style={{ width: '14px' }} /> Questions</label>
                 <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--accent-primary)', fontFamily: 'var(--font-mono)' }}>
-                  {questionCount} Questions Selected
+                  {questionCount}
                 </span>
               </div>
               <input
+                id="practice-count"
                 type="range"
                 min="3"
                 max="15"
@@ -694,15 +650,15 @@ export const QuizPractice: React.FC = () => {
               {/* Equal Proportional split calculator display */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginTop: '8px', padding: '12px', backgroundColor: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ textAlign: 'center', borderRight: '1px solid var(--border-subtle)' }}>
-                  <span style={{ display: 'block', fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)' }}>EASY (33%)</span>
+                  <span style={{ display: 'block', fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)' }}>Easy</span>
                   <strong style={{ fontSize: 'var(--text-md)', color: 'var(--accent-primary)' }}>{splitDetails.easy}</strong>
                 </div>
                 <div style={{ textAlign: 'center', borderRight: '1px solid var(--border-subtle)' }}>
-                  <span style={{ display: 'block', fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)' }}>MEDIUM (33%)</span>
+                  <span style={{ display: 'block', fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)' }}>Medium</span>
                   <strong style={{ fontSize: 'var(--text-md)', color: 'var(--accent-secondary)' }}>{splitDetails.medium}</strong>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <span style={{ display: 'block', fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)' }}>HARD (33%)</span>
+                  <span style={{ display: 'block', fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)' }}>Hard</span>
                   <strong style={{ fontSize: 'var(--text-md)', color: 'var(--accent-danger)' }}>{splitDetails.hard}</strong>
                 </div>
               </div>
@@ -714,10 +670,10 @@ export const QuizPractice: React.FC = () => {
               icon={<Zap style={{ width: '16px', height: '16px' }} />}
               style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', width: '100%', marginTop: '12px' }}
             >
-              Generate Practice Problems
+              Start practice
             </Button>
           </form>
-        </Card>
+        </WorkSheet>
       )}
 
       {/* ACTIVE MODE WORKSPACES */}
@@ -738,16 +694,16 @@ export const QuizPractice: React.FC = () => {
             {/* Countdown timers */}
             {practiceMode === 'dsa' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: secondsLeft <= 180 ? 'var(--accent-danger)' : 'var(--accent-primary)' }}>
-                <Clock className={secondsLeft <= 180 ? 'animate-pulse' : ''} style={{ width: '16px', height: '16px' }} />
+                <Clock style={{ width: '16px', height: '16px' }} />
                 <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                  Question Timer: {formatTime(secondsLeft)}
+                  Time left: {formatTime(secondsLeft)}
                 </span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
                 <Clock style={{ width: '16px', height: '16px' }} />
                 <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                  Session Duration: {formatTime(totalTime)}
+                  Elapsed: {formatTime(totalTime)}
                 </span>
               </div>
             )}
@@ -760,7 +716,6 @@ export const QuizPractice: React.FC = () => {
                 height: '100%', 
                 backgroundColor: 'var(--accent-primary)', 
                 width: `${((currentIdx) / questions.length) * 100}%`,
-                transition: 'width 300ms ease' 
               }} 
             />
           </div>
@@ -769,14 +724,7 @@ export const QuizPractice: React.FC = () => {
           {practiceMode === 'dsa' ? (
             
             // DSA WORKSPACE GRID
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }} className="dsa-grid">
-              <style dangerouslySetInnerHTML={{__html: `
-                @media (min-width: 1024px) {
-                  .dsa-grid {
-                    grid-template-columns: 4.5fr 7.5fr !important;
-                  }
-                }
-              `}} />
+            <div className="dsa-grid">
 
               {/* LEFT COLUMN: PROBLEM DISCOVERY */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -863,11 +811,12 @@ export const QuizPractice: React.FC = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Terminal style={{ width: '16px', color: 'var(--accent-primary)' }} />
-                      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700 }}>Local Runner / AI Review</span>
+                      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700 }}>Code editor</span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <select 
+                      <select
+                        aria-label="Programming language"
                         value={selectedLanguage}
                         onChange={(e) => setSelectedLanguage(e.target.value as any)}
                         style={{ fontSize: '10px', padding: '4px 10px', backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '4px', cursor: 'pointer', color: 'var(--accent-primary)', fontWeight: 600 }}
@@ -881,7 +830,7 @@ export const QuizPractice: React.FC = () => {
                   </div>
 
                   {/* TEXTAREA EDITOR CONTAINER */}
-                  <div style={{ display: 'flex', backgroundColor: '#020609', height: '380px', position: 'relative' }}>
+                  <div style={{ display: 'flex', backgroundColor: 'var(--bg-elevated)', height: '380px', position: 'relative' }}>
                     
                     {/* Line numbers gutter */}
                     <pre 
@@ -889,13 +838,13 @@ export const QuizPractice: React.FC = () => {
                       style={{
                         padding: '16px 8px 16px 12px',
                         color: 'var(--text-muted)',
-                        backgroundColor: '#010305',
+                        backgroundColor: 'var(--bg-surface)',
                         fontFamily: 'var(--font-mono)',
                         fontSize: '12px',
                         lineHeight: '1.6',
                         textAlign: 'right',
                         userSelect: 'none',
-                        borderRight: '1px solid rgba(255, 255, 255, 0.03)',
+                        borderRight: '1px solid var(--border-subtle)',
                         margin: 0,
                         height: '380px',
                         overflow: 'hidden',
@@ -911,7 +860,8 @@ export const QuizPractice: React.FC = () => {
                       onScroll={handleEditorScroll}
                       value={activeCode}
                       onChange={(e) => setCodeForCurrentQuestion(e.target.value)}
-                      placeholder="// Implement your solution here..."
+                      aria-label="Code editor"
+                      placeholder="// Write your solution here"
                       style={{
                         flexGrow: 1,
                         backgroundColor: 'transparent',
@@ -932,7 +882,7 @@ export const QuizPractice: React.FC = () => {
                     />
 
                     {loadingPyodide && (
-                      <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 10, 15, 0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                      <div style={{ position: 'absolute', inset: 0, backgroundColor: 'var(--modal-overlay)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                         <RefreshCw className="animate-spin text-cyan" />
                         <span style={{ fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 600 }}>Loading browser-local Python runtime...</span>
                       </div>
@@ -940,10 +890,10 @@ export const QuizPractice: React.FC = () => {
                   </div>
 
                   {/* CONSOLE / OUTPUT DISPLAY PANEL */}
-                  <div style={{ display: 'flex', flexDirection: 'column', borderTop: '1px solid var(--border-subtle)', backgroundColor: '#030712' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', borderTop: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-elevated)' }}>
                     
                     {/* Console tabs */}
-                    <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', backgroundColor: 'var(--bg-surface)' }}>
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-surface)' }}>
                       <button
                         type="button"
                         onClick={() => setCompilerTab('console')}
@@ -952,8 +902,8 @@ export const QuizPractice: React.FC = () => {
                           fontSize: '10px',
                           fontWeight: 700,
                           color: compilerTab === 'console' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                          borderRight: '1px solid rgba(255, 255, 255, 0.05)',
-                          backgroundColor: compilerTab === 'console' ? '#030712' : 'transparent'
+                          borderRight: '1px solid var(--border-subtle)',
+                          backgroundColor: compilerTab === 'console' ? 'var(--bg-elevated)' : 'transparent'
                         }}
                       >
                         Terminal Output
@@ -966,8 +916,8 @@ export const QuizPractice: React.FC = () => {
                           fontSize: '10px',
                           fontWeight: 700,
                           color: compilerTab === 'testcases' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                          borderRight: '1px solid rgba(255, 255, 255, 0.05)',
-                          backgroundColor: compilerTab === 'testcases' ? '#030712' : 'transparent'
+                          borderRight: '1px solid var(--border-subtle)',
+                          backgroundColor: compilerTab === 'testcases' ? 'var(--bg-elevated)' : 'transparent'
                         }}
                       >
                         Test Cases Run ({testCaseResults.length})
@@ -975,18 +925,18 @@ export const QuizPractice: React.FC = () => {
                     </div>
 
                     {/* Console View contents */}
-                    <div style={{ padding: '16px', minHeight: '120px', maxHeight: '180px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'rgba(255,255,255,0.08)', whiteSpace: 'pre-wrap' }}>
+                    <div style={{ padding: '16px', minHeight: '120px', maxHeight: '180px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>
                       {compilerTab === 'console' ? (
                         consoleOutput || (
                           <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
                             <Lightbulb style={{ width: '14px', height: '14px', color: 'var(--accent-primary)', flexShrink: 0 }} />
-                            Click "Run Code" to compile and execute current code.
+                            Click "Run code" to compile and execute current code.
                           </span>
                         )
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           {testCaseResults.length === 0 ? (
-                            <span style={{ color: 'var(--text-secondary)' }}>No test case results yet. Click "Run Code".</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>No test case results yet. Click "Run code".</span>
                           ) : (
                             testCaseResults.map((res: any, idx: number) => (
                               <div key={idx} style={{ padding: '10px', backgroundColor: 'var(--bg-elevated)', borderRadius: '6px', borderLeft: `3px solid ${res.passed ? 'var(--accent-primary)' : 'var(--accent-danger)'}` }}>
@@ -1017,7 +967,7 @@ export const QuizPractice: React.FC = () => {
                     </div>
 
                     {/* IDE Sandbox controls footer */}
-                    <div className="practice-runner-footer" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', backgroundColor: 'var(--bg-surface)' }}>
+                    <div className="practice-runner-footer" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-surface)' }}>
                       <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
                         Ensure function header and return types match starter code templates.
                       </span>
@@ -1039,7 +989,7 @@ export const QuizPractice: React.FC = () => {
                           }}
                           className="btn-press"
                         >
-                          {compilerLoading ? 'Running...' : 'Run Code'}
+                          {compilerLoading ? 'Running...' : 'Run code'}
                         </button>
                         
                         <Button
@@ -1066,7 +1016,7 @@ export const QuizPractice: React.FC = () => {
               
               {/* Question information */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', color: 'var(--accent-purple)', backgroundColor: 'rgba(139, 233, 200, 0.08)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', color: 'var(--accent-purple)', backgroundColor: 'var(--bg-elevated)', textTransform: 'uppercase' }}>
                   {currentQuestion.category}
                 </span>
                 <span style={{
@@ -1096,7 +1046,7 @@ export const QuizPractice: React.FC = () => {
               {aiEvaluation ? (
                 // Evaluation feedback interface
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} className="page-enter">
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(198, 242, 78, 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', backgroundColor: 'var(--accent-wash)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ position: 'relative', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <div className="absolute inset-0 rounded-full border-4 border-cyan-subtle" style={{ borderColor: 'var(--bg-hover)' }} />
                       <div className="absolute inset-0 rounded-full border-4 border-cyan" style={{ borderColor: 'var(--accent-primary)', clipPath: `polygon(50% 50%, -50% -50%, 150% -50%, 150% 150%, -50% 150%)` }} />
@@ -1114,7 +1064,7 @@ export const QuizPractice: React.FC = () => {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div style={{ padding: '16px', backgroundColor: 'rgba(198, 242, 78, 0.01)', border: '1px solid rgba(198, 242, 78, 0.05)', borderRadius: 'var(--radius-md)' }}>
+                    <div style={{ padding: '16px', backgroundColor: 'var(--accent-wash)', border: '1px solid var(--accent-wash)', borderRadius: 'var(--radius-md)' }}>
                       <h5 style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <CheckCircle2 style={{ width: '13px', height: '13px' }} />
                         STRENGTHS
@@ -1124,7 +1074,7 @@ export const QuizPractice: React.FC = () => {
                       </ul>
                     </div>
 
-                    <div style={{ padding: '16px', backgroundColor: 'rgba(245, 158, 11, 0.01)', border: '1px solid rgba(245, 158, 11, 0.05)', borderRadius: 'var(--radius-md)' }}>
+                    <div style={{ padding: '16px', backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
                       <h5 style={{ fontSize: '11px', color: 'var(--accent-secondary)', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <AlertTriangle style={{ width: '13px', height: '13px' }} />
                         AREAS TO IMPROVE
@@ -1164,8 +1114,9 @@ export const QuizPractice: React.FC = () => {
                   <textarea
                     value={writtenAnswer}
                     onChange={(e) => setWrittenAnswer(e.target.value)}
-                    placeholder="Type your response here..."
-                    style={{ minHeight: '180px', backgroundColor: '#050A0F', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', padding: '16px', outline: 'none' }}
+                    aria-label="Your answer"
+                    placeholder="Write your answer"
+                    style={{ minHeight: '180px', backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', padding: '16px', outline: 'none' }}
                   />
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1199,7 +1150,7 @@ export const QuizPractice: React.FC = () => {
           
           {/* Top Scorecard banner */}
           <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', padding: '40px 0', border: '1px solid var(--border-active)' }}>
-            <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><Trophy style={{ color: 'var(--accent-secondary)' }} /> Practice Session Summary</h3>
+            <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><Trophy style={{ color: 'var(--accent-secondary)' }} /> Session results</h3>
             
             {/* Score ring */}
             <div style={{ position: 'relative', width: '240px', maxWidth: '100%', minHeight: '112px', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
@@ -1217,9 +1168,9 @@ export const QuizPractice: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '24px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
-              <span>Time Expended: <strong className="text-cyan">{formatTime(totalTime)}</strong></span>
+              <span>Time spent: <strong className="text-cyan">{formatTime(totalTime)}</strong></span>
               <span>•</span>
-              <span>Target Focus: <strong className="text-cyan">{targetCompany}</strong></span>
+              <span>Company theme: <strong className="text-cyan">{targetCompany}</strong></span>
               <span>•</span>
               <span>Difficulty mix: <strong className="text-cyan">{questions.filter(q => q.difficulty === 'easy').length} easy / {questions.filter(q => q.difficulty === 'medium').length} medium / {questions.filter(q => q.difficulty === 'hard').length} hard</strong></span>
             </div>
@@ -1270,9 +1221,9 @@ export const QuizPractice: React.FC = () => {
                       <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-primary)' }}>Your Submission ({qEval?.language || 'text'}):</span>
                       <pre style={{
                         padding: '12px',
-                        backgroundColor: '#020609',
+                        backgroundColor: 'var(--bg-elevated)',
                         borderRadius: 'var(--radius-sm)',
-                        color: isDsa ? '#00D4AA' : 'var(--text-secondary)',
+                        color: 'var(--text-secondary)',
                         fontFamily: 'var(--font-mono)',
                         fontSize: '10px',
                         lineHeight: 1.4,

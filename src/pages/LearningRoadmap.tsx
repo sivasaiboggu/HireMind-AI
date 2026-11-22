@@ -1,3 +1,4 @@
+import { PageHeading, WorkSheet } from '../components/ui/PageHeading';
 import React, { useState } from 'react';
 import { GoalSetup } from '../components/roadmap/GoalSetup';
 import { RoadmapTimeline } from '../components/roadmap/RoadmapTimeline';
@@ -67,16 +68,13 @@ export const LearningRoadmap: React.FC = () => {
   const velocity = displayRoadmap ? getVelocityHrs(currentTimeline || '6 months') : 10;
 
   return (
-    <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      
-      {/* Header Description */}
-      {!loading && !displayRoadmap && (
-        <div>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-            Map out a personalized learning path with resources based on current market demands and targets.
-          </p>
-        </div>
-      )}
+    <div className="container tool-page page-enter">
+      <PageHeading
+        title={displayRoadmap ? displayRoadmap.role : 'Study plan'}
+        action={displayRoadmap && !loading && <Button variant="ghost" onClick={handleReset}><ArrowLeft size={16} aria-hidden="true" /> New plan</Button>}
+      >
+        {displayRoadmap ? `${displayRoadmap.totalWeeks} weeks · ${totalTopicsCount} topics` : 'Turn a target role into a week-by-week plan you can work through.'}
+      </PageHeading>
 
       {/* Loading Skeletons */}
       {loading && (
@@ -107,69 +105,22 @@ export const LearningRoadmap: React.FC = () => {
 
       {/* Input Form Setup */}
       {!loading && !displayRoadmap && (
-        <Card hoverable={false} style={{ maxWidth: '800px', margin: '0 auto', width: '100%', padding: '32px' }}>
+        <WorkSheet note={
+          <>
+            <h2>How the plan works</h2>
+            <p>List the skills you already know. The plan puts gaps first and links to resources for each phase.</p>
+            <p>Mark phases complete as you go. Your progress is saved with the plan.</p>
+          </>
+        }>
           <GoalSetup onGenerate={handleGenerate} loading={loading} />
-        </Card>
+        </WorkSheet>
       )}
 
       {/* Roadmap Output details */}
       {!loading && displayRoadmap && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
           
-          {/* Re-plan navigation */}
-          <div>
-            <button
-              onClick={handleReset}
-              style={{
-                fontSize: '11px',
-                color: 'var(--text-secondary)',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                padding: '8px 16px',
-                backgroundColor: 'var(--bg-elevated)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-              className="btn-press"
-            >
-              <ArrowLeft style={{ width: '14px', height: '14px' }} /> Back to Strategy setup
-            </button>
-          </div>
-
-          {/* Heading info */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <h3 style={{ fontSize: 'var(--text-2xl)', fontWeight: 500, fontFamily: 'var(--font-display)', lineHeight: 1.2 }}>
-              Your Pathway to: {displayRoadmap.role}
-            </h3>
-            <div style={{ display: 'flex', gap: '12px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
-              <span>Timeline: {displayRoadmap.totalWeeks} Weeks</span>
-              <span>•</span>
-              <span>{totalTopicsCount} Core Curriculum Topics Mapped</span>
-            </div>
-          </div>
-
-          {/* Core double layout */}
-          <div 
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr',
-              gap: '32px',
-              alignItems: 'start'
-            }}
-            className="roadmap-layout-grid"
-          >
-            <style dangerouslySetInnerHTML={{__html: `
-              @media (min-width: 1024px) {
-                .roadmap-layout-grid {
-                  grid-template-columns: 7fr 5fr !important;
-                }
-              }
-            `}} />
-
+          <div className="roadmap-layout-grid">
             {/* Left Timeline */}
             <RoadmapTimeline
               phases={displayRoadmap.phases}
@@ -178,12 +129,12 @@ export const LearningRoadmap: React.FC = () => {
             />
 
             {/* Right Sticky Side Panel */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', position: 'sticky', top: '100px' }}>
+            <div className="roadmap-notes">
               
               {/* 1. Skill Gap comparison */}
               <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Skill Gap & Market Demand
+                  Skills to work on
                 </h4>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -196,7 +147,7 @@ export const LearningRoadmap: React.FC = () => {
                       {/* Market demand line */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'var(--text-secondary)' }}>
-                          <span>Market Demand</span>
+                          <span>Estimated demand</span>
                           <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{gap.demandPercentage}%</span>
                         </div>
                         <div style={{ height: '4px', backgroundColor: 'var(--bg-elevated)', borderRadius: '2px', overflow: 'hidden' }}>
@@ -207,7 +158,7 @@ export const LearningRoadmap: React.FC = () => {
                       {/* Candidate Gap line */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'var(--text-secondary)' }}>
-                          <span>Your Skill Gap</span>
+                          <span>Your gap</span>
                           <span style={{ color: 'var(--accent-danger)', fontWeight: 700 }}>{gap.gapPercentage}%</span>
                         </div>
                         <div style={{ height: '4px', backgroundColor: 'var(--bg-elevated)', borderRadius: '2px', overflow: 'hidden' }}>
@@ -224,11 +175,11 @@ export const LearningRoadmap: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <Clock style={{ width: '18px', height: '18px', color: 'var(--accent-purple)' }} />
                   <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Learning Velocity Target
+                    Weekly study time
                   </h4>
                 </div>
                 <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  To achieve this timeline, dedicate approximately <strong className="text-purple">{velocity} hours per week</strong> to conceptual study and project builds.
+                  For this timeline, set aside about <strong className="text-purple">{velocity} hours per week</strong> for study and projects.
                 </p>
               </Card>
 
@@ -244,13 +195,13 @@ export const LearningRoadmap: React.FC = () => {
         <Card hoverable={false} style={{ borderColor: 'var(--accent-danger)', display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px', marginTop: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--accent-danger)' }}>
             <AlertTriangle style={{ width: '24px', height: '24px' }} />
-            <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Roadmap Generation Suspended</h4>
+            <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Couldn’t make a study plan</h4>
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
-            {error.message || 'An error occurred during roadmap assembly. Please verify connectivity and parameters.'}
+            {error.message || 'Check your connection and try again.'}
           </p>
           <Button variant="danger" onClick={reset} style={{ width: 'fit-content' }}>
-            Dismiss & Retry
+            Dismiss
           </Button>
         </Card>
       )}

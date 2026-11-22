@@ -319,7 +319,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
     window.addEventListener('storage', handleStorageChange);
 
-    if (!hasSupabaseConfig) {
+    const client = supabase;
+    if (!hasSupabaseConfig || !client) {
       // Offline mode - Load Guest historical records from localStorage immediately
       set({
         resumeHistory: getSavedJson<SavedResumeAnalysis[]>(KEYS.RESUMES, []),
@@ -343,10 +344,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     let roadmapChannel: any = null;
 
     const cleanRealtimeSubscriptions = () => {
-      if (profileChannel) supabase.removeChannel(profileChannel);
-      if (resumeChannel) supabase.removeChannel(resumeChannel);
-      if (interviewChannel) supabase.removeChannel(interviewChannel);
-      if (roadmapChannel) supabase.removeChannel(roadmapChannel);
+      if (profileChannel) client.removeChannel(profileChannel);
+      if (resumeChannel) client.removeChannel(resumeChannel);
+      if (interviewChannel) client.removeChannel(interviewChannel);
+      if (roadmapChannel) client.removeChannel(roadmapChannel);
     };
 
     let authEpoch = 0;
@@ -354,7 +355,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     let disposed = false;
     // Run database work after Supabase releases its auth callback. Each auth
     // event invalidates earlier work, including in-flight realtime reads.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       const epoch = ++authEpoch;
       const isCurrent = () => !disposed && epoch === authEpoch;
       const incomingUser = session?.user || null;
@@ -411,7 +412,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
           // Register table-level realtime database changes for the authenticated candidate
           try {
-            profileChannel = supabase
+            profileChannel = client
               .channel(`profile-db-sync-${currentUser.id}`)
               .on(
                 'postgres_changes',
@@ -430,7 +431,7 @@ export const useAppStore = create<AppState>((set, get) => ({
               )
               .subscribe();
 
-            resumeChannel = supabase
+            resumeChannel = client
               .channel(`resumes-db-sync-${currentUser.id}`)
               .on(
                 'postgres_changes',
@@ -448,7 +449,7 @@ export const useAppStore = create<AppState>((set, get) => ({
               )
               .subscribe();
 
-            interviewChannel = supabase
+            interviewChannel = client
               .channel(`interviews-db-sync-${currentUser.id}`)
               .on(
                 'postgres_changes',
@@ -466,7 +467,7 @@ export const useAppStore = create<AppState>((set, get) => ({
               )
               .subscribe();
 
-            roadmapChannel = supabase
+            roadmapChannel = client
               .channel(`roadmaps-db-sync-${currentUser.id}`)
               .on(
                 'postgres_changes',
@@ -522,7 +523,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   signOutUser: async () => {
     safeLocalSet('hiremind_guest_v9', 'false');
     set({ guestMode: false });
-    if (hasSupabaseConfig) {
+    if (hasSupabaseConfig && supabase) {
       await supabase.auth.signOut();
     }
     get().addToast('info', 'Logged out of account session.');
