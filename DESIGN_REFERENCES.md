@@ -43,3 +43,49 @@ gradient blends, static loading placeholders instead of shimmer,
 tabular numerals on scores and counts, plain sentence-case copy, and
 motion only where a state actually changes (spinner, progress fill,
 toast appearing).
+
+## Round 10 — master-prompt polish (22 Nov 2026)
+
+Filled master-prompt Section 1 for this project: resume checks (ATS
+score), mock interviews and study plans for a final-year student
+preparing for interviews. Core promise: a real, scored audit of your
+resume and interview readiness — no invented praise. Tone: direct,
+honest, plain. Stack kept as-is (React + Vite + TypeScript); the
+master prompt's Next.js default does not apply to an existing app.
+
+**Signature idea — the audit ledger.** One thin lime rule and one
+tabular figure mark the number that matters on each screen (ATS score
+on the resume page, readiness ring on the dashboard, aggregate score
+on the interview summary). Everything else is quiet ink, 1px borders
+and solid surfaces. References for this round, same set as round 9
+(Linear, Raycast, Mobbin) plus Stripe Dashboard's honest-number tables:
+borrow the density and the restraint, not the chrome.
+
+**What changed.** Tokens are OKLCH with hex fallbacks
+(`src/styles/tokens.json`, conversions checked with culori); light
+accents darkened to pass WCAG AA as text; both muted greys fixed
+(dark 3.85:1 → 5.30:1, light 3.54:1 → 5.16:1) — a new
+`tests/design-tokens.test.cjs` enforces every text token's contrast on
+every run. Every coloured box-shadow glow is gone, replaced by 1px
+accent-tinted borders (`Card` `emphasis`) or neutral multi-layer
+shadows; the last indigo remnant and the off-token rose tints now match
+the tokens. One display face (Syne) and one body face (Inter);
+Clash Display and DM Sans no longer load. Dashboard onboarding copy
+rewritten in plain words. The resume page tells the two local-audit
+causes apart (out of credits vs AI unavailable). `ProgressRing` and
+`ScoreBar` clamp their input. The WebGL background was left exactly
+as-is — keep-or-remove is still Siva's decision.
+
+**Contrast table** (WCAG, on `--bg-base`; AA bar 4.5:1). Dark: text
+16.90:1, secondary 8.38:1, muted 5.30:1, lime 14.67:1, mint 12.74:1,
+amber 9.38:1, danger 6.44:1; ink on lime 15.34:1. Light: text 16.64:1,
+secondary 7.23:1, muted 5.16:1, lime 4.61:1, mint 4.92:1, amber
+5.14:1, danger 5.12:1; white ink on lime 4.97:1.
+
+**Deliberate non-changes.** Body stays 14px (Linear-style dashboard
+density) with the master prompt's 1.6 line height. The auth page
+keeps its hardcoded dark palette inside its own `<style>` block — it
+never follows the light theme; unifying it is a separate job. The
+local audit still counts keywords as fully covered when no job
+description is given, and says so in the breakdown — the score is
+honest about what it did not check.

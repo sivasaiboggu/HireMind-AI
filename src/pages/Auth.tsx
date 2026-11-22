@@ -266,7 +266,7 @@ export const Auth: React.FC = () => {
       width: 100vw;
       background-color: #141A18;
       color: #EDF3EF;
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-body);
       position: relative;
       overflow-y: auto;
       margin: 0;
@@ -307,7 +307,7 @@ export const Auth: React.FC = () => {
     }
 
     .showcase-title {
-      font-family: 'Clash Display', 'Syne', sans-serif;
+      font-family: var(--font-display);
       font-size: 38px;
       font-weight: 600;
       line-height: 1.15;
@@ -681,7 +681,7 @@ export const Auth: React.FC = () => {
               <Brain style={{ width: '20px', height: '20px', color: '#0D1110' }} />
             </div>
             <span style={{
-              fontFamily: 'Clash Display, Syne, sans-serif',
+              fontFamily: 'var(--font-display)',
               fontSize: '20px',
               fontWeight: 600,
               letterSpacing: '-0.02em',
@@ -764,7 +764,7 @@ export const Auth: React.FC = () => {
               <Shield style={{ width: '20px', height: '20px', color: '#C6F24E' }} />
             </div>
             
-            <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#EDF3EF', marginBottom: '6px', fontFamily: 'Clash Display, Syne, sans-serif' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#EDF3EF', marginBottom: '6px', fontFamily: 'var(--font-display)' }}>
               {isSignUp ? 'Create Cloud Account' : otpSent ? 'Verify OTP Code' : 'Welcome back'}
             </h2>
             <p style={{ fontSize: '13px', color: '#A3AFA9', lineHeight: 1.4 }}>

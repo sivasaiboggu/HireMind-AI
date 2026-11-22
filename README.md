@@ -10,14 +10,14 @@ HireMind AI is a single-page app for job preparation. It runs ATS resume audits,
 HireMind AI implements a custom dark theme visual identity designed using **pure Vanilla CSS** for maximum flexibility and performance.
 
 ### Style Variables (`src/styles/globals.css`)
-*   **Colors**: Atlas dark theme — deep base backgrounds (`#0D1110`), frosted glass surface modules (`#141A18`), lime primary highlights (`#C6F24E`), mint secondary (`#5EEAC8`), warm-red danger (`#F26D5C`), and soft-mint phase accents (`#8BE9C8`). A light variant ships too (TopBar toggle sets `data-theme="light"`).
+*   **Colors**: Atlas dark theme — deep base backgrounds (`#0D1110`), solid surface modules (`#141A18`), one lime accent (`#C6F24E`), mint secondary (`#5EEAC8`), warm-red danger (`#F26D5C`), and soft-mint phase accents (`#8BE9C8`). Every token is declared in OKLCH with a hex fallback (`src/styles/tokens.json`); the light variant darkens the lime, mint and red so they still pass WCAG AA 4.5:1 as text (TopBar toggle sets `data-theme="light"`).
 *   **Typography**:
     *   **Display Headers**: *Syne* (Google Fonts)
     *   **Body & Interfaces**: *Inter* (Google Fonts)
     *   **Stats & Gauges**: *Inter* (numeric)
     *   **Code Elements**: *JetBrains Mono* (Google Fonts)
 *   **Background Detail**: Subtle linear background coordinate grid with 1px border lines displayed at `0.03` opacity for depth.
-*   **Animations**: Custom keyframes managing page fade-ups, button click scaling, card hover highlights, typing indicators, skeleton loading shimmers, and slide-in panels.
+*   **Animations**: Custom keyframes managing page fade-ups, button click scaling, card hover highlights, typing indicators, static skeleton blocks, and slide-in panels. Motion only signals a state change; reduced motion collapses it.
 
 ---
 
@@ -30,13 +30,13 @@ src/
 ├── components/
 │   ├── layout/
 │   │   ├── Sidebar.tsx          # Collapsible nav sidebar, AI credits, custom pulse logo
-│   │   ├── TopBar.tsx           # Dynamic header with PRO badge, notifications, and search
+│   │   ├── TopBar.tsx           # Dynamic header, notifications, and search
 │   │   ├── Layout.tsx           # Responsive shell (mobile tab bar, global search CMD+K, toasts)
 │   │   ├── GoogleAIKeyConnect.tsx # API key connection panel
 │   │   └── WebGLBackground.tsx  # Ambient WebGL backdrop
 │   ├── ui/
 │   │   ├── Button.tsx           # Primary, ghost, danger, and subtle variants
-│   │   ├── Card.tsx             # Glass card wrapper with backdrop filter blur
+│   │   ├── Card.tsx             # Solid card wrapper; emphasis is a 1px accent border, never a glow
 │   │   ├── Badge.tsx            # Status badge pills (success, warning, danger, info)
 │   │   ├── ProgressRing.tsx     # SVG circular gauge (auto count-up, threshold colors)
 │   │   ├── ScoreBar.tsx         # Horizontal indicator bars
@@ -358,6 +358,41 @@ invalid counts and source preservation. These are practice themes, not verified
 company interview histories. AI-generated question quality remains unverified.
 
 ## Changelog
+
+### 0.0.7 (22 Nov 2026)
+- Master-prompt polish (round 10). Signature idea: the audit ledger — one
+  thin lime rule and one tabular figure mark the number that matters on
+  each screen; everything else is quiet ink, 1px borders and solid
+  surfaces. Design tokens are now OKLCH with hex fallbacks
+  (`src/styles/tokens.json`); the light theme darkens the lime, mint and
+  red so they pass WCAG AA as text, and both muted greys were lightened
+  (dark 3.85:1 to 5.30:1, light 3.54:1 to 5.16:1). New
+  `tests/design-tokens.test.cjs` checks every text token's contrast, the
+  OKLCH declarations and the tokens.json table on every run.
+- No more glows: every coloured box-shadow (`--glow-primary`,
+  `--glow-amber`, the lime logo-mark shadow, the red exit-dialog shadow)
+  is replaced by a 1px accent-tinted border (`Card` `emphasis`) or a
+  neutral multi-layer shadow (modals, command palette, buttons); the
+  last purple-blue remnant — indigo `rgba(129, 140, 248, …)` on the
+  skills icon, info badge and a quiz chip — is mint now, and the rose
+  `rgba(244, 63, 94, …)` tints match the danger token. One display face
+  (Syne) and one body face (Inter) everywhere; Clash Display and DM Sans
+  are no longer loaded. The WebGL background was left exactly as-is
+  (keep-or-remove is still Siva's decision).
+- Copy: the dashboard onboarding modal says plainly what the name and
+  target role are used for ("Save and continue", not "Initialize
+  Workspace"). The resume page now tells the two local-audit causes
+  apart: out of credits says so and points at the sidebar refill,
+  instead of the generic "AI analysis was unavailable" (new
+  `src/services/local-audit.ts`).
+- Logic: `ProgressRing` and `ScoreBar` clamp their input
+  (`src/services/numbers.ts`) — a score past 100 no longer draws past
+  full and a negative value no longer renders a negative width.
+  Verified again this round: readiness never discounts a lone signal,
+  the out-of-credits error names no PRO plan, the credit bar is clamped
+  to 100%, and the no-JD breakdown copy is correct.
+- Tests: 178 before, 191 after (new `numbers`, `local-audit` and
+  `design-tokens` suites; the copy guard now also fails on glow tokens).
 
 ### 0.0.6 (22 Nov 2026)
 - Relative asset paths (`base: './'` in `vite.config.ts`): the built app

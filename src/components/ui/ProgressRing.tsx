@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
+import { clamp } from '../../services/numbers';
 import '../../styles/globals.css';
 
 interface ProgressRingProps {
@@ -20,7 +21,10 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   ariaLabel,
   animate = true
 }) => {
-  const animatedScore = animate ? useCountUp(score, 1200) : score;
+  // A score outside 0–100 used to draw past full (or backwards): clamp
+  // before the ring geometry, the colour thresholds and the count-up see it.
+  const safeScore = clamp(score, 0, 100);
+  const animatedScore = animate ? useCountUp(safeScore, 1200) : safeScore;
   
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -33,7 +37,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     return 'var(--accent-danger)';
   };
 
-  const ringColor = getRingColor(score);
+  const ringColor = getRingColor(safeScore);
 
   return (
     <div 
@@ -51,7 +55,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
         width={size}
         height={size}
         role="img"
-        aria-label={ariaLabel ?? `Score ${score} out of 100`}
+        aria-label={ariaLabel ?? `Score ${safeScore} out of 100`}
         style={{ transform: 'rotate(-90deg)' }}
       >
         {/* Background track circle */}

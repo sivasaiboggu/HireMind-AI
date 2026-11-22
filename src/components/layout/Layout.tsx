@@ -150,7 +150,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   height: '24px',
                   borderRadius: '6px',
                   backgroundColor: 'var(--accent-primary)',
-                  color: '#050A0F',
+                  color: 'var(--on-accent)',
                   fontWeight: 700,
                   fontSize: '12px'
                 }}
@@ -296,15 +296,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             if (toast.type === 'success') {
               Icon = CheckCircle;
               color = 'var(--accent-primary)';
-              border = '1px solid rgba(198, 242, 78, 0.3)';
+              border = '1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)';
             } else if (toast.type === 'error') {
               Icon = X;
               color = 'var(--accent-danger)';
-              border = '1px solid rgba(244, 63, 94, 0.3)';
+              border = '1px solid color-mix(in srgb, var(--accent-danger) 30%, transparent)';
             } else if (toast.type === 'info') {
               Icon = AlertTriangle;
               color = 'var(--accent-secondary)';
-              border = '1px solid rgba(245, 158, 11, 0.3)';
+              border = '1px solid color-mix(in srgb, var(--accent-secondary) 30%, transparent)';
             }
 
             return (
@@ -392,7 +392,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--border-active)',
               borderRadius: 'var(--radius-lg)',
-              boxShadow: 'var(--glow-primary)',
+              boxShadow: 'var(--shadow-depth-3)',
               overflow: 'hidden',
               animation: 'pageFadeUp 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
             }}

@@ -339,7 +339,6 @@ export const SetupForm: React.FC<SetupFormProps> = ({
                     fontSize: '9px',
                     fontWeight: 700,
                     letterSpacing: '0.05em',
-                    boxShadow: interviewType === type ? 'var(--glow-primary)' : 'none',
                     border: interviewType === type ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)'
                   }}
                   className="btn-press"

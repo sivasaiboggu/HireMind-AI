@@ -2,30 +2,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Syne:wght@400..800&display=swap');
 
 :root {
-  /* Colors - Atlas Theme System (dark editorial, lime accent) */
+  /* Colors — Atlas Theme System (dark editorial, one lime accent).
+   * Every color token is declared twice: a hex fallback first, then the
+   * OKLCH value, which wins in any browser that understands it. Values
+   * are exact conversions of the hex (checked with culori), so the two
+   * lines render the same colour. See src/styles/tokens.json for the
+   * full table, including the WCAG contrast of every text token.
+   * Neutrals are a cool green-grey ramp (hue ~170); the single accent
+   * is lime, used for at most one element per view: the score that
+   * matters, the active nav item, or the primary action. */
   --bg-base: #0D1110;
+  --bg-base: oklch(0.173 0.007 178.7);
   --bg-surface: #141A18;
+  --bg-surface: oklch(0.211 0.010 173.2);
   --bg-elevated: #1B2320;
+  --bg-elevated: oklch(0.247 0.013 170.5);
   --bg-hover: #232D29;
+  --bg-hover: oklch(0.286 0.016 169.0);
 
-  --accent-primary: #C6F24E;    /* Lime */
-  --accent-secondary: #5EEAC8;  /* Mint */
+  --accent-primary: #C6F24E;    /* Lime — the one accent */
+  --accent-primary: oklch(0.900 0.191 123.3);
+  --accent-secondary: #5EEAC8;  /* Mint — secondary signal (60–80 scores, links) */
+  --accent-secondary: oklch(0.851 0.131 174.2);
   --accent-warning: #F5A623;    /* Amber — warnings, medium priority */
+  --accent-warning: oklch(0.784 0.159 73.0);
   --accent-danger: #F26D5C;     /* Warm red */
-  --accent-purple: #8BE9C8;     /* Soft mint (compat token) */
+  --accent-danger: oklch(0.693 0.167 29.4);
+  --accent-purple: #8BE9C8;     /* Soft mint (compat token name; NOT purple) */
+  --accent-purple: oklch(0.866 0.102 169.4);
+
+  /* Text on the accent fill (primary buttons, logo mark). Dark ink on
+     the dark theme, white on the light theme — see tokens.json. */
+  --on-accent: #050A0F;
+  --on-accent: oklch(0.141 0.015 244.1);
 
   --text-primary: #EDF3EF;
+  --text-primary: oklch(0.958 0.008 157.1);
   --text-secondary: #A3AFA9;
-  --text-muted: #67736D;
+  --text-secondary: oklch(0.743 0.016 164.6);
+  /* Was #67736D (3.85:1 on --bg-base — below WCAG AA for normal text).
+     #7E8A83 is 5.30:1. */
+  --text-muted: #7E8A83;
+  --text-muted: oklch(0.621 0.017 160.3);
 
   --border-subtle: rgba(255, 255, 255, 0.07);
   --border-active: rgba(255, 255, 255, 0.16);
   --border-danger: rgba(242, 109, 92, 0.25);
   --border-purple: rgba(139, 233, 200, 0.18);
 
-  --glow-primary: rgba(198, 242, 78, 0.18) 0px 12px 28px -10px;
-  --glow-amber: rgba(94, 234, 200, 0.14) 0px 10px 22px -8px;
-
+  /* Emphasis is a 1px accent-tinted border, never a coloured shadow:
+     the old --glow-* box-shadows are gone (see Card `emphasis`). */
   --grid-line: rgba(255, 255, 255, 0.028);
   /* Solid surfaces: no frosted glass. The old rgba values plus a blur
      filter used to soften whatever scrolled underneath. */
@@ -63,9 +89,11 @@
   --sidebar-width-collapsed: 68px;
   --topbar-height: 68px;
 
-  /* Shadows */
-  --shadow-depth-1: rgba(0, 0, 0, 0.45) 0px 24px 48px -12px, rgba(198, 242, 78, 0.03) 0px 0px 60px 0px;
+  /* Shadows — three neutral elevation levels, soft multi-layer, no
+     coloured wash. The old depth-1 carried a lime 60px glow component. */
+  --shadow-depth-1: rgba(0, 0, 0, 0.45) 0px 24px 48px -12px, rgba(0, 0, 0, 0.25) 0px 4px 12px -4px;
   --shadow-depth-2: rgba(0, 0, 0, 0.3) 0px 2px 6px 0px;
+  --shadow-depth-3: rgba(0, 0, 0, 0.5) 0px 32px 64px -16px, rgba(0, 0, 0, 0.3) 0px 8px 20px -6px;
 }
 
 /* Reset and Base styles */
@@ -80,7 +108,9 @@ body {
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: var(--text-base);
-  line-height: 1.5;
+  /* Dashboard density is a deliberate choice (Linear-style 14px body),
+     but the line height follows the master prompt: 1.6. */
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -325,30 +355,47 @@ button {
   .uploader-config-grid { grid-template-columns: 1fr 1fr; }
 }
 
-/* Light variant (TopBar toggle sets data-theme="light") */
+/* Light variant (TopBar toggle sets data-theme="light").
+ * Light accents are darker than the dark theme's: the lime, mint and red
+ * are used as text and icon colours too, so each must pass WCAG AA 4.5:1
+ * on --bg-base. Old values that failed: lime #5E9E08 (3.06:1), mint
+ * #0C9E7C (3.14:1), danger #D94836 (3.95:1), muted #7B857F (3.54:1).
+ * Primary buttons in light mode use white --on-accent text: dark ink on
+ * the darker lime is only 3.61:1, white is 4.97:1. */
 [data-theme='light'] {
   --bg-base: #F5F7F2;
+  --bg-base: oklch(0.973 0.007 124.4);
   --bg-surface: #FFFFFF;
+  --bg-surface: oklch(1 0 0);
   --bg-elevated: #EBEFE6;
+  --bg-elevated: oklch(0.947 0.013 126.4);
   --bg-hover: #DFE6DA;
+  --bg-hover: oklch(0.916 0.018 131.9);
 
-  --accent-primary: #5E9E08;
-  --accent-secondary: #0C9E7C;
+  --accent-primary: #4A7D06;
+  --accent-primary: oklch(0.533 0.146 132.3);
+  --accent-secondary: #0B7A5E;
+  --accent-secondary: oklch(0.516 0.101 169.2);
   --accent-warning: #8A6100;
-  --accent-danger: #D94836;
-  --accent-purple: #0C9E7C;
+  --accent-warning: oklch(0.522 0.108 79.7);
+  --accent-danger: #C23420;
+  --accent-danger: oklch(0.541 0.182 31.2);
+  --accent-purple: #0B7A5E;
+  --accent-purple: oklch(0.516 0.101 169.2);
+
+  --on-accent: #FFFFFF;
 
   --text-primary: #131816;
+  --text-primary: oklch(0.203 0.009 169.4);
   --text-secondary: #49554E;
-  --text-muted: #7B857F;
+  --text-secondary: oklch(0.437 0.019 160.0);
+  --text-muted: #5F6B64;
+  --text-muted: oklch(0.515 0.018 160.2);
 
   --border-subtle: rgba(0, 0, 0, 0.08);
   --border-active: rgba(0, 0, 0, 0.16);
-  --border-danger: rgba(217, 72, 54, 0.22);
-  --border-purple: rgba(12, 158, 124, 0.2);
-
-  --glow-primary: rgba(94, 158, 8, 0.16) 0px 12px 28px -10px;
-  --glow-amber: rgba(12, 158, 124, 0.12) 0px 10px 22px -8px;
+  --border-danger: rgba(194, 52, 32, 0.22);
+  --border-purple: rgba(11, 122, 94, 0.2);
 
   --grid-line: rgba(0, 0, 0, 0.03);
   --header-bg: #F5F7F2;
@@ -358,6 +405,7 @@ button {
 
   --shadow-depth-1: rgba(19, 24, 22, 0.08) 0px 20px 44px -12px;
   --shadow-depth-2: rgba(19, 24, 22, 0.05) 0px 2px 6px 0px;
+  --shadow-depth-3: rgba(19, 24, 22, 0.14) 0px 32px 64px -16px, rgba(19, 24, 22, 0.08) 0px 8px 20px -6px;
 }
 
 [data-theme='light'] .panel {

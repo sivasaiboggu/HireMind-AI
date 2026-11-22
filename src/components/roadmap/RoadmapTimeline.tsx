@@ -62,7 +62,6 @@ export const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
                   borderRadius: '50%',
                   backgroundColor: 'var(--bg-base)',
                   border: `3px solid ${isCompleted ? 'var(--accent-primary)' : 'var(--accent-purple)'}`,
-                  boxShadow: isCompleted ? 'var(--glow-primary)' : 'none',
                   zIndex: 10,
                   transform: 'translateX(-50%)',
                   transition: 'all 200ms ease'

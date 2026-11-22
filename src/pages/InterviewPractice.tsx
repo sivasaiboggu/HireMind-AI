@@ -1264,7 +1264,7 @@ export const InterviewPractice: React.FC = () => {
               display: 'flex',
               flexDirection: 'column',
               gap: '20px',
-              boxShadow: '0 20px 50px rgba(244, 63, 94, 0.15)'
+              boxShadow: 'var(--shadow-depth-3)'
             }}>
               <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--text-primary)' }}>
                 Exit Secure Interview Meeting?
@@ -1550,12 +1550,11 @@ export const InterviewPractice: React.FC = () => {
                   padding: '14px 32px',
                   borderRadius: '30px',
                   backgroundColor: 'var(--accent-primary)',
-                  color: '#0D1110',
+                  color: 'var(--on-accent)',
                   border: 'none',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  boxShadow: 'var(--glow-amber)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
@@ -1821,7 +1820,7 @@ export const InterviewPractice: React.FC = () => {
                       left: '50%',
                       transform: 'translateX(-50%)',
                       backgroundColor: 'var(--accent-secondary)',
-                      color: '#0D1110',
+                      color: 'var(--on-accent)',
                       padding: '10px 24px',
                       borderRadius: '24px',
                       maxWidth: '85%',
@@ -2100,7 +2099,7 @@ export const InterviewPractice: React.FC = () => {
                 borderRadius: '20px',
                 backgroundColor: typedAnswer.trim() ? 'var(--accent-primary)' : 'var(--bg-elevated)',
                 border: 'none',
-                color: typedAnswer.trim() ? '#0D1110' : 'var(--text-muted)',
+                color: typedAnswer.trim() ? 'var(--on-accent)' : 'var(--text-muted)',
                 fontSize: '11px',
                 fontWeight: 700,
                 letterSpacing: '0.05em',

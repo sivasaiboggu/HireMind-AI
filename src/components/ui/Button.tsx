@@ -42,8 +42,8 @@ export const Button: React.FC<ButtonProps> = ({
         return {
           ...base,
           backgroundColor: 'var(--accent-primary)',
-          color: '#050A0F',
-          boxShadow: 'var(--glow-primary)'
+          color: 'var(--on-accent)',
+          boxShadow: 'var(--shadow-depth-2)'
         };
       case 'ghost':
         return {
@@ -55,7 +55,7 @@ export const Button: React.FC<ButtonProps> = ({
       case 'danger':
         return {
           ...base,
-          backgroundColor: 'rgba(244, 63, 94, 0.15)',
+          backgroundColor: 'color-mix(in srgb, var(--accent-danger) 15%, transparent)',
           border: '1px solid var(--accent-danger)',
           color: 'var(--accent-danger)'
         };

@@ -28,15 +28,17 @@ export const Badge: React.FC<BadgeProps> = ({
         };
       case 'danger':
         return {
-          backgroundColor: 'rgba(244, 63, 94, 0.1)',
+          backgroundColor: 'color-mix(in srgb, var(--accent-danger) 10%, transparent)',
           color: 'var(--accent-danger)',
-          border: '1px solid rgba(244, 63, 94, 0.2)'
+          border: '1px solid color-mix(in srgb, var(--accent-danger) 20%, transparent)'
         };
       case 'info':
+        // Mint, not indigo: the old rgba(129, 140, 248, …) was the last
+        // purple-blue remnant in the app. Info badges read as labels.
         return {
-          backgroundColor: 'rgba(129, 140, 248, 0.1)',
+          backgroundColor: 'rgba(139, 233, 200, 0.1)',
           color: 'var(--accent-purple)',
-          border: '1px solid rgba(129, 140, 248, 0.2)'
+          border: '1px solid rgba(139, 233, 200, 0.2)'
         };
     }
   };

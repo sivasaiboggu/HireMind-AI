@@ -110,6 +110,9 @@ const STRUCTURAL_PATTERNS = [
   'hmPulseRing',
   'floating-icon',
   'logo-pulse-dot',
+  // Coloured glow shadows: emphasis is a 1px accent-tinted border now.
+  'glow-primary',
+  'glow-amber',
 ];
 
 function withoutComments(source) {

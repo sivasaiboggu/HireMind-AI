@@ -82,7 +82,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
         `}} />
 
         {/* Big Overall Card */}
-        <Card glow="primary" hoverable={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', gap: '16px' }}>
+        <Card emphasis="primary" hoverable={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', gap: '16px' }}>
           <ProgressRing score={overallScore * 10} size={112} strokeWidth={8} label="Aggregate Score" />
           <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
             LAB RATING

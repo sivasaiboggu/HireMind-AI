@@ -80,7 +80,7 @@ export const Dashboard: React.FC = () => {
         safeLocalSet('hiremind_guest_name', onboardingName.trim());
         safeLocalSet('hiremind_guest_role', onboardingRole.trim());
       }
-      addToast('success', `Profile personalized successfully! Welcome, ${onboardingName.trim()}.`);
+      addToast('success', 'Saved.');
       setShowOnboarding(false);
     } catch (err) {
       addToast('error', 'Failed to update profile settings.');
@@ -183,11 +183,11 @@ export const Dashboard: React.FC = () => {
               }}>
                 <Briefcase style={{ width: '20px', height: '20px', color: 'var(--accent-primary)' }} />
               </div>
-              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'Clash Display, Syne, sans-serif' }}>
-                Personalize Your Hub
+              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+                Your target role
               </h3>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>
-                Welcome to HireMind! Help us configure your target roles for recruiters, sandboxes, and resume matching.
+                We use your name and target role to label your audits, interviews and study plans. Nothing else changes.
               </p>
             </div>
 
@@ -218,7 +218,7 @@ export const Dashboard: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g., Lead React Architect"
+                  placeholder="e.g. Software Engineer"
                   value={onboardingRole}
                   onChange={(e) => setOnboardingRole(e.target.value)}
                   style={{
@@ -264,7 +264,7 @@ export const Dashboard: React.FC = () => {
                 style={{
                   width: '100%',
                   backgroundColor: 'var(--accent-primary)',
-                  color: '#0D1110',
+                  color: 'var(--on-accent)',
                   border: 'none',
                   borderRadius: '12px',
                   padding: '12px 20px',
@@ -280,7 +280,7 @@ export const Dashboard: React.FC = () => {
                   transition: 'all 200ms ease'
                 }}
               >
-                {submitting ? 'Setting up workspace...' : 'Initialize Workspace'}
+                {submitting ? 'Saving…' : 'Save and continue'}
                 <ArrowRight style={{ width: '14px', height: '14px' }} />
               </button>
             </form>

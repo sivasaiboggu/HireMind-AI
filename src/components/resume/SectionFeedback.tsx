@@ -42,9 +42,9 @@ export const SectionFeedback: React.FC<SectionFeedbackProps> = ({ sections }) =>
   const getSectionBorderColor = (status: 'pass' | 'warn' | 'fail', isExpanded: boolean) => {
     if (!isExpanded) return 'var(--border-subtle)';
     switch (status) {
-      case 'pass': return 'rgba(198, 242, 78, 0.3)';
+      case 'pass': return 'color-mix(in srgb, var(--accent-primary) 30%, transparent)';
       case 'warn': return 'color-mix(in srgb, var(--accent-warning) 30%, transparent)';
-      case 'fail': return 'rgba(244, 63, 94, 0.3)';
+      case 'fail': return 'color-mix(in srgb, var(--accent-danger) 30%, transparent)';
     }
   };
 

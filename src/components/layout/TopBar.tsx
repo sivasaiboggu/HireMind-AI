@@ -297,7 +297,6 @@ export const TopBar: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: 'var(--glow-primary)',
               cursor: 'pointer',
               userSelect: 'none'
             }}

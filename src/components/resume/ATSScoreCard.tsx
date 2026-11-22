@@ -22,9 +22,9 @@ export const ATSScoreCard: React.FC<ATSScoreCardProps> = ({
   formatScore
 }) => {
   const cards = [
-    { score: atsScore, title: 'ATS Score', titleColor: 'var(--accent-secondary)', glow: (atsScore > 75 ? 'primary' : 'amber') as 'primary' | 'amber', ariaLabel: `ATS Score ${atsScore} out of 100` },
-    { score: contentScore, title: 'Content Strength', titleColor: 'var(--accent-primary)', glow: 'none' as const, ariaLabel: `Content Strength ${contentScore} out of 100` },
-    { score: formatScore, title: 'Layout & Formatting', titleColor: 'var(--accent-purple)', glow: 'none' as const, ariaLabel: `Layout and Formatting ${formatScore} out of 100` },
+    { score: atsScore, title: 'ATS Score', titleColor: 'var(--accent-secondary)', emphasis: (atsScore > 75 ? 'primary' : 'secondary') as 'primary' | 'secondary', ariaLabel: `ATS Score ${atsScore} out of 100` },
+    { score: contentScore, title: 'Content Strength', titleColor: 'var(--accent-primary)', emphasis: 'none' as const, ariaLabel: `Content Strength ${contentScore} out of 100` },
+    { score: formatScore, title: 'Layout & Formatting', titleColor: 'var(--accent-purple)', emphasis: 'none' as const, ariaLabel: `Layout and Formatting ${formatScore} out of 100` },
   ];
   return (
     <div className="score-cards-grid">
@@ -33,7 +33,7 @@ export const ATSScoreCard: React.FC<ATSScoreCardProps> = ({
         return (
           <Card
             key={card.title}
-            glow={card.glow}
+            emphasis={card.emphasis}
             hoverable
             style={{
               display: 'flex',

@@ -10,6 +10,7 @@ import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
 import { analyzeResumeLocally } from '../services/ats';
 import { buildScoreBreakdown } from '../services/score-breakdown';
+import { localAuditReason, type LocalAuditReason } from '../services/local-audit';
 import { useAppStore, generateId } from '../store/appStore';
 import { SavedResumeAnalysis } from '../types';
 import { Activity, Terminal, ShieldCheck, Download, Info } from 'lucide-react';
@@ -59,6 +60,10 @@ export const ResumeAnalyzer: React.FC = () => {
   // State to track current input fields for display in result
   const [currentRole, setCurrentRole] = useState(activeResume?.jobRole || '');
   const [currentExp, setCurrentExp] = useState(activeResume?.experienceLevel || '');
+  // Why the current result is a local audit (null when it is an AI review).
+  const [auditReason, setAuditReason] = useState<LocalAuditReason | null>(
+    activeResume?.isLocalAudit ? 'unavailable' : null,
+  );
 
   // Synchronous in-flight guard. The `loading` state above lags a tick, so
   // two submits in the same tick (double-click, Enter + click) both passed
@@ -82,8 +87,10 @@ export const ResumeAnalyzer: React.FC = () => {
     setCurrentRole(jobRole);
     setCurrentExp(experienceLevel);
 
+    const creditsBefore = useAppStore.getState().credits;
     const result = await execute(resumeText, jobDescription);
     if (result) {
+      setAuditReason(null);
       const savedAnalysis: SavedResumeAnalysis = {
         ...result,
         id: generateId(),
@@ -96,10 +103,13 @@ export const ResumeAnalyzer: React.FC = () => {
       return;
     }
 
-    // AI unavailable (no key, quota, network): fall back to the deterministic
-    // local audit instead of leaving the user with only an error. The result
-    // is labelled as a local audit so nobody mistakes it for AI judgement,
-    // and no credits are charged for it.
+    // AI unavailable (no key, quota, network) or out of credits: fall back
+    // to the deterministic local audit instead of leaving the user with
+    // only an error. The result is labelled as a local audit so nobody
+    // mistakes it for AI judgement, and no credits are charged for it.
+    // The reason matters: out of credits is not "unavailable", and the
+    // banner says which it was so the refill button reads as the fix.
+    const reason = localAuditReason(creditsBefore, 10);
     const local = analyzeResumeLocally(resumeText, jobDescription);
     const savedLocal: SavedResumeAnalysis = {
       ...local,
@@ -110,8 +120,11 @@ export const ResumeAnalyzer: React.FC = () => {
       isLocalAudit: true,
     };
     reset();
+    setAuditReason(reason);
     addResumeAnalysis(savedLocal);
-    useAppStore.getState().addToast('info', 'AI analysis was unavailable — showing a local ATS audit instead.');
+    useAppStore.getState().addToast('info', reason === 'credits'
+      ? 'Out of AI credits — showing a local ATS audit instead. Refill from the sidebar to use the AI review.'
+      : 'AI analysis was unavailable — showing a local ATS audit instead.');
   };
 
   const handleDownloadReport = () => {
@@ -129,6 +142,7 @@ export const ResumeAnalyzer: React.FC = () => {
 
   const handleReset = () => {
     reset();
+    setAuditReason(null);
     setActiveResume(null);
   };
 
@@ -198,9 +212,9 @@ export const ResumeAnalyzer: React.FC = () => {
               <Info style={{ width: '20px', height: '20px', color: 'var(--accent-warning)', flexShrink: 0, marginTop: '2px' }} />
               <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 <strong style={{ color: 'var(--text-primary)' }}>Local ATS audit.</strong>{' '}
-                The AI analysis was unavailable, so these scores come from a deterministic on-device audit
-                (keyword coverage, sections, quantified results, format). Connect a Google AI key for the
-                full AI review with rewrites and section feedback.
+                {auditReason === 'credits'
+                  ? 'You are out of AI credits, so these scores come from a deterministic on-device audit (keyword coverage, sections, quantified results, format). Refill credits from the sidebar for the full AI review with rewrites and section feedback.'
+                  : 'The AI analysis was unavailable, so these scores come from a deterministic on-device audit (keyword coverage, sections, quantified results, format). Connect a Google AI key for the full AI review with rewrites and section feedback.'}
               </p>
             </Card>
           )}

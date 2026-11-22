@@ -62,7 +62,7 @@ export const Modal: React.FC<ModalProps> = ({
           backgroundColor: 'var(--bg-surface)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--glow-primary)',
+          boxShadow: 'var(--shadow-depth-3)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',

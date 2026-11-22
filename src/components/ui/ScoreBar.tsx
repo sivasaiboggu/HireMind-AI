@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { clamp } from '../../services/numbers';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
@@ -13,7 +14,10 @@ export const ScoreBar: React.FC<ScoreBarProps> = ({
   max = 10,
   label
 }) => {
-  const percentage = Math.min((value / max) * 100, 100);
+  // The bar, the printed value and the aria value all agree, and none of
+  // them can run past the track (or below it) on out-of-range input.
+  const safeValue = clamp(value, 0, max);
+  const percentage = max > 0 ? clamp((safeValue / max) * 100, 0, 100) : 0;
   const [width, setWidth] = useState(0);
 
   useEffect(() => {
@@ -40,7 +44,7 @@ export const ScoreBar: React.FC<ScoreBarProps> = ({
           </span>
         )}
         <span className="numeric" style={{ fontSize: 'var(--text-xs)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--text-primary)' }}>
-          {value}/{max}
+          {safeValue}/{max}
         </span>
       </div>
 
@@ -54,7 +58,7 @@ export const ScoreBar: React.FC<ScoreBarProps> = ({
           position: 'relative'
         }}
         role="progressbar"
-        aria-valuenow={value}
+        aria-valuenow={safeValue}
         aria-valuemin={0}
         aria-valuemax={max}
         aria-label={label ?? 'Score'}

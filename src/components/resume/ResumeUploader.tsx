@@ -272,7 +272,7 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
             alignItems: 'center', 
             gap: '12px', 
             padding: '12px 16px', 
-            backgroundColor: 'rgba(244, 63, 94, 0.1)', 
+            backgroundColor: 'color-mix(in srgb, var(--accent-danger) 10%, transparent)', 
             border: '1px solid var(--accent-danger)', 
             borderRadius: 'var(--radius-md)',
             color: 'var(--accent-danger)',

@@ -95,7 +95,7 @@ export const Sidebar: React.FC = () => {
             height: '28px',
             borderRadius: '8px',
             backgroundColor: 'var(--accent-primary)',
-            color: '#050A0F',
+            color: 'var(--on-accent)',
             fontWeight: 700,
             flexShrink: 0
           }}

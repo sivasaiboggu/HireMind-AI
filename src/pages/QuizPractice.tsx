@@ -619,7 +619,7 @@ export const QuizPractice: React.FC = () => {
             
             {/* Mode Intro Banner */}
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(198, 242, 78, 0.03)', border: '1px dashed var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ padding: '10px', backgroundColor: 'rgba(198, 242, 78, 0.08)', borderRadius: '8px', color: 'var(--accent-primary)' }}>
+              <div style={{ padding: '10px', backgroundColor: 'color-mix(in srgb, var(--accent-primary) 8%, transparent)', borderRadius: '8px', color: 'var(--accent-primary)' }}>
                 {practiceMode === 'dsa' ? <Code /> : <Layers />}
               </div>
               <div>
@@ -727,7 +727,7 @@ export const QuizPractice: React.FC = () => {
           {/* Workspace Active Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 800, padding: '4px 8px', borderRadius: '4px', backgroundColor: 'rgba(198, 242, 78, 0.08)', color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 800, padding: '4px 8px', borderRadius: '4px', backgroundColor: 'color-mix(in srgb, var(--accent-primary) 8%, transparent)', color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
                 Question {currentIdx + 1} of {questions.length}
               </span>
               <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
@@ -792,7 +792,7 @@ export const QuizPractice: React.FC = () => {
                       borderRadius: '4px',
                       textTransform: 'uppercase',
                       color: currentQuestion.difficulty === 'easy' ? 'var(--accent-primary)' : currentQuestion.difficulty === 'medium' ? 'var(--accent-secondary)' : 'var(--accent-danger)',
-                      backgroundColor: currentQuestion.difficulty === 'easy' ? 'rgba(198, 242, 78, 0.08)' : currentQuestion.difficulty === 'medium' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(244, 63, 94, 0.08)'
+                      backgroundColor: currentQuestion.difficulty === 'easy' ? 'color-mix(in srgb, var(--accent-primary) 8%, transparent)' : currentQuestion.difficulty === 'medium' ? 'color-mix(in srgb, var(--accent-warning) 8%, transparent)' : 'color-mix(in srgb, var(--accent-danger) 8%, transparent)'
                     }}>
                       {currentQuestion.difficulty}
                     </span>
@@ -1066,7 +1066,7 @@ export const QuizPractice: React.FC = () => {
               
               {/* Question information */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', color: 'var(--accent-purple)', backgroundColor: 'rgba(129, 140, 248, 0.08)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', color: 'var(--accent-purple)', backgroundColor: 'rgba(139, 233, 200, 0.08)', textTransform: 'uppercase' }}>
                   {currentQuestion.category}
                 </span>
                 <span style={{
@@ -1076,7 +1076,7 @@ export const QuizPractice: React.FC = () => {
                   borderRadius: '4px',
                   textTransform: 'uppercase',
                   color: currentQuestion.difficulty === 'easy' ? 'var(--accent-primary)' : currentQuestion.difficulty === 'medium' ? 'var(--accent-secondary)' : 'var(--accent-danger)',
-                  backgroundColor: currentQuestion.difficulty === 'easy' ? 'rgba(198, 242, 78, 0.08)' : currentQuestion.difficulty === 'medium' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(244, 63, 94, 0.08)'
+                  backgroundColor: currentQuestion.difficulty === 'easy' ? 'color-mix(in srgb, var(--accent-primary) 8%, transparent)' : currentQuestion.difficulty === 'medium' ? 'color-mix(in srgb, var(--accent-warning) 8%, transparent)' : 'color-mix(in srgb, var(--accent-danger) 8%, transparent)'
                 }}>
                   {currentQuestion.difficulty}
                 </span>
@@ -1294,7 +1294,7 @@ export const QuizPractice: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '10px' }}>
                           <div><strong>Model Ideal Answer:</strong> <p style={{ color: 'var(--text-secondary)', marginTop: '2px' }}>{qEval.modelAnswer}</p></div>
                           {qEval.improvements && qEval.improvements.length > 0 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', borderRadius: '6px', backgroundColor: 'rgba(244, 63, 94, 0.02)', border: '1px solid var(--border-danger)', color: 'var(--accent-danger)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', borderRadius: '6px', backgroundColor: 'color-mix(in srgb, var(--accent-danger) 2%, transparent)', border: '1px solid var(--border-danger)', color: 'var(--accent-danger)' }}>
                               <AlertTriangle style={{ width: '12px' }} />
                               <span>Improvement Tips: {qEval.improvements.join(' | ')}</span>
                             </div>

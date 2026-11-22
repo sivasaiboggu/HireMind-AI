@@ -37,7 +37,7 @@ export const StatsGrid: React.FC = () => {
       }}
     >
       {/* Card 1: ATS Score */}
-      <Card hoverable glow={lastAtsScore > 0 ? 'amber' : 'none'} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '160px' }}>
+      <Card hoverable emphasis={lastAtsScore > 0 ? 'secondary' : 'none'} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '160px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-secondary)' }}>
             <FileText style={{ width: '20px', height: '20px' }} />
@@ -73,7 +73,7 @@ export const StatsGrid: React.FC = () => {
       {/* Card 3: Skills Mapped */}
       <Card hoverable style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '160px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(129, 140, 248, 0.1)', color: 'var(--accent-purple)' }}>
+          <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(139, 233, 200, 0.1)', color: 'var(--accent-purple)' }}>
             <Map style={{ width: '20px', height: '20px' }} />
           </div>
         </div>

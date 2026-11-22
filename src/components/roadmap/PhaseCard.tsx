@@ -34,7 +34,6 @@ export const PhaseCard: React.FC<PhaseCardProps> = ({
         backgroundColor: 'var(--bg-surface)',
         border: completed ? '1px solid var(--border-active)' : '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
-        boxShadow: completed ? 'var(--glow-primary)' : 'none',
         overflow: 'hidden',
         transition: 'all 200ms ease',
         width: '100%'
@@ -71,7 +70,7 @@ export const PhaseCard: React.FC<PhaseCardProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: '#050A0F',
+              color: 'var(--on-accent)',
               transition: 'all 150ms ease'
             }}
           >
