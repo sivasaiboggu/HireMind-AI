@@ -1,0 +1,50 @@
+{
+  "route": "/",
+  "browser": "Chromium 156.0.8078.79",
+  "lighthouse": "13.6.0",
+  "formFactor": "mobile",
+  "throttlingMethod": "simulate",
+  "preview": "Guest production build with gzip compression on loopback",
+  "median": {
+    "performance": 99,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 1974,
+    "fcpMs": 754,
+    "tbtMs": 0,
+    "cls": 0.03421631939646086
+  },
+  "runs": [
+    {
+      "performance": 99,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcpMs": 2104,
+      "fcpMs": 754,
+      "tbtMs": 0,
+      "cls": 0.03421631939646086
+    },
+    {
+      "performance": 100,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcpMs": 753,
+      "fcpMs": 753,
+      "tbtMs": 0,
+      "cls": 0.03421631939646086
+    },
+    {
+      "performance": 99,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcpMs": 1974,
+      "fcpMs": 754,
+      "tbtMs": 0,
+      "cls": 0.03421631939646086
+    }
+  ]
+}

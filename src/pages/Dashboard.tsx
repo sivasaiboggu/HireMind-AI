@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type CSSProperties, type FormEvent } from 'react';
 import { ArrowRight, ArrowUpRight, FileText, Mic, Map, Search, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod/mini';
@@ -105,25 +105,24 @@ export function Dashboard() {
   return (
     <div className="container dashboard">
       <section className="overview-lead" aria-labelledby="overview-title">
-        <div className="overview-intro margin-mark">
-          <p className="meta-label">{targetRole || 'Career preparation'}</p>
-          <h1 id="overview-title">Career<br />overview<span className="brand-period">.</span></h1>
+        <div className="overview-intro">
+          {targetRole && <p className="meta-label">{targetRole}</p>}
+          <h1 id="overview-title">Career overview</h1>
           <p>{name?.trim() ? `${name.trim().split(/\s+/)[0]}, use this space to review your resume, rehearse answers, and plan what to study.` : 'Review your resume, rehearse interview answers, and plan what to study.'}</p>
           <Link to="/resume" className="button primary-button">{lastResume ? 'Open resume review' : 'Review your resume'}<ArrowRight size={18} aria-hidden="true" /></Link>
         </div>
         <aside className="readiness-sheet" aria-labelledby="readiness-label">
           <div className="sheet-top"><h2 id="readiness-label" className="meta-label">Career readiness</h2><ArrowUpRight size={19} aria-hidden="true" /></div>
           <p className="readiness-number numeric">{lastResume || interviewCount ? <>{readiness}<small>%</small></> : '—'}</p>
-          <div className="readiness-track" aria-hidden="true"><span style={{ width: `${readiness}%` }} /></div>
+          <div className="readiness-track" aria-hidden="true"><span style={{ '--progress': readiness / 100 } as CSSProperties} /></div>
           <p>{lastResume || interviewCount ? 'Based on your latest resume score and average interview score, where available.' : 'Your score will appear after your first resume review or scored interview.'}</p>
         </aside>
+        <dl className="score-ledger" aria-label="Preparation scores">
+          <div><dt>Latest ATS score</dt><dd>{lastResume ? `${lastResume.atsScore}%` : '—'}</dd></div>
+          <div><dt>Interviews completed</dt><dd>{interviewCount}</dd></div>
+          <div><dt>Skills in active plan</dt><dd>{store.activeRoadmap?.skillGaps.length || 0}</dd></div>
+        </dl>
       </section>
-
-      <dl className="score-ledger" aria-label="Preparation scores">
-        <div><dt>Latest ATS score</dt><dd>{lastResume ? `${lastResume.atsScore}%` : '—'}</dd></div>
-        <div><dt>Interviews completed</dt><dd>{interviewCount}</dd></div>
-        <div><dt>Skills in active plan</dt><dd>{store.activeRoadmap?.skillGaps.length || 0}</dd></div>
-      </dl>
 
       {showSetup && (
         <section className="role-setup">

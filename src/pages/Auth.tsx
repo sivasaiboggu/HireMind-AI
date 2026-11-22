@@ -6,13 +6,16 @@ import { z } from 'zod/mini';
 import { Brand } from '../components/layout/Brand';
 import { ThemeControl } from '../components/layout/TopBar';
 import { Button } from '../components/ui/Button';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { navigation } from '../components/layout/navigation';
 
 const credentials = z.object({ email: z.email('Enter a valid email address.'), password: z.string().check(z.minLength(1, 'Enter your password.')) });
 const emailAddress = credentials.shape.email;
 
 export const Auth: React.FC = () => {
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const returnTo = navigation.find(({ path }) => path === state?.from?.pathname)?.path ?? '/hiring';
   const { addToast, setGuestMode } = useAppStore();
   
   // Auth Modes
@@ -60,7 +63,7 @@ export const Auth: React.FC = () => {
     setLoading(true);
 
     if (!supabase) {
-      addToast('error', 'Supabase is not configured. Use Offline Guest Mode to explore the platform!');
+      addToast('error', 'Account sign-in is unavailable. Continue as a guest.');
       setLoading(false);
       return;
     }
@@ -83,7 +86,7 @@ export const Auth: React.FC = () => {
         
         if (data.session) {
           addToast('success', 'Account created.');
-          navigate('/dashboard');
+          navigate(returnTo, { replace: true });
         } else {
           addToast('success', 'Check your email for a six-digit confirmation code.');
           setOtpType('signup');
@@ -99,7 +102,7 @@ export const Auth: React.FC = () => {
         if (error) throw error;
 
         addToast('success', 'Signed in.');
-        navigate('/dashboard');
+        navigate(returnTo, { replace: true });
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Authentication failed.');
@@ -187,7 +190,7 @@ export const Auth: React.FC = () => {
       }
 
       addToast('success', 'Email confirmed.');
-      navigate('/dashboard');
+      navigate(returnTo, { replace: true });
     } catch (err: any) {
       setErrorMsg(err.message || 'Verification failed. Please check the code and try again.');
       addToast('error', err.message || 'Invalid verification code.');
@@ -253,7 +256,7 @@ export const Auth: React.FC = () => {
   const handleGuestMode = () => {
     setGuestMode(true);
     addToast('info', 'Your work will be saved in this browser.');
-    navigate('/dashboard');
+    navigate(returnTo, { replace: true });
   };
 
 
@@ -263,7 +266,7 @@ export const Auth: React.FC = () => {
     : isSignUp
       ? 'Save your work and pick it up on another device.'
       : hasSupabaseConfig
-        ? 'Open your saved resumes, interviews, and study plans.'
+        ? 'Open your saved resume reviews, mock interviews, and study plans.'
         : 'Account sign-in is unavailable here. You can still save your work in this browser.';
 
   return (
@@ -274,12 +277,12 @@ export const Auth: React.FC = () => {
       </header>
       <main className="auth-layout page-enter">
         <section className="auth-intro">
-          <div className="margin-mark">
-            <p className="meta-label">Interview preparation</p>
-            <h1>Get ready for<br />your next role<span className="brand-period">.</span></h1>
-            <p>Check your resume against a job description, practise your answers, or make a plan for what to learn next.</p>
+          <div>
+            <h1>Hire and prepare</h1>
+            <p>Track candidates and schedule interviews. When you’re applying for a role yourself, review your resume and practise your answers.</p>
           </div>
           <ul>
+            <li><strong>Hiring pipeline</strong><span>Review applications and record interview outcomes.</span></li>
             <li><strong>Resume review</strong><span>Find missing keywords and bullets to rewrite.</span></li>
             <li><strong>Mock interviews</strong><span>Answer by voice or text and review your feedback.</span></li>
             <li><strong>Coding practice</strong><span>Run JavaScript or Python against test cases.</span></li>

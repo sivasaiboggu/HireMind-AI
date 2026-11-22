@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type CSSProperties } from 'react';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { CheckCircle2, XCircle } from 'lucide-react';
@@ -43,14 +43,10 @@ export const KeywordCloud: React.FC<KeywordCloudProps> = ({
           aria-valuemax={100}
           aria-label="Keyword match rate"
         >
-          <div 
-            style={{ 
-              height: '100%', 
-              backgroundColor: 'var(--accent-primary)', 
-              width: `${percentage}%`,
-              borderRadius: '3px',
-              transition: 'width 800ms ease'
-            }}
+          <div
+            className="progress-bar-fill"
+            style={{ height: '100%', backgroundColor: 'var(--accent-primary)', borderRadius: '3px',
+              '--progress': percentage / 100 } as CSSProperties}
           />
         </div>
       </div>

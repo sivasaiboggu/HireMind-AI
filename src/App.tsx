@@ -4,18 +4,19 @@ import { Layout } from './components/layout/Layout';
 import { Brand } from './components/layout/Brand';
 import { PageHeading } from './components/ui/PageHeading';
 import { Button } from './components/ui/Button';
-import { Dashboard } from './pages/Dashboard';
-import { Auth } from './pages/Auth';
+import Hiring from './pages/Hiring';
 import { useAppStore } from './store/appStore';
 import { hasSupabaseConfig } from './services/supabase';
 
+const Auth = lazy(() => import('./pages/Auth').then(({ Auth }) => ({ default: Auth })));
+const Dashboard = lazy(() => import('./pages/Dashboard').then(({ Dashboard }) => ({ default: Dashboard })));
 const ResumeAnalyzer = lazy(() => import('./pages/ResumeAnalyzer'));
 const InterviewPractice = lazy(() => import('./pages/InterviewPractice'));
 const LearningRoadmap = lazy(() => import('./pages/LearningRoadmap').then(({ LearningRoadmap }) => ({ default: LearningRoadmap })));
 const QuizPractice = lazy(() => import('./pages/QuizPractice').then(({ QuizPractice }) => ({ default: QuizPractice })));
 
 function PageFallback({ message = 'Opening page…' }: { message?: string }) {
-  return <div className="container"><p className="page-status margin-mark" role="status"><span className="busy-mark" aria-hidden="true" />{message}</p></div>;
+  return <div className="container"><p className="page-status" role="status"><span className="busy-mark" aria-hidden="true" />{message}</p></div>;
 }
 
 class PageErrorBoundary extends Component<{ children: React.ReactNode }, { failed: boolean }> {
@@ -64,6 +65,10 @@ function Privacy() {
           <p>Guest reviews, interview results, study plans, and settings stay in this browser. If you sign in, your saved reviews, interview results, and study plans are linked to your account and stored in Supabase. You can delete saved work from your overview. Clearing this site’s browser data also clears guest work.</p>
         </section>
         <section>
+          <h2>Hiring records</h2>
+          <p>Candidate names, application notes, reviews, and interview times stay in this browser, including when you sign in. The register is separate for each signed-in account and for guests. You can delete a candidate and their history from the record. Clearing this site’s browser data removes the local hiring register. Calendar downloads contain the candidate name, interview topic, and time.</p>
+        </section>
+        <section>
           <h2>AI and your browser</h2>
           <p>AI features send the information needed to generate a result to Google Gemini, either directly with your connected key or through the server when an account proxy is configured. A personal key is stored in this browser and can be removed from the connection dialog. Local resume checks run in your browser.</p>
         </section>
@@ -78,12 +83,12 @@ function Privacy() {
 
 function AppRoutes() {
   const initializeAuth = useAppStore((state) => state.initializeAuth);
-  const { pathname } = useLocation();
+  const { pathname, key } = useLocation();
 
   useEffect(() => initializeAuth(), [initializeAuth]);
   useEffect(() => {
     const titles: Record<string, string> = {
-      '/': 'Career overview', '/dashboard': 'Career overview', '/resume': 'Resume review',
+      '/': 'Hiring pipeline', '/hiring': 'Hiring pipeline', '/dashboard': 'Career overview', '/resume': 'Resume review',
       '/interview': 'Mock interview', '/roadmap': 'Study plan', '/quiz': 'Practice lab',
       '/auth': 'Sign in', '/privacy': 'Privacy and data',
     };
@@ -92,22 +97,25 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth" element={<Suspense fallback={<PageFallback />}><Auth /></Suspense>} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/*" element={
         <AuthGuard>
           <Layout>
             <PageErrorBoundary key={pathname}>
               <Suspense fallback={<PageFallback />}>
-                <Routes>
-                  <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="resume" element={<ResumeAnalyzer />} />
-                  <Route path="interview" element={<InterviewPractice />} />
-                  <Route path="roadmap" element={<LearningRoadmap />} />
-                  <Route path="quiz" element={<QuizPractice />} />
-                  <Route path="*" element={<MissingPage />} />
-                </Routes>
+                <div className={key === 'default' ? undefined : 'page-enter'}>
+                  <Routes>
+                    <Route index element={<Hiring />} />
+                    <Route path="hiring" element={<Hiring />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="resume" element={<ResumeAnalyzer />} />
+                    <Route path="interview" element={<InterviewPractice />} />
+                    <Route path="roadmap" element={<LearningRoadmap />} />
+                    <Route path="quiz" element={<QuizPractice />} />
+                    <Route path="*" element={<MissingPage />} />
+                  </Routes>
+                </div>
               </Suspense>
             </PageErrorBoundary>
           </Layout>

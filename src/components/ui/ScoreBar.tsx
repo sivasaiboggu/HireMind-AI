@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { type CSSProperties } from 'react';
 import { clamp } from '../../services/numbers';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
@@ -18,15 +18,6 @@ export const ScoreBar: React.FC<ScoreBarProps> = ({
   // them can run past the track (or below it) on out-of-range input.
   const safeValue = clamp(value, 0, max);
   const percentage = max > 0 ? clamp((safeValue / max) * 100, 0, 100) : 0;
-  const [width, setWidth] = useState(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setWidth(percentage);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [percentage]);
-
   const getColor = (pct: number) => {
     if (pct >= 80) return 'var(--accent-primary)';
     if (pct >= 60) return 'var(--accent-secondary)';
@@ -68,9 +59,9 @@ export const ScoreBar: React.FC<ScoreBarProps> = ({
           style={{
             height: '100%',
             backgroundColor: barColor,
-            width: `${width}%`,
+            '--progress': percentage / 100,
             borderRadius: '3px'
-          }}
+          } as CSSProperties}
         />
       </div>
     </div>

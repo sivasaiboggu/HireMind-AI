@@ -24,11 +24,11 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   // A score outside 0–100 used to draw past full (or backwards): clamp
   // before the ring geometry, the colour thresholds and the count-up see it.
   const safeScore = clamp(score, 0, 100);
-  const animatedScore = animate ? useCountUp(safeScore, 1200) : safeScore;
+  const animatedScore = useCountUp(safeScore, 360, animate);
   
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (animatedScore / 100) * circumference;
+  const offset = circumference - (safeScore / 100) * circumference;
 
   // Dynamic colors: cyan > 80, amber 60-80, rose < 60
   const getRingColor = (val: number) => {
@@ -78,9 +78,6 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
           r={radius}
           cx={size / 2}
           cy={size / 2}
-          style={{
-            transition: 'stroke-dashoffset 800ms cubic-bezier(0.34, 1.56, 0.64, 1), stroke 300ms ease'
-          }}
         />
       </svg>
       

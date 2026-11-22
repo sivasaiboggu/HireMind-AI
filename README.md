@@ -1,25 +1,7 @@
 # HireMind AI
-### Resume checks, mock interviews and study plans
+HireMind is a workspace for reviewing candidates, scheduling interviews, and preparing for your own job search. The hiring register keeps candidate records and decisions in the current browser. The career tools include ATS resume checks, mock interviews, coding practice, and study plans.
 
-HireMind AI is a single-page app for job preparation. It runs ATS resume audits, mock interview sessions with scorecards, and step-by-step upskilling roadmaps.
-
----  
-
-## Design System & Premium Aesthetics
-
-HireMind AI implements a custom dark theme visual identity designed using **pure Vanilla CSS** for maximum flexibility and performance.
-
-### Style Variables (`src/styles/globals.css`)
-*   **Colors**: Atlas dark theme — deep base backgrounds (`#0D1110`), solid surface modules (`#141A18`), one lime accent (`#C6F24E`), mint secondary (`#5EEAC8`), warm-red danger (`#F26D5C`), and soft-mint phase accents (`#8BE9C8`). Every token is declared in OKLCH with a hex fallback (`src/styles/tokens.json`); the light variant darkens the lime, mint and red so they still pass WCAG AA 4.5:1 as text (TopBar toggle sets `data-theme="light"`).
-*   **Typography**:
-    *   **Display Headers**: *Syne* (Google Fonts)
-    *   **Body & Interfaces**: *Inter* (Google Fonts)
-    *   **Stats & Gauges**: *Inter* (numeric)
-    *   **Code Elements**: *JetBrains Mono* (Google Fonts)
-*   **Background Detail**: Subtle linear background coordinate grid with 1px border lines displayed at `0.03` opacity for depth.
-*   **Animations**: Custom keyframes managing page fade-ups, button click scaling, card hover highlights, typing indicators, static skeleton blocks, and slide-in panels. Motion only signals a state change; reduced motion collapses it.
-
----
+Start with `npm ci` and `npm run dev`. The [v2 design and verification notes](docs/hiring-workspace.md) cover tokens, the hiring rules, optional account configuration, and browser audits.
 
 ## Modular Architecture
 
@@ -29,25 +11,22 @@ The repository is re-organized under a strict `/src` directory to support clean 
 src/
 ├── components/
 │   ├── layout/
-│   │   ├── Sidebar.tsx          # Collapsible nav sidebar, AI credits, custom pulse logo
+│   │   ├── Brand.tsx            # Masthead wordmark
 │   │   ├── TopBar.tsx           # Dynamic header, notifications, and search
 │   │   ├── Layout.tsx           # Responsive shell (mobile tab bar, global search CMD+K, toasts)
-│   │   ├── GoogleAIKeyConnect.tsx # API key connection panel
-│   │   └── WebGLBackground.tsx  # Ambient WebGL backdrop
+│   │   └── GoogleAIKeyConnect.tsx # API key connection panel
 │   ├── ui/
 │   │   ├── Button.tsx           # Primary, ghost, danger, and subtle variants
 │   │   ├── Card.tsx             # Solid card wrapper; emphasis is a 1px accent border, never a glow
 │   │   ├── Badge.tsx            # Status badge pills (success, warning, danger, info)
 │   │   ├── ProgressRing.tsx     # SVG circular gauge (auto count-up, threshold colors)
 │   │   ├── ScoreBar.tsx         # Horizontal indicator bars
-│   │   ├── Skeleton.tsx         # Shimmer loader skeletons
+│   │   ├── Skeleton.tsx         # Static loading skeletons
 │   │   ├── ProgressiveLoader.tsx # Staged loading indicator
 │   │   ├── Tooltip.tsx          # Context hover popovers
 │   │   └── Modal.tsx            # Overlay layout with ESC listener
-│   ├── dashboard/
-│   │   ├── StatsGrid.tsx        # Responsive metrics panel
-│   │   ├── RecentActivity.tsx   # Vertical timeline logs (empty states illustration)
-│   │   └── QuickActions.tsx     # Interactive action navigation cards
+│   ├── hiring/
+│   │   └── CandidateRecord.tsx  # Candidate details, review and scheduling forms
 │   ├── resume/
 │   │   ├── ResumeUploader.tsx   # File drag-drop + local PDF.js text extractor
 │   │   ├── ResumeAnalysis.tsx   # Side-by-side audit report
@@ -67,13 +46,16 @@ src/
 │       ├── PhaseCard.tsx        # Subtopics accordion, checklists progress
 │       └── ResourceLinks.tsx    # Material recommendations index
 ├── pages/
-│   ├── Dashboard.tsx            # Main career command board
+│   ├── Hiring.tsx               # Candidate register, stage filters and interview agenda
+│   ├── Dashboard.tsx            # Career preparation overview
 │   ├── ResumeAnalyzer.tsx       # ATS document audit page
 │   ├── InterviewPractice.tsx    # Interactive mock simulator page
 │   ├── QuizPractice.tsx         # Written-quiz practice page
 │   ├── LearningRoadmap.tsx      # Curriculum planner page
 │   └── Auth.tsx                 # Sign-in / sign-up page
 ├── services/
+│   ├── hiring.ts                # Candidate and interview business rules
+│   ├── hiring-storage.ts        # Local transactional register
 │   ├── gemini.ts                # central GenerativeModel connector (gemini-2.5-flash)
 │   ├── ats.ts                   # Deterministic on-device ATS audit (40/25/15/20)
 │   ├── score-breakdown.ts       # Score-driver breakdown + highest-impact fix

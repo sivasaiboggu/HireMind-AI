@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, Info, Search, X } from 'lucide-react';
-import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { navigation } from './navigation';
 import { Modal } from '../ui/Modal';
@@ -82,17 +81,9 @@ function CommandPalette() {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { toasts, removeToast, setSidebarCollapsed } = useAppStore();
+  const { toasts, removeToast } = useAppStore();
   const main = useRef<HTMLElement>(null);
   const previousPath = useRef(pathname);
-
-  useEffect(() => {
-    const narrow = window.matchMedia('(max-width: 1023px)');
-    const resize = () => setSidebarCollapsed(narrow.matches);
-    resize();
-    narrow.addEventListener('change', resize);
-    return () => narrow.removeEventListener('change', resize);
-  }, [setSidebarCollapsed]);
 
   useEffect(() => {
     if (previousPath.current !== pathname) {
@@ -107,14 +98,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <a className="skip-link" href="#workspace-main" onClick={(event) => { event.preventDefault(); main.current?.focus(); }}>
         Skip to content
       </a>
-      <Sidebar />
       <div className="workspace-body">
         <TopBar />
         <main ref={main} id="workspace-main" className="workspace-main" tabIndex={-1}>{children}</main>
       </div>
       <nav className="mobile-nav" aria-label="Workspace">
         {navigation.map(({ path, label, short, icon: Icon }) => (
-          <NavLink key={path} to={path} aria-label={label}>
+          <NavLink key={path} to={path === '/hiring' && pathname === '/' ? '/' : path} aria-label={label}>
             <Icon size={19} aria-hidden="true" /><span>{short}</span>
           </NavLink>
         ))}

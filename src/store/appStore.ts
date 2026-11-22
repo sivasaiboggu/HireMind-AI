@@ -222,7 +222,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   credits: getSavedJson<number>(KEYS.CREDITS, 100), 
   theme: (() => {
     let saved: 'light' | 'dark' = 'dark';
-    try { saved = localStorage.getItem('hiremind_theme_v9') === 'light' ? 'light' : 'dark'; } catch {}
+    const preference = safeLocalGet('hiremind_theme_v9');
+    if (preference === 'light' || (preference === null && typeof matchMedia === 'function' && !matchMedia('(prefers-color-scheme: dark)').matches)) {
+      saved = 'light';
+    }
     try {
       document.documentElement.setAttribute('data-theme', saved);
     } catch (e) {}
@@ -267,7 +270,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   addToast: (type, message, duration) => {
     const id = generateId();
     set((state) => ({
-      toasts: [...state.toasts, { id, type, message, duration }]
+      toasts: [...state.toasts.slice(-2), { id, type, message, duration }]
     }));
 
     // The declared `duration` was ignored and every toast lived 4000 ms.
@@ -546,12 +549,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   useCredit: async (amount = 5) => {
     const current = get().credits;
     if (current < amount) {
-      // There is no paid upgrade: guests refill from the sidebar, signed-in
+      // There is no paid upgrade: guests refill from the account panel, signed-in
       // users sync from their account. Say that instead of naming a plan
       // that does not exist.
       get().addToast('error', get().user
-        ? 'Insufficient AI credits. Use the refresh button in the sidebar to sync your credits from your account.'
-        : 'Insufficient AI credits. Use the refresh button in the sidebar to refill to 100.');
+        ? 'Insufficient AI credits. Open Account to sync your credits from your account.'
+        : 'Insufficient AI credits. Open Account and use the refresh button to refill to 100.');
       return false;
     }
     const nextCredits = current - amount;

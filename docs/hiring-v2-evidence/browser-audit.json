@@ -1,0 +1,898 @@
+{
+  "layout": [
+    {
+      "path": "hiring",
+      "theme": "light",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "light"
+    },
+    {
+      "path": "dashboard",
+      "theme": "light",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "light"
+    },
+    {
+      "path": "resume",
+      "theme": "light",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "light"
+    },
+    {
+      "path": "interview",
+      "theme": "light",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "light"
+    },
+    {
+      "path": "roadmap",
+      "theme": "light",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "light"
+    },
+    {
+      "path": "quiz",
+      "theme": "light",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "light"
+    },
+    {
+      "path": "auth",
+      "theme": "light",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "light"
+    },
+    {
+      "path": "privacy",
+      "theme": "light",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "light"
+    },
+    {
+      "path": "missing",
+      "theme": "light",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "light"
+    },
+    {
+      "path": "hiring",
+      "theme": "light",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "light"
+    },
+    {
+      "path": "dashboard",
+      "theme": "light",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "light"
+    },
+    {
+      "path": "resume",
+      "theme": "light",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "light"
+    },
+    {
+      "path": "interview",
+      "theme": "light",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "light"
+    },
+    {
+      "path": "roadmap",
+      "theme": "light",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "light"
+    },
+    {
+      "path": "quiz",
+      "theme": "light",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "light"
+    },
+    {
+      "path": "auth",
+      "theme": "light",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "light"
+    },
+    {
+      "path": "privacy",
+      "theme": "light",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "light"
+    },
+    {
+      "path": "missing",
+      "theme": "light",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "light"
+    },
+    {
+      "path": "hiring",
+      "theme": "light",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "light"
+    },
+    {
+      "path": "dashboard",
+      "theme": "light",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "light"
+    },
+    {
+      "path": "resume",
+      "theme": "light",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "light"
+    },
+    {
+      "path": "interview",
+      "theme": "light",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "light"
+    },
+    {
+      "path": "roadmap",
+      "theme": "light",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "light"
+    },
+    {
+      "path": "quiz",
+      "theme": "light",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "light"
+    },
+    {
+      "path": "auth",
+      "theme": "light",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "light"
+    },
+    {
+      "path": "privacy",
+      "theme": "light",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "light"
+    },
+    {
+      "path": "missing",
+      "theme": "light",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "light"
+    },
+    {
+      "path": "hiring",
+      "theme": "light",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "light"
+    },
+    {
+      "path": "dashboard",
+      "theme": "light",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "light"
+    },
+    {
+      "path": "resume",
+      "theme": "light",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "light"
+    },
+    {
+      "path": "interview",
+      "theme": "light",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "light"
+    },
+    {
+      "path": "roadmap",
+      "theme": "light",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "light"
+    },
+    {
+      "path": "quiz",
+      "theme": "light",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "light"
+    },
+    {
+      "path": "auth",
+      "theme": "light",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "light"
+    },
+    {
+      "path": "privacy",
+      "theme": "light",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "light"
+    },
+    {
+      "path": "missing",
+      "theme": "light",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "light"
+    },
+    {
+      "path": "hiring",
+      "theme": "dark",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "dark"
+    },
+    {
+      "path": "dashboard",
+      "theme": "dark",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "dark"
+    },
+    {
+      "path": "resume",
+      "theme": "dark",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "dark"
+    },
+    {
+      "path": "interview",
+      "theme": "dark",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "dark"
+    },
+    {
+      "path": "roadmap",
+      "theme": "dark",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "dark"
+    },
+    {
+      "path": "quiz",
+      "theme": "dark",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "dark"
+    },
+    {
+      "path": "auth",
+      "theme": "dark",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "dark"
+    },
+    {
+      "path": "privacy",
+      "theme": "dark",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "dark"
+    },
+    {
+      "path": "missing",
+      "theme": "dark",
+      "width": 320,
+      "viewport": 320,
+      "document": 320,
+      "direction": "dark"
+    },
+    {
+      "path": "hiring",
+      "theme": "dark",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "dark"
+    },
+    {
+      "path": "dashboard",
+      "theme": "dark",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "dark"
+    },
+    {
+      "path": "resume",
+      "theme": "dark",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "dark"
+    },
+    {
+      "path": "interview",
+      "theme": "dark",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "dark"
+    },
+    {
+      "path": "roadmap",
+      "theme": "dark",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "dark"
+    },
+    {
+      "path": "quiz",
+      "theme": "dark",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "dark"
+    },
+    {
+      "path": "auth",
+      "theme": "dark",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "dark"
+    },
+    {
+      "path": "privacy",
+      "theme": "dark",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "dark"
+    },
+    {
+      "path": "missing",
+      "theme": "dark",
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "direction": "dark"
+    },
+    {
+      "path": "hiring",
+      "theme": "dark",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "dark"
+    },
+    {
+      "path": "dashboard",
+      "theme": "dark",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "dark"
+    },
+    {
+      "path": "resume",
+      "theme": "dark",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "dark"
+    },
+    {
+      "path": "interview",
+      "theme": "dark",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "dark"
+    },
+    {
+      "path": "roadmap",
+      "theme": "dark",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "dark"
+    },
+    {
+      "path": "quiz",
+      "theme": "dark",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "dark"
+    },
+    {
+      "path": "auth",
+      "theme": "dark",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "dark"
+    },
+    {
+      "path": "privacy",
+      "theme": "dark",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "dark"
+    },
+    {
+      "path": "missing",
+      "theme": "dark",
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "direction": "dark"
+    },
+    {
+      "path": "hiring",
+      "theme": "dark",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "dark"
+    },
+    {
+      "path": "dashboard",
+      "theme": "dark",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "dark"
+    },
+    {
+      "path": "resume",
+      "theme": "dark",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "dark"
+    },
+    {
+      "path": "interview",
+      "theme": "dark",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "dark"
+    },
+    {
+      "path": "roadmap",
+      "theme": "dark",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "dark"
+    },
+    {
+      "path": "quiz",
+      "theme": "dark",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "dark"
+    },
+    {
+      "path": "auth",
+      "theme": "dark",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "dark"
+    },
+    {
+      "path": "privacy",
+      "theme": "dark",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "dark"
+    },
+    {
+      "path": "missing",
+      "theme": "dark",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "direction": "dark"
+    }
+  ],
+  "axe": [
+    {
+      "label": "candidate record, desktop",
+      "violations": []
+    },
+    {
+      "label": "scheduling error, desktop",
+      "violations": []
+    },
+    {
+      "label": "populated register, mobile",
+      "violations": []
+    },
+    {
+      "label": "candidate record, mobile",
+      "violations": []
+    },
+    {
+      "label": "scheduling form, 320px",
+      "violations": []
+    },
+    {
+      "label": "hiring, light, 320px",
+      "violations": []
+    },
+    {
+      "label": "dashboard, light, 320px",
+      "violations": []
+    },
+    {
+      "label": "resume, light, 320px",
+      "violations": []
+    },
+    {
+      "label": "interview, light, 320px",
+      "violations": []
+    },
+    {
+      "label": "roadmap, light, 320px",
+      "violations": []
+    },
+    {
+      "label": "quiz, light, 320px",
+      "violations": []
+    },
+    {
+      "label": "auth, light, 320px",
+      "violations": []
+    },
+    {
+      "label": "privacy, light, 320px",
+      "violations": []
+    },
+    {
+      "label": "missing, light, 320px",
+      "violations": []
+    },
+    {
+      "label": "hiring, light, 390px",
+      "violations": []
+    },
+    {
+      "label": "dashboard, light, 390px",
+      "violations": []
+    },
+    {
+      "label": "resume, light, 390px",
+      "violations": []
+    },
+    {
+      "label": "interview, light, 390px",
+      "violations": []
+    },
+    {
+      "label": "roadmap, light, 390px",
+      "violations": []
+    },
+    {
+      "label": "quiz, light, 390px",
+      "violations": []
+    },
+    {
+      "label": "auth, light, 390px",
+      "violations": []
+    },
+    {
+      "label": "privacy, light, 390px",
+      "violations": []
+    },
+    {
+      "label": "missing, light, 390px",
+      "violations": []
+    },
+    {
+      "label": "hiring, light, 768px",
+      "violations": []
+    },
+    {
+      "label": "dashboard, light, 768px",
+      "violations": []
+    },
+    {
+      "label": "resume, light, 768px",
+      "violations": []
+    },
+    {
+      "label": "interview, light, 768px",
+      "violations": []
+    },
+    {
+      "label": "roadmap, light, 768px",
+      "violations": []
+    },
+    {
+      "label": "quiz, light, 768px",
+      "violations": []
+    },
+    {
+      "label": "auth, light, 768px",
+      "violations": []
+    },
+    {
+      "label": "privacy, light, 768px",
+      "violations": []
+    },
+    {
+      "label": "missing, light, 768px",
+      "violations": []
+    },
+    {
+      "label": "hiring, light, 1440px",
+      "violations": []
+    },
+    {
+      "label": "dashboard, light, 1440px",
+      "violations": []
+    },
+    {
+      "label": "resume, light, 1440px",
+      "violations": []
+    },
+    {
+      "label": "interview, light, 1440px",
+      "violations": []
+    },
+    {
+      "label": "roadmap, light, 1440px",
+      "violations": []
+    },
+    {
+      "label": "quiz, light, 1440px",
+      "violations": []
+    },
+    {
+      "label": "auth, light, 1440px",
+      "violations": []
+    },
+    {
+      "label": "privacy, light, 1440px",
+      "violations": []
+    },
+    {
+      "label": "missing, light, 1440px",
+      "violations": []
+    },
+    {
+      "label": "hiring, dark, 320px",
+      "violations": []
+    },
+    {
+      "label": "dashboard, dark, 320px",
+      "violations": []
+    },
+    {
+      "label": "resume, dark, 320px",
+      "violations": []
+    },
+    {
+      "label": "interview, dark, 320px",
+      "violations": []
+    },
+    {
+      "label": "roadmap, dark, 320px",
+      "violations": []
+    },
+    {
+      "label": "quiz, dark, 320px",
+      "violations": []
+    },
+    {
+      "label": "auth, dark, 320px",
+      "violations": []
+    },
+    {
+      "label": "privacy, dark, 320px",
+      "violations": []
+    },
+    {
+      "label": "missing, dark, 320px",
+      "violations": []
+    },
+    {
+      "label": "hiring, dark, 390px",
+      "violations": []
+    },
+    {
+      "label": "dashboard, dark, 390px",
+      "violations": []
+    },
+    {
+      "label": "resume, dark, 390px",
+      "violations": []
+    },
+    {
+      "label": "interview, dark, 390px",
+      "violations": []
+    },
+    {
+      "label": "roadmap, dark, 390px",
+      "violations": []
+    },
+    {
+      "label": "quiz, dark, 390px",
+      "violations": []
+    },
+    {
+      "label": "auth, dark, 390px",
+      "violations": []
+    },
+    {
+      "label": "privacy, dark, 390px",
+      "violations": []
+    },
+    {
+      "label": "missing, dark, 390px",
+      "violations": []
+    },
+    {
+      "label": "hiring, dark, 768px",
+      "violations": []
+    },
+    {
+      "label": "dashboard, dark, 768px",
+      "violations": []
+    },
+    {
+      "label": "resume, dark, 768px",
+      "violations": []
+    },
+    {
+      "label": "interview, dark, 768px",
+      "violations": []
+    },
+    {
+      "label": "roadmap, dark, 768px",
+      "violations": []
+    },
+    {
+      "label": "quiz, dark, 768px",
+      "violations": []
+    },
+    {
+      "label": "auth, dark, 768px",
+      "violations": []
+    },
+    {
+      "label": "privacy, dark, 768px",
+      "violations": []
+    },
+    {
+      "label": "missing, dark, 768px",
+      "violations": []
+    },
+    {
+      "label": "hiring, dark, 1440px",
+      "violations": []
+    },
+    {
+      "label": "dashboard, dark, 1440px",
+      "violations": []
+    },
+    {
+      "label": "resume, dark, 1440px",
+      "violations": []
+    },
+    {
+      "label": "interview, dark, 1440px",
+      "violations": []
+    },
+    {
+      "label": "roadmap, dark, 1440px",
+      "violations": []
+    },
+    {
+      "label": "quiz, dark, 1440px",
+      "violations": []
+    },
+    {
+      "label": "auth, dark, 1440px",
+      "violations": []
+    },
+    {
+      "label": "privacy, dark, 1440px",
+      "violations": []
+    },
+    {
+      "label": "missing, dark, 1440px",
+      "violations": []
+    }
+  ],
+  "flows": [
+    "Add candidate and persist application notes",
+    "Record a recommendation, schedule an interview, and export its exact UTC time",
+    "Reject overlapping times and allow an adjacent booking",
+    "Complete an interview, move to Offer, reload, and combine name and role search",
+    "Reject a stale write, show the newer review, cancel on close, and remove the candidate across tabs",
+    "Progress animates with transforms and respects reduced motion"
+  ]
+}

@@ -64,7 +64,7 @@ export const SectionFeedback: React.FC<SectionFeedbackProps> = ({ sections }) =>
               border: `1px solid ${getSectionBorderColor(sect.status, isExpanded)}`,
               borderRadius: 'var(--radius-lg)',
               overflow: 'hidden',
-              transition: 'all 200ms ease'
+              transition: 'transform 180ms var(--spring)'
             }}
           >
             {/* Header Accordion Bar — a real button so keyboard users can

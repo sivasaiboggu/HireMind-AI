@@ -39,9 +39,8 @@ export const ProgressiveLoader: React.FC<ProgressiveLoaderProps> = ({
         width: '100%'
       }}
     >
-      <Activity className="rotating-brain" style={{ width: '48px', height: '48px', color: iconColor }} />
-      <div 
-        className="typing-cursor"
+      <Activity style={{ width: '48px', height: '48px', color: iconColor }} />
+      <div
         style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: iconColor, letterSpacing: '0.05em', minHeight: '24px' }}
       >
         {messages[currentIdx]}

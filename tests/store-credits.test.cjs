@@ -73,7 +73,7 @@ test('out-of-credits error names the real refill route, not a PRO plan', async (
   guest.store.setState({ credits: 0 });
   assert.equal(await guest.store.getState().useCredit(5), false);
   const guestToast = guest.store.getState().toasts.at(-1).message;
-  assert.match(guestToast, /refresh button in the sidebar to refill to 100/);
+  assert.match(guestToast, /Open Account and use the refresh button to refill to 100/);
   assert.doesNotMatch(guestToast, /PRO/);
 
   const signedIn = store();

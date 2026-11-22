@@ -561,7 +561,7 @@ export const QuizPractice: React.FC = () => {
             <div className="absolute inset-0 rounded-full border-4 border-cyan-subtle border-t-cyan animate-spin" style={{ borderTopColor: 'var(--accent-primary)' }} />
             <BookOpen className="text-cyan" style={{ width: '32px', height: '32px' }} />
           </div>
-          <div className="typing-cursor" style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--accent-primary)', letterSpacing: '0.05em' }}>
+          <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--accent-primary)', letterSpacing: '0.05em' }}>
             Preparing your questions…
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', maxWidth: '480px' }}>
