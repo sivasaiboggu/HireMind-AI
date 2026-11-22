@@ -137,7 +137,7 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                   lineHeight: 1.5,
                   paddingTop: '16px',
                   fontStyle: 'italic',
-                  backgroundColor: 'rgba(5, 10, 15, 0.2)'
+                  backgroundColor: 'var(--bg-elevated)'
                 }}
               >
                 "{feedback.modelAnswer}"
@@ -154,7 +154,7 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
         icon={<ArrowRight style={{ width: '16px', height: '16px' }} />}
         style={{ alignSelf: 'flex-end', padding: '12px 24px', width: 'fit-content' }}
       >
-        {isLastQuestion ? 'Complete Assessment & View Summary' : 'Proceed to Next Question'}
+        {isLastQuestion ? 'View interview review' : 'Next question'}
       </Button>
 
     </div>

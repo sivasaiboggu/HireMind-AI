@@ -1,8 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import '../../styles/globals.css';
-import '../../styles/animations.css';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,103 +8,56 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   maxWidth?: string;
+  dismissible?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  onClose,
-  title,
-  children,
-  maxWidth = '540px'
+  isOpen, onClose, title, children, maxWidth = '540px', dismissible = true,
 }) => {
-  // Bind escape key
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
+    const element = dialog.current;
+    if (!isOpen || !element) return;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    element.showModal();
+    document.body.style.overflow = 'hidden';
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      element.close();
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  // Render at document.body: a transformed ancestor (such as the sticky
-  // top bar) would become the containing block for position:fixed and
-  // clip or misplace the overlay.
   return createPortal(
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(5, 10, 15, 0.85)',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        animation: 'fadeIn 200ms ease'
+    <dialog
+      ref={dialog}
+      className="workspace-dialog"
+      style={{ maxWidth }}
+      aria-labelledby={title ? titleId : undefined}
+      aria-label={title ? undefined : 'Dialog'}
+      onCancel={(event) => {
+        event.preventDefault();
+        if (dismissible) onClose();
+      }}
+      onClick={(event) => {
+        if (dismissible && event.target === event.currentTarget) onClose();
       }}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%',
-          maxWidth,
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-depth-3)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          animation: 'pageFadeUp 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 24px',
-            borderBottom: '1px solid var(--border-subtle)'
-          }}
-        >
-          {title ? (
-            <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600 }}>{title}</h3>
-          ) : (
-            <div />
-          )}
-          <button
-            onClick={onClose}
-            style={{
-              color: 'var(--text-secondary)',
-              padding: '6px',
-              backgroundColor: 'transparent',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            className="btn-press modal-close"
-          >
-            <X style={{ width: '18px', height: '18px' }} />
+      <header className="dialog-title">
+        {title && <h2 id={titleId}>{title}</h2>}
+        {dismissible && (
+          <button type="button" className="icon-control" aria-label="Close dialog" onClick={onClose}>
+            <X size={18} aria-hidden="true" />
           </button>
-        </div>
-
-        {/* Content */}
-        <div style={{ padding: '24px', overflowY: 'auto', maxHeight: 'calc(100vh - 180px)' }}>
-          {children}
-        </div>
-      </div>
-    </div>,
-    document.body
+        )}
+      </header>
+      <div className="dialog-content">{children}</div>
+    </dialog>,
+    document.body,
   );
 };

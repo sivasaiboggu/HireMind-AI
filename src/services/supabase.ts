@@ -4,22 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-export const hasSupabaseConfig = 
-  typeof supabaseUrl === 'string' && supabaseUrl.trim() !== '' &&
-  typeof supabaseAnonKey === 'string' && supabaseAnonKey.trim() !== '';
+export const hasSupabaseConfig = !!(supabaseUrl && supabaseAnonKey &&
+  supabaseUrl.trim() && supabaseAnonKey.trim());
 
-if (!hasSupabaseConfig) {
-  console.warn(
-    'Supabase environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) are missing.\n' +
-    'The application will fall back to Local Storage (Guest Mode) for database saving and authentication.'
-  );
-}
-
-// Create client (use empty strings as fallback if disabled to avoid initialization errors)
-export const supabase = createClient(
-  hasSupabaseConfig ? supabaseUrl : 'https://dummy-placeholder-url.supabase.co',
-  hasSupabaseConfig ? supabaseAnonKey : 'dummy-placeholder-anon-key'
-);
+export const supabase = hasSupabaseConfig ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 /**
  * Sync operations for profiles and candidate history items
@@ -29,7 +17,7 @@ export const supabaseService = {
    * Profiles Operations
    */
   async getProfile(userId: string) {
-    if (!hasSupabaseConfig) return null;
+    if (!supabase) return null;
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -44,7 +32,7 @@ export const supabaseService = {
   },
 
   async updateProfile(userId: string, updates: { full_name?: string; target_role?: string; credits?: number }) {
-    if (!hasSupabaseConfig) return null;
+    if (!supabase) return null;
     const { data, error } = await supabase
       .from('profiles')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -63,7 +51,7 @@ export const supabaseService = {
    * Resumes History Operations
    */
   async fetchResumes(userId: string) {
-    if (!hasSupabaseConfig) return [];
+    if (!supabase) return [];
     const { data, error } = await supabase
       .from('saved_resumes')
       .select('*')
@@ -88,7 +76,7 @@ export const supabaseService = {
   },
 
   async insertResume(userId: string, record: any) {
-    if (!hasSupabaseConfig) return null;
+    if (!supabase) return null;
     const { data, error } = await supabase
       .from('saved_resumes')
       .insert({
@@ -120,7 +108,7 @@ export const supabaseService = {
   },
 
   async deleteResume(userId: string, id: string) {
-    if (!hasSupabaseConfig) return;
+    if (!supabase) return;
     const { error } = await supabase
       .from('saved_resumes')
       .delete()
@@ -137,7 +125,7 @@ export const supabaseService = {
    * Interview Sessions Operations
    */
   async fetchInterviews(userId: string) {
-    if (!hasSupabaseConfig) return [];
+    if (!supabase) return [];
     const { data, error } = await supabase
       .from('saved_interviews')
       .select('*')
@@ -158,7 +146,7 @@ export const supabaseService = {
   },
 
   async insertInterview(userId: string, record: any) {
-    if (!hasSupabaseConfig) return null;
+    if (!supabase) return null;
     const { data, error } = await supabase
       .from('saved_interviews')
       .insert({
@@ -179,7 +167,7 @@ export const supabaseService = {
   },
 
   async deleteInterview(userId: string, id: string) {
-    if (!hasSupabaseConfig) return;
+    if (!supabase) return;
     const { error } = await supabase
       .from('saved_interviews')
       .delete()
@@ -196,7 +184,7 @@ export const supabaseService = {
    * Learning Roadmaps Operations
    */
   async fetchRoadmaps(userId: string) {
-    if (!hasSupabaseConfig) return [];
+    if (!supabase) return [];
     const { data, error } = await supabase
       .from('saved_roadmaps')
       .select('*')
@@ -221,7 +209,7 @@ export const supabaseService = {
   },
 
   async insertRoadmap(userId: string, record: any) {
-    if (!hasSupabaseConfig) return null;
+    if (!supabase) return null;
     const { data, error } = await supabase
       .from('saved_roadmaps')
       .insert({
@@ -246,7 +234,7 @@ export const supabaseService = {
   },
 
   async updateRoadmapProgress(userId: string, roadmapId: string, completedPhases: string[]) {
-    if (!hasSupabaseConfig) return;
+    if (!supabase) return;
     const { error } = await supabase
       .from('saved_roadmaps')
       .update({ completed_phases: completedPhases })
@@ -260,7 +248,7 @@ export const supabaseService = {
   },
 
   async deleteRoadmap(userId: string, id: string) {
-    if (!hasSupabaseConfig) return;
+    if (!supabase) return;
     const { error } = await supabase
       .from('saved_roadmaps')
       .delete()

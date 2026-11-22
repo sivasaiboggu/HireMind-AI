@@ -1,6 +1,6 @@
 /* Page Transitions */
 .page-enter {
-  animation: pageFadeUp 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: pageFadeUp 240ms var(--spring) both;
 }
 
 @keyframes pageFadeUp {
@@ -26,11 +26,11 @@
 
 /* Button Press */
 .btn-press {
-  transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 180ms var(--spring);
 }
 
 .btn-press:active {
-  transform: scale(0.97);
+  transform: translateY(1px);
 }
 
 /* Skeleton Loading: a static block. Animated shimmer is decoration, so

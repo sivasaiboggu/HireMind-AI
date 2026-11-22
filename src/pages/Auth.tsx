@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store/appStore';
 import { supabase, hasSupabaseConfig } from '../services/supabase';
-import { 
-  Shield, Mail, Lock, User, Briefcase, AlertCircle, 
-  ArrowRight, Brain, Code2, FileText, CheckCircle2, LockKeyhole, Eye, EyeOff, KeyRound, ChevronLeft 
-} from 'lucide-react';
+import { ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { z } from 'zod';
+import { Brand } from '../components/layout/Brand';
+import { ThemeControl } from '../components/layout/TopBar';
+import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
+
+const credentials = z.object({ email: z.email('Enter a valid email address.'), password: z.string().min(1, 'Enter your password.') });
+const emailAddress = credentials.shape.email;
 
 export const Auth: React.FC = () => {
   const navigate = useNavigate();
@@ -48,9 +52,14 @@ export const Auth: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    const validated = credentials.safeParse({ email, password });
+    if (!validated.success) {
+      setErrorMsg(validated.error.issues[0].message);
+      return;
+    }
     setLoading(true);
 
-    if (!hasSupabaseConfig) {
+    if (!supabase) {
       addToast('error', 'Supabase is not configured. Use Offline Guest Mode to explore the platform!');
       setLoading(false);
       return;
@@ -73,10 +82,10 @@ export const Auth: React.FC = () => {
         if (error) throw error;
         
         if (data.session) {
-          addToast('success', 'Account registered and logged in successfully!');
+          addToast('success', 'Account created.');
           navigate('/dashboard');
         } else {
-          addToast('success', 'Account registered! A 6-digit confirmation code has been sent to your email.');
+          addToast('success', 'Check your email for a six-digit confirmation code.');
           setOtpType('signup');
           setOtpSent(true);
           setCountdown(60);
@@ -89,7 +98,7 @@ export const Auth: React.FC = () => {
 
         if (error) throw error;
 
-        addToast('success', 'Logged in successfully.');
+        addToast('success', 'Signed in.');
         navigate('/dashboard');
       }
     } catch (err: any) {
@@ -102,23 +111,24 @@ export const Auth: React.FC = () => {
 
   // OTP Sign-In Initiation
   const handleSendOtp = async () => {
-    if (!email) {
-      addToast('error', 'Please enter your email address first.');
-      setErrorMsg('Please enter your email address to request an OTP code.');
+    if (!emailAddress.safeParse(email).success) {
+      setErrorMsg('Enter a valid email address to request a code.');
       return;
     }
     
     setErrorMsg(null);
     setLoading(true);
 
-    if (!hasSupabaseConfig) {
+    if (!supabase) {
       addToast('error', 'Supabase configuration is missing.');
       setLoading(false);
       return;
     }
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error } = otpSent && otpType === 'signup'
+        ? await supabase.auth.resend({ type: 'signup', email })
+        : await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: window.location.origin,
@@ -130,7 +140,7 @@ export const Auth: React.FC = () => {
 
       setOtpSent(true);
       setCountdown(60);
-      addToast('success', 'A 6-digit OTP verification code has been sent to your email.');
+      addToast('success', 'We sent a six-digit code to your email.');
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to send OTP.');
       addToast('error', err.message || 'Failed to send OTP.');
@@ -145,8 +155,13 @@ export const Auth: React.FC = () => {
     setErrorMsg(null);
     setLoading(true);
 
+    if (!supabase) {
+      setErrorMsg('Account sign-in is unavailable here.');
+      setLoading(false);
+      return;
+    }
     const token = otpCode.join('');
-    if (token.length < 6) {
+    if (!/^\d{6}$/.test(token)) {
       setErrorMsg('Please enter the complete 6-digit verification code.');
       setLoading(false);
       return;
@@ -171,7 +186,7 @@ export const Auth: React.FC = () => {
         if (altError) throw error; // Throw original error if both fail
       }
 
-      addToast('success', 'Verification successful! Logging you in...');
+      addToast('success', 'Email confirmed.');
       navigate('/dashboard');
     } catch (err: any) {
       setErrorMsg(err.message || 'Verification failed. Please check the code and try again.');
@@ -183,7 +198,7 @@ export const Auth: React.FC = () => {
 
   const handleOtpChange = (element: HTMLInputElement, index: number) => {
     const val = element.value;
-    if (isNaN(Number(val))) return; // only allow numbers
+    if (!/^\d?$/.test(val)) return; // only allow numbers
 
     const nextCode = [...otpCode];
     nextCode[index] = val.substring(val.length - 1); // Keep only the last character
@@ -214,9 +229,9 @@ export const Auth: React.FC = () => {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'github') => {
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
     setErrorMsg(null);
-    if (!hasSupabaseConfig) {
+    if (!supabase) {
       addToast('error', 'Supabase config is offline. Social login requires database setup.');
       return;
     }
@@ -237,877 +252,123 @@ export const Auth: React.FC = () => {
 
   const handleGuestMode = () => {
     setGuestMode(true);
-    addToast('info', 'Entered platform in Offline Guest Mode. Data will be saved locally.');
+    addToast('info', 'Your work will be saved in this browser.');
     navigate('/dashboard');
   };
 
-  const styles = `
-    html, body {
-      background-color: #141A18 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      overscroll-behavior: none !important;
-      overflow-x: hidden !important;
-      min-height: 100vh !important;
-    }
 
-    @keyframes pulseSoft {
-      0%, 100% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.02); opacity: 1; }
-    }
-    @keyframes lineFlow {
-      0% { background-position: 0% 0%; }
-      100% { background-position: 100% 100%; }
-    }
-
-    .auth-split-container {
-      display: flex;
-      min-height: 100vh;
-      width: 100vw;
-      background-color: #141A18;
-      color: #EDF3EF;
-      font-family: var(--font-body);
-      position: relative;
-      overflow-y: auto;
-      margin: 0;
-      padding: 0;
-    }
-
-    .bg-grid-light {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(198, 242, 78, 0.008) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(198, 242, 78, 0.008) 1px, transparent 1px);
-      background-size: 64px 64px, 64px 64px;
-      z-index: 0;
-    }
-
-    .auth-showcase-panel {
-      flex: 1.2;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 40px 60px;
-      border-right: 1px solid rgba(255,255,255,0.08);
-      position: relative;
-      background-color: #141A18;
-      z-index: 1;
-    }
-
-    .auth-form-panel {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 24px;
-      position: relative;
-      z-index: 1;
-      background-color: transparent;
-    }
-
-    .showcase-title {
-      font-family: var(--font-display);
-      font-size: 38px;
-      font-weight: 600;
-      line-height: 1.15;
-      letter-spacing: -0.02em;
-      color: #EDF3EF;
-      margin-bottom: 14px;
-    }
-
-    .showcase-title span {
-      color: #C6F24E;
-    }
-
-    .showcase-desc {
-      font-size: 14px;
-      color: #A3AFA9;
-      line-height: 1.5;
-      max-width: 520px;
-      margin-bottom: 24px;
-    }
-
-    .features-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .feature-card {
-      background: var(--bg-surface);
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-      transition: all 300ms ease;
-    }
-
-    .feature-card:hover {
-      border-color: rgba(198, 242, 78, 0.25);
-      transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.04);
-    }
-
-    .feature-icon-wrapper {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .feature-icon-wrapper.cyan {
-      background: rgba(198, 242, 78, 0.06);
-      border: 1px solid rgba(198, 242, 78, 0.12);
-      color: #C6F24E;
-    }
-
-    .feature-icon-wrapper.purple {
-      background: rgba(94, 234, 200, 0.06);
-      border: 1px solid rgba(94, 234, 200, 0.12);
-      color: #5EEAC8;
-    }
-
-    .feature-icon-wrapper.amber {
-      background: rgba(217, 119, 6, 0.06);
-      border: 1px solid rgba(217, 119, 6, 0.12);
-      color: #d97706;
-    }
-
-    .feature-details h4 {
-      font-size: 14.5px;
-      font-weight: 600;
-      color: #EDF3EF;
-      margin-bottom: 3px;
-    }
-
-    .feature-details p {
-      font-size: 12px;
-      color: #A3AFA9;
-      line-height: 1.4;
-    }
-
-    .avatar-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #141A18;
-      padding: 3px 8px;
-      border-radius: 100px;
-      border: 1px solid rgba(255,255,255,0.08);
-      font-size: 10.5px;
-      font-weight: 500;
-      color: #C4CFC9;
-      margin-top: 6px;
-      display: inline-flex;
-    }
-    .avatar-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #C6F24E;
-      box-shadow: 0 0 8px rgba(198, 242, 78, 0.6);
-    }
-
-    .showcase-footer {
-      font-size: 11.5px;
-      color: #67736D;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .auth-card {
-      width: 100%;
-      max-width: 460px;
-      background: var(--bg-surface);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 24px;
-      padding: 32px 36px;
-      box-shadow: 0 20px 25px -5px rgba(255, 255, 255, 0.05), 0 10px 10px -5px rgba(255, 255, 255, 0.02);
-      transition: all 300ms ease;
-    }
-
-    .auth-card:hover {
-      box-shadow: 0 25px 35px -5px rgba(255, 255, 255, 0.08);
-      border-color: #2A3531;
-    }
-
-    .auth-input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      position: relative;
-    }
-
-    .auth-input-field {
-      width: 100%;
-      background: #141A18 !important;
-      border: 1px solid #2A3531 !important;
-      border-radius: 14px !important;
-      color: #EDF3EF !important;
-      padding: 13px 16px 13px 44px !important;
-      font-size: 13.5px !important;
-      transition: all 200ms ease !important;
-      outline: none !important;
-    }
-
-    .auth-input-field:focus {
-      border-color: #C6F24E !important;
-      box-shadow: 0 0 0 3px rgba(198, 242, 78, 0.1) !important;
-      background: var(--bg-surface) !important;
-    }
-
-    .auth-input-icon {
-      position: absolute;
-      left: 15px;
-      top: 36px;
-      width: 17px;
-      height: 17px;
-      color: #67736D;
-      transition: color 200ms ease;
-    }
-
-    .auth-input-field:focus + .auth-input-icon,
-    .auth-input-group:focus-within .auth-input-icon {
-      color: #C6F24E;
-    }
-
-    .social-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
-      border-radius: 14px;
-      background: var(--bg-surface);
-      border: 1px solid #2A3531;
-      cursor: pointer;
-      transition: all 200ms ease;
-    }
-
-    .social-btn:hover {
-      background: #141A18;
-      border-color: #67736D;
-      transform: translateY(-2px);
-    }
-
-    .social-btn:active {
-      transform: translateY(0);
-    }
-
-    .btn-primary-teal {
-      background: #C6F24E;
-      color: #0D1110;
-      border: none;
-      border-radius: 14px;
-      padding: 14px 20px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(198, 242, 78, 0.15);
-      transition: all 250ms ease;
-    }
-
-    .btn-primary-teal:hover {
-      background: #C6F24E;
-      filter: brightness(0.9);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(198, 242, 78, 0.25);
-    }
-
-    .btn-primary-teal:active {
-      transform: translateY(0);
-    }
-
-    .btn-primary-teal:disabled {
-      background: #67736D;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .offline-guest-btn {
-      width: 100%;
-      background: var(--bg-surface);
-      border: 1px solid #2A3531;
-      border-radius: 14px;
-      color: #A3AFA9;
-      padding: 12px;
-      font-size: 12.5px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 200ms ease;
-    }
-
-    .offline-guest-btn:hover {
-      background: #141A18;
-      border-color: #67736D;
-      color: #EDF3EF;
-    }
-
-    .security-badge-card {
-      background: #141A18;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
-      padding: 12px 14px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-top: 18px;
-    }
-
-    .toggle-pass-btn {
-      position: absolute;
-      right: 14px;
-      top: 36px;
-      background: none;
-      border: none;
-      color: #67736D;
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 5px;
-      transition: color 150ms ease;
-    }
-
-    .toggle-pass-btn:hover {
-      color: #EDF3EF;
-    }
-
-    /* OTP Inputs styling */
-    .otp-inputs-grid {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 8px;
-      margin: 12px 0;
-    }
-
-    .otp-box {
-      width: 100%;
-      height: 48px;
-      border-radius: 12px;
-      border: 1px solid #2A3531;
-      background: #141A18;
-      color: #EDF3EF;
-      font-size: 20px;
-      font-weight: 700;
-      text-align: center;
-      outline: none;
-      transition: all 200ms ease;
-    }
-
-    .otp-box:focus {
-      border-color: #C6F24E;
-      background: var(--bg-surface);
-      box-shadow: 0 0 0 3px rgba(198, 242, 78, 0.1);
-    }
-
-    .toggle-link-btn {
-      background: none;
-      border: none;
-      color: #C6F24E;
-      font-weight: 600;
-      cursor: pointer;
-      padding: 0;
-      font-size: 13px;
-      transition: color 150ms ease;
-    }
-
-    .toggle-link-btn:hover {
-      color: #C6F24E;
-      text-decoration: underline;
-    }
-
-    .help-provider-card {
-      background: rgba(217, 119, 6, 0.04);
-      border: 1px solid rgba(217, 119, 6, 0.15);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 11px;
-      color: #b45309;
-      line-height: 1.4;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 1023px) {
-      .auth-showcase-panel {
-        display: none !important;
-      }
-      .auth-form-panel {
-        flex: 1;
-        padding: 24px;
-      }
-      .auth-card {
-        padding: 32px 24px;
-      }
-    }
-  `;
+  const title = otpSent ? 'Check your email.' : isSignUp ? 'Create an account.' : hasSupabaseConfig ? 'Sign in.' : 'Continue as a guest.';
+  const description = otpSent
+    ? `Enter the six-digit code sent to ${email}.`
+    : isSignUp
+      ? 'Save your work and pick it up on another device.'
+      : hasSupabaseConfig
+        ? 'Open your saved resumes, interviews, and study plans.'
+        : 'Account sign-in is unavailable here. You can still save your work in this browser.';
 
   return (
-    <div className="auth-split-container">
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
-      
-      {/* Background decoration grid */}
-      <div className="bg-grid-light" />
-
-      {/* LEFT COLUMN: Showcase panel in light theme */}
-      <div className="auth-showcase-panel">
-        <div>
-          {/* Logo brand */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
-            <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              backgroundColor: '#C6F24E',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Brain style={{ width: '20px', height: '20px', color: '#0D1110' }} />
-            </div>
-            <span style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '20px',
-              fontWeight: 600,
-              letterSpacing: '-0.02em',
-              color: '#EDF3EF'
-            }}>
-              HireMind
-            </span>
+    <div className="auth-page">
+      <header className="auth-header">
+        <Brand />
+        <ThemeControl />
+      </header>
+      <main className="auth-layout page-enter">
+        <section className="auth-intro">
+          <div className="margin-mark">
+            <p className="meta-label">Interview preparation</p>
+            <h1>Get ready for<br />your next role<span className="brand-period">.</span></h1>
+            <p>Check your resume against a job description, practise your answers, or make a plan for what to learn next.</p>
           </div>
-
-          <h1 className="showcase-title">
-            Practise interviews, <span>check your resume</span>, plan what to learn.
-          </h1>
-          <p className="showcase-desc">
-            Mock interviews with voice and code, ATS resume checks, and week-by-week study plans. Your work is saved to your account — or in this browser as a guest.
-          </p>
-
-          <div className="features-stack">
-            {/* Sophia / Recruiter Card */}
-            <div className="feature-card">
-              <div className="feature-icon-wrapper cyan">
-                <Brain style={{ width: '20px', height: '20px' }} />
-              </div>
-              <div className="feature-details">
-                <h4>Mock interviews</h4>
-                <p>Answer questions by voice or text. Each answer gets a score and notes on what to improve.</p>
-                <div className="avatar-pill">
-                  <span className="avatar-dot" />
-                  Three interviewers to practise with: Sophia, Marcus and Emily
-                </div>
-              </div>
-            </div>
-
-            {/* Sandbox Card */}
-            <div className="feature-card">
-              <div className="feature-icon-wrapper purple">
-                <Code2 style={{ width: '20px', height: '20px' }} />
-              </div>
-              <div className="feature-details">
-                <h4>Code practice</h4>
-                <p>Solve problems in JavaScript, Python, C++ or Java in the browser. Test cases run on your code.</p>
-              </div>
-            </div>
-
-            {/* ATS Card */}
-            <div className="feature-card">
-              <div className="feature-icon-wrapper amber">
-                <FileText style={{ width: '20px', height: '20px' }} />
-              </div>
-              <div className="feature-details">
-                <h4>Resume checks</h4>
-                <p>See your ATS score, which keywords are missing, and what to fix first.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="showcase-footer">
-          <CheckCircle2 style={{ width: '14px', height: '14px', color: '#C6F24E' }} />
-          <span>Free to try as a guest — no account needed.</span>
-        </div>
-      </div>
-
-      {/* RIGHT COLUMN: Auth Card */}
-      <div className="auth-form-panel">
-        <div className="auth-card">
-          
-          {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div style={{
-              width: '46px',
-              height: '46px',
-              borderRadius: '14px',
-              backgroundColor: 'rgba(198, 242, 78, 0.06)',
-              border: '1px solid rgba(198, 242, 78, 0.15)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '16px'
-            }}>
-              <Shield style={{ width: '20px', height: '20px', color: '#C6F24E' }} />
-            </div>
-            
-            <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#EDF3EF', marginBottom: '6px', fontFamily: 'var(--font-display)' }}>
-              {isSignUp ? 'Create Cloud Account' : otpSent ? 'Verify OTP Code' : 'Welcome back'}
-            </h2>
-            <p style={{ fontSize: '13px', color: '#A3AFA9', lineHeight: 1.4 }}>
-              {isSignUp 
-                ? 'Create an account to save your work and sync it across devices.'
-                : otpSent 
-                  ? `Enter the 6-digit code sent to ${email}`
-                  : 'Access your saved interviews, resumes and roadmaps.'
-              }
-            </p>
-          </div>
-
-          {/* Credentials Warning (Unconfigured Supabase) */}
-          {!hasSupabaseConfig && (
-            <div style={{
-              backgroundColor: 'rgba(245, 158, 11, 0.04)',
-              border: '1px solid rgba(245, 158, 11, 0.12)',
-              borderRadius: '14px',
-              padding: '12px 14px',
-              display: 'flex',
-              gap: '10px',
-              marginBottom: '20px'
-            }}>
-              <AlertCircle style={{ width: '16px', height: '16px', color: '#d97706', flexShrink: 0, marginTop: '1px' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#d97706' }}>Supabase Config Offline</span>
-                <span style={{ fontSize: '10px', color: '#A3AFA9', lineHeight: 1.4 }}>
-                  Database variables are not active. Use Offline Guest Mode below to try the app — your work is saved in this browser.
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Error Alert Box */}
-          {errorMsg && (
-            <div style={{
-              backgroundColor: 'rgba(239, 68, 68, 0.04)',
-              border: '1px solid rgba(239, 68, 68, 0.18)',
-              borderRadius: '12px',
-              padding: '10px 14px',
-              display: 'flex',
-              gap: '8px',
-              alignItems: 'center',
-              marginBottom: '20px'
-            }}>
-              <AlertCircle style={{ width: '15px', height: '15px', color: '#ef4444', flexShrink: 0 }} />
-              <span style={{ fontSize: '11.5px', color: '#b91c1c', lineHeight: 1.3 }}>{errorMsg}</span>
-            </div>
-          )}
-
-          {/* Social Authentication Row (Hide if verifying OTP) */}
+          <ul>
+            <li><strong>Resume review</strong><span>Find missing keywords and bullets to rewrite.</span></li>
+            <li><strong>Mock interviews</strong><span>Answer by voice or text and review your feedback.</span></li>
+            <li><strong>Coding practice</strong><span>Run JavaScript or Python against test cases.</span></li>
+          </ul>
+        </section>
+        <section className="auth-form" aria-labelledby="auth-title">
+          <header><h2 id="auth-title">{title}</h2><p>{description}</p></header>
+          {errorMsg && <p role="alert" className="error-text">{errorMsg}</p>}
           {hasSupabaseConfig && !otpSent && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '22px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                {/* Google */}
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin('google')}
-                  className="social-btn"
-                  title="Sign in with Google"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#C4CFC9', padding: '12px' }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" style={{ display: 'block' }}>
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
-                  </svg>
-                  <span>Google</span>
-                </button>
-
-                {/* GitHub */}
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin('github')}
-                  className="social-btn"
-                  title="Sign in with GitHub"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#C4CFC9', padding: '12px' }}
-                >
-                  <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" style={{ display: 'block', color: '#181717' }}>
-                    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
-                  </svg>
-                  <span>GitHub</span>
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', margin: '10px 0 0 0', gap: '10px' }}>
-                <div style={{ flexGrow: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }} />
-                <span style={{ fontSize: '10px', color: '#67736D', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Or continue with credentials</span>
-                <div style={{ flexGrow: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }} />
-              </div>
-
-              {/* Developer Configuration Assistance */}
-              {errorMsg && errorMsg.includes("provider is not enabled") && (
-                <div className="help-provider-card">
-                  <strong>Fix Unsupported Provider</strong>: Log in to your <strong>Supabase Dashboard</strong> &rarr; <strong>Auth</strong> &rarr; <strong>Providers</strong>, expand <strong>Google</strong> / <strong>GitHub</strong>, toggle to <strong>Enabled</strong>, and paste your Developer Client Credentials.
-                </div>
-              )}
+            <div className="auth-options">
+              <Button variant="ghost" onClick={() => handleSocialLogin('google')}>Google</Button>
+              <Button variant="ghost" onClick={() => handleSocialLogin('github')}>GitHub</Button>
             </div>
           )}
-
-          {/* FLOW A: OTP Code Verification UI */}
-          {otpSent ? (
-            <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#A3AFA9' }}>6-Digit Verification Code</label>
-                
-                <div className="otp-inputs-grid">
-                  {otpCode.map((digit, idx) => (
+          {hasSupabaseConfig && (otpSent ? (
+            <form className="form-stack" onSubmit={handleVerifyOtp}>
+              <fieldset className="otp-field">
+                <legend>Verification code</legend>
+                <div className="otp-inputs">
+                  {otpCode.map((digit, index) => (
                     <input
-                      key={idx}
+                      key={index}
                       type="text"
+                      aria-label={`Digit ${index + 1}`}
                       maxLength={1}
                       value={digit}
-                      ref={(el) => (inputRefs.current[idx] = el)}
-                      onChange={(e) => handleOtpChange(e.target, idx)}
-                      onKeyDown={(e) => handleOtpKeyDown(e, idx)}
-                      onPaste={idx === 0 ? handleOtpPaste : undefined}
-                      className="otp-box"
-                      pattern="\d*"
+                      ref={(element) => { inputRefs.current[index] = element; }}
+                      onChange={(event) => handleOtpChange(event.currentTarget, index)}
+                      onKeyDown={(event) => handleOtpKeyDown(event, index)}
+                      onPaste={handleOtpPaste}
                       inputMode="numeric"
-                      autoFocus={idx === 0}
+                      autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                      autoFocus={index === 0}
                     />
                   ))}
                 </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary-teal"
-                style={{ width: '100%' }}
-              >
-                {loading ? (
-                  <span className="rotating-brain" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid #0D1110', borderTopColor: 'transparent', borderRadius: '50%', animation: 'pulseSoft 1.2s infinite ease-in-out' }} />
-                ) : (
-                  <>
-                    Verify Code & Login
-                    <ArrowRight style={{ width: '14px', height: '14px' }} />
-                  </>
-                )}
-              </button>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOtpSent(false);
-                    setOtpCode(Array(6).fill(''));
-                  }}
-                  className="toggle-link-btn"
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <ChevronLeft style={{ width: '14px', height: '14px' }} />
-                  Change Email
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSendOtp}
-                  disabled={countdown > 0 || loading}
-                  className="toggle-link-btn"
-                >
-                  {countdown > 0 ? `Resend in ${countdown}s` : 'Resend Code'}
-                </button>
+              </fieldset>
+              <Button type="submit" loading={loading}>Verify code <ArrowRight size={16} aria-hidden="true" /></Button>
+              <div className="auth-options">
+                <button type="button" className="text-control" onClick={() => { setOtpSent(false); setOtpType('email'); setOtpCode(Array(6).fill('')); setErrorMsg(null); }}>Change email</button>
+                <button type="button" className="text-control" onClick={handleSendOtp} disabled={countdown > 0 || loading}>{countdown ? `Resend in ${countdown}s` : 'Resend code'}</button>
               </div>
             </form>
           ) : (
-            /* FLOW B: Standard Password or OTP Initiation Forms */
-            <form onSubmit={authMethod === 'password' ? handleSubmit : (e) => { e.preventDefault(); handleSendOtp(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              
-              {isSignUp && authMethod === 'password' && (
-                <>
-                  {/* Full Name */}
-                  <div className="auth-input-group">
-                    <label>Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Your full name"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="auth-input-field"
-                    />
-                    <User className="auth-input-icon" />
-                  </div>
-
-                  {/* Target Role */}
-                  <div className="auth-input-group">
-                    <label>Target Job Role</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Senior React Engineer"
-                      value={targetRole}
-                      onChange={(e) => setTargetRole(e.target.value)}
-                      className="auth-input-field"
-                    />
-                    <Briefcase className="auth-input-icon" />
-                  </div>
-                </>
-              )}
-
-              {/* Email Address */}
-              <div className="auth-input-group">
-                <label>Email Address</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="candidate@hiremind.ai"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="auth-input-field"
-                />
-                <Mail className="auth-input-icon" />
-              </div>
-
-              {/* Password field - Hide if in OTP initialization mode */}
-              {authMethod === 'password' && (
-                <div className="auth-input-group" style={{ position: 'relative' }}>
-                  <label>Password</label>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="auth-input-field"
-                  />
-                  <Lock className="auth-input-icon" />
-                  <button
-                    type="button"
-                    className="toggle-pass-btn"
-                    onClick={() => setShowPassword(!showPassword)}
-                    title={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff style={{ width: '16px', height: '16px' }} /> : <Eye style={{ width: '16px', height: '16px' }} />}
-                  </button>
-                </div>
-              )}
-
-              {/* Action Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary-teal"
-                style={{ width: '100%', marginTop: '8px' }}
-              >
-                {loading ? (
-                  <span className="rotating-brain" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid #0D1110', borderTopColor: 'transparent', borderRadius: '50%', animation: 'pulseSoft 1.2s infinite ease-in-out' }} />
-                ) : (
+            <>
+              <form className="form-stack" onSubmit={authMethod === 'password' ? handleSubmit : (event) => { event.preventDefault(); void handleSendOtp(); }}>
+                {isSignUp && (
                   <>
-                    {authMethod === 'password' 
-                      ? (isSignUp ? 'Create Cloud Account' : 'Sign In To Dashboard') 
-                      : 'Send OTP Verification Code'
-                    }
-                    <ArrowRight style={{ width: '14px', height: '14px' }} />
+                    <label>Full name<input required autoComplete="name" value={fullName} onChange={(event) => setFullName(event.target.value)} /></label>
+                    <label>Target role<input required value={targetRole} onChange={(event) => setTargetRole(event.target.value)} /></label>
                   </>
                 )}
-              </button>
-
-              {/* Toggle Login Option (OTP vs Password) - Only when signing in */}
-              {!isSignUp && (
-                <div style={{ textAlign: 'center', marginTop: '4px' }}>
-                  {authMethod === 'password' ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAuthMethod('otp');
-                        setErrorMsg(null);
-                      }}
-                      className="toggle-link-btn"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                    >
-                      <KeyRound style={{ width: '14px', height: '14px' }} />
-                      Sign in with passwordless OTP Code
+                <label>Email<input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>
+                {authMethod === 'password' && (
+                  <div className="password-field">
+                    <label htmlFor="auth-password">Password</label>
+                    <input id="auth-password" type={showPassword ? 'text' : 'password'} autoComplete={isSignUp ? 'new-password' : 'current-password'} required value={password} onChange={(event) => setPassword(event.target.value)} />
+                    <button type="button" className="icon-control" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                      {showPassword ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
                     </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAuthMethod('password');
-                        setErrorMsg(null);
-                      }}
-                      className="toggle-link-btn"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                    >
-                      <Lock style={{ width: '14px', height: '14px' }} />
-                      Sign in with email & password
-                    </button>
-                  )}
-                </div>
-              )}
-            </form>
-          )}
-
-          {/* Toggle Mode Link (Sign Up vs Sign In) - Hide if verifying OTP */}
+                  </div>
+                )}
+                <Button type="submit" loading={loading}>
+                  {isSignUp ? 'Create account' : authMethod === 'password' ? 'Sign in' : 'Send email code'} <ArrowRight size={16} aria-hidden="true" />
+                </Button>
+              </form>
+              <div className="auth-options">
+                {!isSignUp && (
+                  <button type="button" className="text-control" onClick={() => { setAuthMethod(authMethod === 'password' ? 'otp' : 'password'); setErrorMsg(null); }}>
+                    {authMethod === 'password' ? 'Use an email code' : 'Use a password'}
+                  </button>
+                )}
+                <button type="button" className="text-control" onClick={() => { setIsSignUp(!isSignUp); setAuthMethod('password'); setErrorMsg(null); }}>
+                  {isSignUp ? 'Back to sign in' : 'Create an account'}
+                </button>
+              </div>
+            </>
+          ))}
           {!otpSent && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', marginTop: '20px', fontSize: '13px', color: '#A3AFA9' }}>
-              <span>{isSignUp ? 'Already have an account?' : 'New to HireMind?'}</span>
-              <button
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  // Default signup to password method
-                  setAuthMethod('password');
-                  setErrorMsg(null);
-                }}
-                className="toggle-link-btn"
-              >
-                {isSignUp ? 'Sign In' : 'Sign Up'}
-              </button>
+            <div className={hasSupabaseConfig ? 'guest-option' : ''}>
+              <Button variant={hasSupabaseConfig ? 'subtle' : 'primary'} onClick={handleGuestMode}>
+                Continue as guest <ArrowRight size={16} aria-hidden="true" />
+              </Button>
+              {hasSupabaseConfig && <p>Your guest work stays in this browser.</p>}
             </div>
           )}
-
-          {/* Separator / Guest Fallback (Hide if verifying OTP) */}
-          {!otpSent && (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0 16px 0', gap: '10px' }}>
-                <div style={{ flexGrow: 1, height: '1px', backgroundColor: '#2A3531' }} />
-                <span style={{ fontSize: '10px', color: '#67736D', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Offline mode</span>
-                <div style={{ flexGrow: 1, height: '1px', backgroundColor: '#2A3531' }} />
-              </div>
-
-              <button
-                onClick={handleGuestMode}
-                className="offline-guest-btn"
-              >
-                <User style={{ width: '14px', height: '14px', color: '#5EEAC8' }} />
-                Use Offline Guest Mode (Local Storage)
-              </button>
-            </>
-          )}
-
-          {/* Cryptographic Password Security Tooltip Badge */}
-          <div className="security-badge-card">
-            <LockKeyhole style={{ width: '16px', height: '16px', color: '#5EEAC8', flexShrink: 0 }} />
-            <span style={{ fontSize: '10.5px', color: '#A3AFA9', lineHeight: 1.4 }}>
-              <strong>Where your work lives</strong>: it is saved to your account when you sign in, or only in this browser as a guest.
-            </span>
-          </div>
-
-        </div>
-      </div>
+        </section>
+      </main>
+      <footer className="auth-footer"><a href="#/privacy">Privacy and data</a></footer>
     </div>
   );
 };

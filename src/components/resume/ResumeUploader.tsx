@@ -1,11 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, CheckCircle, AlertCircle, Zap } from 'lucide-react';
+import { Upload, AlertCircle, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import * as pdfjsLib from 'pdfjs-dist';
+import { z } from 'zod';
 
-// Configure the worker CDN source for PDF.js client-side text parsing
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://esm.sh/pdfjs-dist@4.10.38/build/pdf.worker.mjs';
+const roleInput = z.string().trim().min(1);
 
 interface ResumeUploaderProps {
   onAnalyze: (resumeText: string, jobRole: string, experienceLevel: string, jobDescription?: string) => Promise<void>;
@@ -33,8 +31,9 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
 
   // Extract raw text from PDF blocks using pdfjs-dist in the browser
   const extractTextFromPdf = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const [pdfjs, arrayBuffer] = await Promise.all([import('pdfjs-dist'), file.arrayBuffer()]);
+    pdfjs.GlobalWorkerOptions.workerSrc = 'https://esm.sh/pdfjs-dist@4.10.38/build/pdf.worker.mjs';
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
     let fullText = '';
     
     // Resumes are a few pages; cap the work so a pathological multi-hundred
@@ -117,13 +116,6 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
 
   // Keyboard users cannot click the dropzone: Enter/Space opens the file
   // picker, and the focus ring comes from the global :focus-visible rule.
-  const onDropzoneKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      triggerFileSelect();
-    }
-  };
-
   const handleSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     // Clear the input so picking the same file again still fires onChange.
@@ -139,8 +131,9 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!jobRole.trim()) {
-      setParseError('Target job role is required.');
+    const role = roleInput.safeParse(jobRole);
+    if (!role.success) {
+      setParseError('Enter the target role.');
       return;
     }
     if (!resumeText.trim()) {
@@ -151,174 +144,55 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
       setParseError('That resume text looks too short to audit — please paste the full resume.');
       return;
     }
-    onAnalyze(resumeText, jobRole, experienceLevel, jobDescription);
+    void onAnalyze(resumeText, role.data, experienceLevel, jobDescription);
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      {/* Target Config */}
-      <div className="uploader-config-grid">
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label>Target Job Title</label>
-          <input
-            type="text"
-            required
-            placeholder="e.g. Senior Frontend Engineer"
-            value={jobRole}
-            onChange={(e) => setJobRole(e.target.value)}
-          />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label>Experience Tier</label>
-          <select
-            value={experienceLevel}
-            onChange={(e) => setExperienceLevel(e.target.value)}
-          >
-            <option value="0-2 YEARS">Junior Level (0-2y)</option>
-            <option value="2-5 YEARS">Experienced (2-5y)</option>
-            <option value="5+ YEARS">Senior / Staff (5+y)</option>
-            <option value="10+ YEARS">Principal / Executive (10+y)</option>
+    <form onSubmit={handleSubmit} className="form-stack form-work">
+      <div className="control-pair">
+        <label className="form-field">Target role
+          <input required placeholder="Frontend engineer" value={jobRole} onChange={(event) => setJobRole(event.target.value)} />
+        </label>
+        <label className="form-field">Experience level
+          <select value={experienceLevel} onChange={(event) => setExperienceLevel(event.target.value)}>
+            <option value="0-2 YEARS">Junior (0–2 years)</option>
+            <option value="2-5 YEARS">Experienced (2–5 years)</option>
+            <option value="5+ YEARS">Senior or staff (5+ years)</option>
+            <option value="10+ YEARS">Principal or executive (10+ years)</option>
           </select>
-        </div>
+        </label>
       </div>
 
-      {/* Drag & Drop Box */}
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label={fileName ? `Resume file ${fileName} loaded. Activate to choose a different PDF.` : 'Upload resume PDF. Activate to browse for a file, or drop a PDF here.'}
+      <input type="file" ref={fileInputRef} hidden accept=".pdf" onChange={handleSelectFile} />
+      <button
+        type="button"
+        className="upload-field"
+        data-dragging={isDragging}
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         onClick={triggerFileSelect}
-        onKeyDown={onDropzoneKeyDown}
-        style={{
-          border: isDragging ? '2px dashed var(--accent-primary)' : '2px dashed var(--border-active)',
-          backgroundColor: isDragging ? 'var(--bg-hover)' : 'var(--bg-surface)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '48px 24px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'all 200ms ease',
-          textAlign: 'center'
-        }}
+        disabled={parsing}
+        aria-busy={parsing}
       >
-        <input
-          type="file"
-          ref={fileInputRef}
-          style={{ display: 'none' }}
-          accept=".pdf"
-          onChange={handleSelectFile}
-        />
-        
-        {parsing ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-            <div 
-              style={{
-                width: '48px',
-                height: '48px',
-                border: '4px solid var(--accent-primary)',
-                borderTopColor: 'transparent',
-                borderRadius: '50%',
-                animation: 'spinBrain 1s linear infinite'
-              }}
-            />
-            <span style={{ fontSize: 'var(--text-sm)', color: 'var(--accent-primary)', fontWeight: 600 }}>
-              Reading the PDF text…
-            </span>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-            <UploadCloud
-              style={{ 
-                width: '48px', 
-                height: '48px', 
-                color: fileName ? 'var(--accent-primary)' : 'var(--text-muted)' 
-              }} 
-            />
-            {fileName ? (
-              <>
-                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--accent-primary)', fontWeight: 600 }}>
-                  {fileName} loaded successfully
-                </span>
-                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                  Click or drag another file to replace
-                </span>
-              </>
-            ) : (
-              <>
-                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)', fontWeight: 600 }}>
-                  Drop your resume here or click to browse
-                </span>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  PDF documents only, up to 5MB
-                </span>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+        {parsing ? <span className="busy-mark" aria-hidden="true" /> : <Upload size={20} aria-hidden="true" />}
+        <span>
+          <strong>{parsing ? 'Reading your PDF…' : fileName || 'Choose a resume PDF'}</strong>
+          <small>{fileName ? 'Choose or drop a PDF to replace it' : 'Or drop a PDF here. Up to 5 MB.'}</small>
+        </span>
+      </button>
 
-      {parseError && (
-        <div 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '12px', 
-            padding: '12px 16px', 
-            backgroundColor: 'color-mix(in srgb, var(--accent-danger) 10%, transparent)', 
-            border: '1px solid var(--accent-danger)', 
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--accent-danger)',
-            fontSize: 'var(--text-xs)',
-            fontWeight: 600
-          }}
-        >
-          <AlertCircle style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-          <span>{parseError}</span>
-        </div>
-      )}
+      {parseError && <p className="form-error" role="alert"><AlertCircle size={16} aria-hidden="true" />{parseError}</p>}
 
-      {/* Text fallback fields */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <label>Or paste resume text directly</label>
-        <textarea
-          rows={10}
-          placeholder="Paste your professional credentials, work experience, and profile details..."
-          value={resumeText}
-          onChange={(e) => setResumeText(e.target.value)}
-          style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', lineHeight: 1.6 }}
-        />
-      </div>
-
-      {/* Target Job description field */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <label>Target Job Description (Optional, for precise keyword audit)</label>
-        <textarea
-          rows={5}
-          placeholder="Paste job details or requirement lists here..."
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
-          style={{ fontSize: 'var(--text-xs)', lineHeight: 1.5 }}
-        />
-      </div>
-
-      {/* Clean button using Lucide icon prop instead of raw emoji */}
-      <Button
-        type="submit"
-        variant="primary"
-        loading={loading}
-        disabled={loading || parsing || (!resumeText.trim() && !fileName)}
-        icon={<Zap style={{ width: '16px', height: '16px' }} />}
-        style={{ width: '100%', padding: '16px 20px', borderRadius: 'var(--radius-md)' }}
-      >
-        Initiate Career Document Audit
+      <label className="form-field">Resume text
+        <textarea rows={7} placeholder="Paste your resume or review the text extracted from your PDF." value={resumeText} onChange={(event) => setResumeText(event.target.value)} />
+      </label>
+      <label className="form-field">Job description <span className="muted">(optional)</span>
+        <textarea rows={4} placeholder="Paste the job description to check its keywords." value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} />
+      </label>
+      <Button type="submit" loading={loading} disabled={parsing || !resumeText.trim()}>
+        Review resume <ArrowRight size={16} aria-hidden="true" />
       </Button>
     </form>
   );

@@ -27,20 +27,10 @@ export const GoogleAIKeyConnect: React.FC<Props> = ({ variant = 'icon', onOpen }
       {variant === 'icon' ? (
         <button
           onClick={openModal}
-          className="btn-press"
-          style={{
-            position: 'relative',
-            color: connected ? 'var(--accent-primary)' : 'var(--text-secondary)',
-            padding: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '50%',
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            cursor: 'pointer'
-          }}
-          title={connected ? 'Google AI key connected' : 'Connect your free Google AI key'}
+          type="button"
+          className="icon-control"
+          aria-label={connected ? 'Google AI key connected' : 'Connect Google AI key'}
+          title={connected ? 'Google AI key connected' : 'Connect Google AI key'}
         >
           <KeyRound style={{ width: '18px', height: '18px' }} />
         </button>

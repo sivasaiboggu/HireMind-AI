@@ -1,7 +1,5 @@
-import React from 'react';
 import { PhaseCard } from './PhaseCard';
-import { Phase } from '../../types';
-import '../../styles/globals.css';
+import type { Phase } from '../../types';
 
 interface RoadmapTimelineProps {
   phases: Phase[];
@@ -9,75 +7,21 @@ interface RoadmapTimelineProps {
   onToggleComplete: (phaseId: string) => void;
 }
 
-export const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
-  phases = [],
-  completedPhases = [],
-  onToggleComplete
-}) => {
+export function RoadmapTimeline({ phases = [], completedPhases = [], onToggleComplete }: RoadmapTimelineProps) {
+  const nextPhase = phases.find((phase) => !completedPhases.includes(phase.id));
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
-      <div 
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '24px',
-          position: 'relative',
-          paddingLeft: '24px'
-        }}
-        className="timeline-wrapper"
-      >
-        {/* Timeline connector line */}
-        <div 
-          style={{
-            position: 'absolute',
-            left: '8px',
-            top: '24px',
-            bottom: '24px',
-            width: '2px',
-            backgroundColor: 'var(--accent-primary)',
-            opacity: 0.3
-          }}
-        />
-
-        {phases.map((phase, idx) => {
-          const isCompleted = completedPhases.includes(phase.id);
-          return (
-            <div 
-              key={phase.id}
-              style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'flex-start',
-                width: '100%'
-              }}
-            >
-              {/* Timeline bubble node marker */}
-              <div 
-                style={{
-                  position: 'absolute',
-                  left: '-24px',
-                  top: '16px',
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--bg-base)',
-                  border: `3px solid ${isCompleted ? 'var(--accent-primary)' : 'var(--accent-purple)'}`,
-                  zIndex: 10,
-                  transform: 'translateX(-50%)',
-                  transition: 'all 200ms ease'
-                }}
-              />
-
-              <PhaseCard
-                phase={phase}
-                completed={isCompleted}
-                onToggleComplete={() => onToggleComplete(phase.id)}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <ol className="study-timeline" aria-label="Study phases">
+      {phases.map((phase) => {
+        const completed = completedPhases.includes(phase.id);
+        return (
+          <li key={phase.id} aria-current={phase.id === nextPhase?.id ? 'step' : undefined}>
+            <PhaseCard phase={phase} completed={completed} onToggleComplete={() => onToggleComplete(phase.id)} />
+          </li>
+        );
+      })}
+    </ol>
   );
-};
+}
+
 export default RoadmapTimeline;

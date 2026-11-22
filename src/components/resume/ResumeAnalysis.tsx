@@ -7,7 +7,7 @@ import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { ResumeAnalysis as IResumeAnalysis } from '../../types';
-import { Check, X, Award, Info, FileEdit, CheckSquare, Copy, CheckCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Check, X, Info, FileEdit, CheckSquare, Copy, CheckCheck, ArrowRight } from 'lucide-react';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
@@ -86,67 +86,16 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
-      {/* Navigation Re-Audit Trigger */}
-      <div>
-        <button
-          onClick={onReset}
-          style={{
-            fontSize: '11px',
-            color: 'var(--text-secondary)',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            padding: '8px 16px',
-            backgroundColor: 'var(--bg-elevated)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}
-          className="btn-press"
-        >
-          <ArrowLeft style={{ width: '14px', height: '14px' }} /> Run Another Resume Audit
-        </button>
-      </div>
-
-      {/* Target summary banner */}
-      <div 
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '12px',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          backgroundColor: 'rgba(198, 242, 78, 0.03)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '24px'
-        }}
-      >
+      <div className="analysis-summary">
         <div>
-          <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
-            Strategic Resume Audit Results
-          </h2>
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Target: <span className="text-cyan" style={{ fontWeight: 600 }}>{jobRole}</span> ({experienceLevel})
-          </div>
+          <h2>Overall review</h2>
+          <p className="muted">{jobRole} · {experienceLevel}</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
-              Overall
-            </div>
-            <div style={{ fontSize: 'var(--text-xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--text-primary)', lineHeight: 1.2 }}>
-              {analysis.overallScore}
-              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>/100</span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: signal.color, fontSize: 'var(--text-xs)', fontWeight: 600 }}>
-            <Award style={{ width: '18px', height: '18px' }} />
-            <span>{signal.label}</span>
-          </div>
+        <div className="summary-verdict">
+          <strong className="numeric">{analysis.overallScore}<small>/100</small></strong>
+          <span style={{ color: signal.color }}>{signal.label}</span>
         </div>
+        <Button variant="ghost" onClick={onReset}>Review another resume <ArrowRight size={16} aria-hidden="true" /></Button>
       </div>
 
       {/* How the score is built + what to fix next */}
@@ -170,7 +119,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <FileEdit style={{ width: '18px', height: '18px', color: 'var(--accent-primary)' }} />
-                <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>AI Rewrite Proposals</h3>
+                <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Suggested rewrites</h3>
               </div>
               {analysis.rewrites.length > 0 && (
                 <Button variant="ghost" onClick={handleCopyAll} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
@@ -211,7 +160,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                     </Button>
                   </div>
                   <div className="rewrite-compare-grid">
-                    <div style={{ borderLeft: '2px solid rgba(242, 109, 92, 0.4)', paddingLeft: '12px' }}>
+                    <div style={{ borderLeft: '2px solid var(--danger-wash)', paddingLeft: '12px' }}>
                       <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-danger)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
                         Before (weak bullet)
                       </div>
@@ -222,7 +171,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
                     <div className="rewrite-compare-arrow" aria-hidden="true">
                       <ArrowRight style={{ width: '18px', height: '18px' }} />
                     </div>
-                    <div style={{ borderLeft: '2px solid rgba(198, 242, 78, 0.4)', paddingLeft: '12px' }}>
+                    <div style={{ borderLeft: '2px solid var(--accent-wash)', paddingLeft: '12px' }}>
                       <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
                         After (STAR framework)
                       </div>
@@ -248,11 +197,11 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
         {/* Right Column: Recommendations and Checklist */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
-          {/* 1. Top Recommendations */}
+          {/* 1. What to fix first */}
           <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Info style={{ width: '18px', height: '18px', color: 'var(--accent-primary)' }} />
-              <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Top Recommendations</h3>
+              <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>What to fix first</h3>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -287,7 +236,7 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
           <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <CheckSquare style={{ width: '18px', height: '18px', color: 'var(--accent-primary)' }} />
-              <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>ATS Checklist Audit</h3>
+              <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>ATS checklist</h3>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

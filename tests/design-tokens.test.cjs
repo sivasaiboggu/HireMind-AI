@@ -12,7 +12,7 @@ function luminance(hex) {
   const c = hex.replace('#', '');
   const f = (i) => {
     const v = parseInt(c.substr(i, 2), 16) / 255;
-    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
   };
   return 0.2126 * f(0) + 0.7152 * f(2) + 0.0722 * f(4);
 }
@@ -116,6 +116,20 @@ test('tokens.json contrast table matches the CSS fallbacks', () => {
     for (const [token, entry] of Object.entries(tokens.color[theme])) {
       assert.equal(entry.hex.toLowerCase(), (css[token] || '').toLowerCase(),
         `tokens.json ${theme} ${token} ${entry.hex} != globals.css ${css[token]}`);
+    }
+  }
+});
+
+test('documented text and control contrast holds on all measured surfaces', () => {
+  const { contrast: measured } = JSON.parse(fs.readFileSync(path.join(ROOT, 'src/styles/tokens.json'), 'utf8'));
+  for (const [theme, selector] of [['dark', ':root'], ['light', "[data-theme='light']"]]) {
+    const css = hexTokens(themeBlock(selector));
+    for (const [pair, recorded] of Object.entries(measured[theme])) {
+      const [foreground, background] = pair.split(' / ');
+      const minimum = foreground === 'border-active' ? 3 : 4.5;
+      const ratio = contrast(css[foreground], css[background]);
+      assert.equal(Number(ratio.toFixed(2)), recorded, `${theme} ${pair} has a stale ratio`);
+      assert.ok(ratio >= minimum, `${theme} ${pair} is below ${minimum}:1`);
     }
   }
 });

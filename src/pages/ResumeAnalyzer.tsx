@@ -1,3 +1,4 @@
+import { PageHeading, WorkSheet } from '../components/ui/PageHeading';
 import React, { useState, useRef } from 'react';
 import { ResumeUploader } from '../components/resume/ResumeUploader';
 import { ATSScoreCard } from '../components/resume/ATSScoreCard';
@@ -150,16 +151,17 @@ export const ResumeAnalyzer: React.FC = () => {
   const displayAnalysis = activeResume;
 
   return (
-    <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      
-      {/* Page description */}
-      {!loading && !displayAnalysis && (
-        <div>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-            Check your resume against ATS requirements and get concrete rewrites for weak bullets.
-          </p>
-        </div>
-      )}
+    <div className="container tool-page page-enter">
+      <PageHeading
+        title={displayAnalysis ? 'Resume results' : 'Resume review'}
+        action={displayAnalysis && !loading && (
+          <Button variant="ghost" onClick={handleDownloadReport}>
+            <Download size={16} aria-hidden="true" /> Download report
+          </Button>
+        )}
+      >
+        {displayAnalysis ? displayAnalysis.jobRole : 'Check how your resume lines up with the job you want.'}
+      </PageHeading>
 
       {/* Loading State Skeleton */}
       {loading && (
@@ -199,9 +201,19 @@ export const ResumeAnalyzer: React.FC = () => {
 
       {/* Input Form / Uploader */}
       {!loading && !displayAnalysis && (
-        <Card hoverable={false} style={{ maxWidth: '800px', margin: '0 auto', width: '100%', padding: '32px' }}>
+        <WorkSheet note={
+          <>
+            <h2>What you’ll get</h2>
+            <ul>
+              <li>An ATS score and missing keywords.</li>
+              <li>Checks for section structure and formatting.</li>
+              <li>Bullet rewrites when AI review is available.</li>
+            </ul>
+            <p>Add a job description for a closer keyword match.</p>
+          </>
+        }>
           <ResumeUploader onAnalyze={handleAnalyze} loading={loading} />
-        </Card>
+        </WorkSheet>
       )}
 
       {/* Results View */}
@@ -213,17 +225,11 @@ export const ResumeAnalyzer: React.FC = () => {
               <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 <strong style={{ color: 'var(--text-primary)' }}>Local ATS audit.</strong>{' '}
                 {auditReason === 'credits'
-                  ? 'You are out of AI credits, so these scores come from a deterministic on-device audit (keyword coverage, sections, quantified results, format). Refill credits from the sidebar for the full AI review with rewrites and section feedback.'
-                  : 'The AI analysis was unavailable, so these scores come from a deterministic on-device audit (keyword coverage, sections, quantified results, format). Connect a Google AI key for the full AI review with rewrites and section feedback.'}
+                  ? 'You’re out of AI credits. This review checks keywords, sections, numbers, and formatting in your browser. Refill credits to get rewrites and section feedback.'
+                  : 'This review checked keywords, sections, numbers, and formatting in your browser. Connect a Google AI key for rewrites and section feedback.'}
               </p>
             </Card>
           )}
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button variant="ghost" onClick={handleDownloadReport}>
-              <Download style={{ width: '16px', height: '16px' }} /> Download report (.md)
-            </Button>
-          </div>
-          {/* 3 circular progress ring cards */}
           <ATSScoreCard 
             atsScore={displayAnalysis.atsScore} 
             contentScore={displayAnalysis.contentScore} 
@@ -255,13 +261,13 @@ export const ResumeAnalyzer: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--accent-danger)' }}>
             <Terminal style={{ width: '24px', height: '24px' }} />
-            <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Analysis Process Halted</h4>
+            <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Couldn’t review this resume</h4>
           </div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
-            {error.message || 'An unexpected error occurred while processing your resume details. Please try again.'}
+            {error.message || 'Check the resume text and try again.'}
           </p>
           <Button variant="danger" onClick={reset} style={{ width: 'fit-content' }}>
-            Dismiss & Retry
+            Dismiss
           </Button>
         </Card>
       )}

@@ -22,7 +22,7 @@ import {
 } from './prompts';
 import { ResumeAnalysis, Question, AnswerFeedback, Roadmap, InterviewConfig, QuizQuestion } from '../types';
 
-import { supabase, hasSupabaseConfig } from './supabase';
+import { supabase } from './supabase';
 import type { RequestOptions } from '@google/generative-ai';
 
 // Optional authenticated server-side proxy (Supabase edge function). When set
@@ -44,7 +44,7 @@ const handleApiError = (error: unknown, _context: string): never => { throw safe
 
 export class GeminiService {
   private getRequestOptions = async (): Promise<RequestOptions | undefined> => {
-    if (!PROXY_URL || !hasSupabaseConfig) return undefined;
+    if (!PROXY_URL || !supabase) return undefined;
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;

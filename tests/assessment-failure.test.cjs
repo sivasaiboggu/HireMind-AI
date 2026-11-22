@@ -44,10 +44,10 @@ test('real nonempty local test results still submit and advance',async()=>{
  });await run('solve code');assert.equal(answer.q,'solve code');assert.equal(evaluation.q.passRate,.5);assert.equal(evaluation.q.passed,false);assert.equal(index,1);
 });
 test('mobile shell reserves safe-area space and practice controls can wrap',()=>{
- const layout=fs.readFileSync('src/components/layout/Layout.tsx','utf8');
  const quiz=fs.readFileSync('src/pages/QuizPractice.tsx','utf8');const css=fs.readFileSync('src/styles/globals.css','utf8');
- assert.match(layout,/paddingBottom: isMobile \? 'calc\(84px \+ env\(safe-area-inset-bottom, 0px\)\)'/);
- assert.match(layout,/height: 'calc\(60px \+ env\(safe-area-inset-bottom, 0px\)\)'/);
+ assert.match(css,/\.workspace-main\s*\{[^}]*padding-block-end: calc\(64px \+ env\(safe-area-inset-bottom\)\)/);
+ assert.match(css,/\.mobile-nav\s*\{[^}]*padding-block-end: env\(safe-area-inset-bottom\)/);
+ assert.match(css,/\.mobile-nav a\s*\{[^}]*min-block-size: 56px/);
  assert.match(quiz,/className="practice-runner-footer"[^\n]*flexWrap: 'wrap'/);
  assert.match(css,/\.practice-runner-actions > button\s*\{[^}]*min-height: 44px/s);
 });
