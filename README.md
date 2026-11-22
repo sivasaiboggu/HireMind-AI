@@ -1,11 +1,11 @@
-# 🧠 HireMind AI 🤖
-### *Premium AI-Powered Career Strategy OS & Intelligence Hub*
+# HireMind AI
+### Resume checks, mock interviews and study plans
 
-HireMind AI is an enterprise-grade, single-page career strategic strategy platform. It empowers candidates to run detailed ATS resume audits, participate in mock interview simulators with scorecards, and outline step-by-step upskilling timelines.
+HireMind AI is a single-page app for job preparation. It runs ATS resume audits, mock interview sessions with scorecards, and step-by-step upskilling roadmaps.
 
 ---  
 
-## 🎨 Design System & Premium Aesthetics
+## Design System & Premium Aesthetics
 
 HireMind AI implements a custom dark theme visual identity designed using **pure Vanilla CSS** for maximum flexibility and performance.
 
@@ -21,7 +21,7 @@ HireMind AI implements a custom dark theme visual identity designed using **pure
 
 ---
 
-## 🏗 Modular Architecture
+## Modular Architecture
 
 The repository is re-organized under a strict `/src` directory to support clean compilation:
 
@@ -107,7 +107,7 @@ in — guests and signed-out users use their own key instead).
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 *   **Runtime Framework**: React 19 + TypeScript (Strict compiler flags)
 *   **Asset Bundler**: Vite 6
@@ -119,7 +119,7 @@ in — guests and signed-out users use their own key instead).
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 
 
@@ -191,7 +191,7 @@ npm run typecheck
 
 ---
 
-## 👤 Author & Strategy
+## Author & Strategy
 
 **Boggu Sivasai** - Full Stack Developer
 *   **GitHub**: [sivasaiboggu](https://github.com/sivasaiboggu)
@@ -358,6 +358,48 @@ invalid counts and source preservation. These are practice themes, not verified
 company interview histories. AI-generated question quality remains unverified.
 
 ## Changelog
+
+### 0.0.6 (22 Nov 2026)
+- Relative asset paths (`base: './'` in `vite.config.ts`): the built app
+  was blank from `file://` and GitHub Pages because `dist/index.html`
+  referenced absolute `/assets` paths.
+- Plain copy: page title and meta no longer make premium or
+  AI-superlative claims about the product; loading screens no longer
+  shout in all caps about
+  "deconstructing documents" and "secure handshakes" — they say what is
+  happening, in sentence case. Checkmark, cross, arrow and key glyphs in
+  the UI are real icons or plain words. README headings lost their emoji
+  and the intro lost its "enterprise-grade" claim.
+- One solid accent: logo tiles, buttons, the roadmap timeline connector
+  and the auth showcase no longer blend lime into mint; the auth mesh
+  glows and the interview card's gradient border are gone, along with
+  two dead background classes in `globals.css`. The skeleton shimmer and
+  the faint grid textures stay — loading and texture, not decoration.
+- Logic: career readiness no longer multiplies a lone signal by 0.95
+  (new `src/services/readiness.ts`); the out-of-credits error no longer
+  names a PRO plan that does not exist — guests refill and signed-in
+  users sync from the sidebar; the sidebar credit bar is clamped to
+  100% and its label is honest for signed-in users; the score breakdown
+  says keywords were counted as fully covered when no job description
+  was given instead of claiming they "were not scored". The WebGL
+  background draws one static frame under `prefers-reduced-motion`.
+- Tests: new `tests/copy-guard.test.cjs` fails the build on emoji,
+  banned marketing words, decorative symbols, frosted surfaces,
+  radial glows, entrance animations with per-item delays and
+  decorative motion in user-facing text, so the design playbook
+  checklist is enforced by the build; plus `tests/readiness.test.cjs`
+  and assertions for the no-JD wording and the out-of-credits message.
+  References for the round saved in `DESIGN_REFERENCES.md`.
+- Playbook pass (same release): every frosted surface is now solid
+  (top bar, sidebar panels, cards, modals, overlays, toasts,
+  interview controls and captions); entrance animations with
+  per-item delays, shimmer skeletons, the floating upload icon, the
+  pulsing logo dot and the loading screen's glow blobs, dot pattern
+  and pulsing ring are gone; toasts fade in instead of springing up;
+  data figures use tabular numerals. The auth page no longer claims
+  worldwide users or encryption it cannot promise: it says what the
+  app does in plain words. Full suite re-verified: 178 tests passed,
+  0 failed.
 
 ### 0.0.5 (21 Nov 2026)
 - Senior logic review, DSA practice timer: the countdown used to run the

@@ -14,17 +14,14 @@
   }
 }
 
-/* Card Hover */
+/* Card Hover: border only. Hover lifts (scale/glow) on every card read
+   as decoration, so hoverable cards change their border and nothing else. */
 .animate-hover-card {
-  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1), 
-              border-color 200ms cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .animate-hover-card:hover {
-  transform: scale(1.01);
-  border-color: var(--accent-primary) !important;
-  box-shadow: var(--glow-primary);
+  border-color: var(--border-active) !important;
 }
 
 /* Button Press */
@@ -36,25 +33,10 @@
   transform: scale(0.97);
 }
 
-/* Skeleton Loading Shimmer */
+/* Skeleton Loading: a static block. Animated shimmer is decoration, so
+   loading placeholders are a flat surface until real content arrives. */
 .shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--bg-elevated) 25%,
-    var(--bg-hover) 37%,
-    var(--bg-elevated) 63%
-  );
-  background-size: 400% 100%;
-  animation: skeletonShimmer 1.4s ease infinite;
-}
-
-@keyframes skeletonShimmer {
-  0% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  background: var(--bg-elevated);
 }
 
 /* Typing Cursor Blink */
@@ -114,24 +96,7 @@
   }
 }
 
-/* Pulse Animation for Logo Dot */
-.logo-pulse-dot {
-  animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulseDot {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(198, 242, 78, 0.4);
-  }
-  50% {
-    opacity: .5;
-    transform: scale(1.2);
-    box-shadow: 0 0 8px 4px rgba(198, 242, 78, 0.2);
-  }
-}
-
+/* Score counter count-up transition helper */
 /* Slide in from right panel */
 .slide-in-right {
   animation: slideInRight 350ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -164,37 +129,6 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-/* Staggered entrance for a row/grid of siblings (React Bits style):
-   add `stagger` to the container; each direct child rises in turn. */
-.stagger > * {
-  animation: staggerRise 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.stagger > *:nth-child(1) { animation-delay: 0.02s; }
-.stagger > *:nth-child(2) { animation-delay: 0.08s; }
-.stagger > *:nth-child(3) { animation-delay: 0.14s; }
-.stagger > *:nth-child(4) { animation-delay: 0.2s; }
-.stagger > *:nth-child(5) { animation-delay: 0.26s; }
-.stagger > *:nth-child(6) { animation-delay: 0.32s; }
-
-@keyframes staggerRise {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Floating animation for upload zone icon */
-.floating-icon {
-  animation: floatIcon 4s ease-in-out infinite;
-}
-
-@keyframes floatIcon {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
 }
 
 /* Motion should clarify an action, not become a condition of using it. */

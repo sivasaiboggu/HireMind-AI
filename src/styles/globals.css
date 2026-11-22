@@ -27,11 +27,11 @@
   --glow-amber: rgba(94, 234, 200, 0.14) 0px 10px 22px -8px;
 
   --grid-line: rgba(255, 255, 255, 0.028);
-  --mesh-color-1: rgba(198, 242, 78, 0.035);
-  --mesh-color-2: rgba(94, 234, 200, 0.03);
-  --header-bg: rgba(13, 17, 16, 0.82);
-  --panel-bg: rgba(20, 26, 24, 0.88);
-  --collapse-bg: rgba(20, 26, 24, 0.92);
+  /* Solid surfaces: no frosted glass. The old rgba values plus a blur
+     filter used to soften whatever scrolled underneath. */
+  --header-bg: #0D1110;
+  --panel-bg: #141A18;
+  --collapse-bg: #141A18;
   --modal-overlay: rgba(4, 6, 5, 0.62);
 
   /* Typography */
@@ -63,9 +63,7 @@
   --sidebar-width-collapsed: 68px;
   --topbar-height: 68px;
 
-  /* Glass and shadows */
-  --blur-glass: blur(14px);
-  --blur-deep: blur(28px);
+  /* Shadows */
   --shadow-depth-1: rgba(0, 0, 0, 0.45) 0px 24px 48px -12px, rgba(198, 242, 78, 0.03) 0px 0px 60px 0px;
   --shadow-depth-2: rgba(0, 0, 0, 0.3) 0px 2px 6px 0px;
 }
@@ -120,34 +118,11 @@ input, textarea, select {
 input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
 /* Smooth transitions for theme colors */
-body, header, aside, .glass-panel, input, textarea, select {
+body, header, aside, .panel, input, textarea, select {
   transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
 }
 
 body { overflow-x: hidden; }
-
-/* Grid background */
-.app-grid-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background-color: var(--bg-base);
-  background-image:
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-}
-
-.app-mesh-glow {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(circle at 10% 20%, var(--mesh-color-1) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, var(--mesh-color-2) 0%, transparent 40%);
-  pointer-events: none;
-}
 
 code, pre { font-family: var(--font-mono); }
 
@@ -198,6 +173,10 @@ button {
   .container { padding: 48px; }
 }
 
+/* Data figures use tabular numerals so scores and counts line up instead
+   of wobbling as they change. */
+.numeric { font-variant-numeric: tabular-nums; }
+
 /* Utilities */
 .text-cyan { color: var(--accent-primary) !important; }
 .text-amber { color: var(--accent-secondary) !important; }
@@ -225,17 +204,16 @@ button {
 .bg-rose-subtle { background-color: rgba(242, 109, 92, 0.12) !important; }
 .bg-purple-subtle { background-color: rgba(139, 233, 200, 0.1) !important; }
 
-/* Frosted glass panel */
-.glass-panel {
+/* Panel: a solid surface, never frosted glass */
+.panel {
   background: var(--panel-bg);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  backdrop-filter: var(--blur-glass);
   box-shadow: var(--shadow-depth-1);
   transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 
-.glass-panel:hover { border-color: var(--border-active); }
+.panel:hover { border-color: var(--border-active); }
 
 .flex-center {
   display: flex;
@@ -373,17 +351,15 @@ button {
   --glow-amber: rgba(12, 158, 124, 0.12) 0px 10px 22px -8px;
 
   --grid-line: rgba(0, 0, 0, 0.03);
-  --mesh-color-1: rgba(94, 158, 8, 0.05);
-  --mesh-color-2: rgba(12, 158, 124, 0.045);
-  --header-bg: rgba(245, 247, 242, 0.85);
-  --panel-bg: rgba(255, 255, 255, 0.9);
-  --collapse-bg: rgba(235, 239, 230, 0.92);
+  --header-bg: #F5F7F2;
+  --panel-bg: #FFFFFF;
+  --collapse-bg: #EBEFE6;
   --modal-overlay: rgba(19, 24, 22, 0.4);
 
   --shadow-depth-1: rgba(19, 24, 22, 0.08) 0px 20px 44px -12px;
   --shadow-depth-2: rgba(19, 24, 22, 0.05) 0px 2px 6px 0px;
 }
 
-[data-theme='light'] .glass-panel {
+[data-theme='light'] .panel {
   background: var(--panel-bg);
 }

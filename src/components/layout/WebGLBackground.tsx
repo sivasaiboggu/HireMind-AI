@@ -153,9 +153,7 @@ export const WebGLBackground: React.FC = () => {
     let animationId: number;
     let startTime = Date.now();
 
-    const renderLoop = () => {
-      const elapsedSeconds = (Date.now() - startTime) / 1000.0;
-      
+    const drawFrame = (elapsedSeconds: number) => {
       // Interpolate mouse coordinates for smooth drift parallax
       const mouse = mouseRef.current;
       mouse.x += (mouse.tx - mouse.x) * 0.05;
@@ -169,7 +167,28 @@ export const WebGLBackground: React.FC = () => {
 
       // Draw quad
       gl.drawArrays(gl.TRIANGLES, 0, 6);
+    };
 
+    // Reduced motion: one static frame, no animation loop.
+    const reducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      gl.viewport(0, 0, width, height);
+      drawFrame(0);
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('mousemove', handleMouseMove);
+        gl.deleteBuffer(buffer);
+        gl.deleteShader(vs);
+        gl.deleteShader(fs);
+        gl.deleteProgram(program);
+      };
+    }
+
+    const renderLoop = () => {
+      const elapsedSeconds = (Date.now() - startTime) / 1000.0;
+      drawFrame(elapsedSeconds);
       animationId = requestAnimationFrame(renderLoop);
     };
 

@@ -34,7 +34,7 @@ export const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
             top: '24px',
             bottom: '24px',
             width: '2px',
-            background: 'linear-gradient(to bottom, var(--accent-purple), var(--accent-primary))',
+            backgroundColor: 'var(--accent-primary)',
             opacity: 0.3
           }}
         />

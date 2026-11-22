@@ -70,7 +70,7 @@ export const Sidebar: React.FC = () => {
           top: 0,
           bottom: 0,
           width: '4px',
-          background: 'linear-gradient(to bottom, var(--accent-primary), transparent)',
+          backgroundColor: 'var(--accent-primary)',
           opacity: 0.8
         }}
       />
@@ -94,7 +94,7 @@ export const Sidebar: React.FC = () => {
             width: '28px',
             height: '28px',
             borderRadius: '8px',
-            background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-purple))',
+            backgroundColor: 'var(--accent-primary)',
             color: '#050A0F',
             fontWeight: 700,
             flexShrink: 0
@@ -116,8 +116,7 @@ export const Sidebar: React.FC = () => {
             }}
           >
             HireMind
-            <span 
-              className="logo-pulse-dot"
+            <span
               style={{
                 width: '6px',
                 height: '6px',
@@ -210,7 +209,7 @@ export const Sidebar: React.FC = () => {
               cursor: 'pointer'
             }}
             onClick={resetCredits}
-            title={user ? `Credits: ${credits} left - Click to sync from server` : `Credits: ${credits}% - Click to refill to 100`}
+            title={user ? `Credits: ${credits} left - Click to sync from server` : `Credits: ${credits} left - Click to refill to 100`}
           >
             <Coins style={{ width: '16px', height: '16px', color: 'var(--accent-primary)' }} />
             <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 700 }}>
@@ -253,7 +252,10 @@ export const Sidebar: React.FC = () => {
                   style={{
                     height: '100%',
                     backgroundColor: 'var(--accent-primary)',
-                    width: `${credits}%`,
+                    // A server profile can hold more than the 100-credit
+                    // guest limit; the bar fills at 100 and never overflows
+                    // its track.
+                    width: `${Math.min(100, Math.max(0, credits))}%`,
                     borderRadius: '3px',
                     transition: 'width 500ms ease-in-out'
                   }}
@@ -261,7 +263,7 @@ export const Sidebar: React.FC = () => {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)', marginTop: '6px', fontWeight: 600 }}>
                 <span>{credits} Left</span>
-                <span>100 Limit</span>
+                <span>{user ? 'Synced from account' : '100 limit'}</span>
               </div>
             </div>
           </>

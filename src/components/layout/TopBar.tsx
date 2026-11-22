@@ -104,7 +104,6 @@ export const TopBar: React.FC = () => {
         left: sidebarCollapsed ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width-expanded)',
         zIndex: 40,
         backgroundColor: 'var(--header-bg)',
-        backdropFilter: 'blur(20px)',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',

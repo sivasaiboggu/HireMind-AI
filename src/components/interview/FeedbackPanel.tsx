@@ -71,7 +71,7 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {feedback.strengths.map((str, idx) => (
                   <div key={idx} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.4 }}>
-                    <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>✓</span>
+                    <Check style={{ width: '12px', height: '12px', color: 'var(--accent-primary)', flexShrink: 0, marginTop: '2px' }} />
                     <span>{str}</span>
                   </div>
                 ))}

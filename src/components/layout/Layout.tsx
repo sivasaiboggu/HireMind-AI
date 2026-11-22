@@ -149,7 +149,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   width: '24px',
                   height: '24px',
                   borderRadius: '6px',
-                  background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-purple))',
+                  backgroundColor: 'var(--accent-primary)',
                   color: '#050A0F',
                   fontWeight: 700,
                   fontSize: '12px'
@@ -310,10 +310,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             return (
               <motion.div
                 key={toast.id}
-                initial={{ opacity: 0, y: 50, scale: 0.9, rotateX: -15 }}
-                animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-                exit={{ opacity: 0, scale: 0.85, y: -20, transition: { duration: 0.2 } }}
-                transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: 0.2 } }}
+                transition={{ duration: 0.2 }}
                 style={{
                   display: 'flex',
                   alignItems: 'flex-start',
@@ -322,7 +322,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   borderRadius: 'var(--radius-md)',
                   border,
                   backgroundColor: 'var(--bg-surface)',
-                  backdropFilter: 'blur(8px)',
                   color: 'var(--text-primary)',
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
                   position: 'relative',
@@ -377,7 +376,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             position: 'fixed',
             inset: 0,
             backgroundColor: 'var(--modal-overlay)',
-            backdropFilter: 'blur(12px)',
             zIndex: 1000,
             display: 'flex',
             alignItems: 'flex-start',
@@ -518,8 +516,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 gap: '16px'
               }}
             >
-              <span>↑↓ Navigation</span>
-              <span>↵ Enter to select</span>
+              <span>Up/Down to move</span>
+              <span>Enter to select</span>
             </div>
           </div>
         </div>

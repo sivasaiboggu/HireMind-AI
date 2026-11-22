@@ -91,7 +91,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
           textAlign: 'center'
         }}
       >
-        <span 
+        <span className="numeric"
           style={{
             fontSize: size > 80 ? 'var(--text-2xl)' : 'var(--text-sm)',
             fontWeight: 700,

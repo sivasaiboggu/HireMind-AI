@@ -142,7 +142,7 @@ export const ResumeAnalyzer: React.FC = () => {
       {!loading && !displayAnalysis && (
         <div>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-            Check your resume against ATS requirements and optimize bullet points instantly using AI.
+            Check your resume against ATS requirements and get concrete rewrites for weak bullets.
           </p>
         </div>
       )}
@@ -153,13 +153,13 @@ export const ResumeAnalyzer: React.FC = () => {
           {/* Thinking overlay */}
           <ProgressiveLoader 
             messages={[
-              "DECONSTRUCTING RESUME DOCUMENT & PARSING LAYOUT...",
-              "MATCHING CANDIDATE PROFILE AGAINST INDUSTRY BENCHMARKS...",
-              "ANALYZING WORD CHOICE AND STRUCTURAL VERB IMPACT...",
-              "EVALUATING ATS COMPLIANCE KEYWORDS & REQUIREMENTS...",
-              "FORMULATING ACTIONABLE CRITIQUES & REWRITE SUGGESTIONS..."
+              "Reading the resume text...",
+              "Checking sections and contact details...",
+              "Matching keywords against the job description...",
+              "Checking word choice and bullet verbs...",
+              "Writing the recommendations..."
             ]}
-            subtitle="Benchmarking formatting parameters, structural checklists, and industry keywords against dream recruiter standards."
+            subtitle="This usually takes a few seconds."
           />
 
           {/* Core Skeletons */}

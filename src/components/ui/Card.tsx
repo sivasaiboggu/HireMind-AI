@@ -22,13 +22,12 @@ export const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className={hoverable ? 'glass-panel animate-hover-card' : 'glass-panel'}
+      className={hoverable ? 'panel animate-hover-card' : 'panel'}
       style={{
         padding: '24px',
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
-        backdropFilter: 'var(--blur-glass)',
         boxShadow: getGlowShadow(),
         position: 'relative',
         overflow: 'hidden',

@@ -27,7 +27,7 @@ export const ATSScoreCard: React.FC<ATSScoreCardProps> = ({
     { score: formatScore, title: 'Layout & Formatting', titleColor: 'var(--accent-purple)', glow: 'none' as const, ariaLabel: `Layout and Formatting ${formatScore} out of 100` },
   ];
   return (
-    <div className="score-cards-grid stagger">
+    <div className="score-cards-grid">
       {cards.map((card) => {
         const v = verdict(card.score);
         return (

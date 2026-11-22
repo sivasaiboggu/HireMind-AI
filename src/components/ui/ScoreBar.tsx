@@ -39,7 +39,7 @@ export const ScoreBar: React.FC<ScoreBarProps> = ({
             {label}
           </span>
         )}
-        <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--text-primary)' }}>
+        <span className="numeric" style={{ fontSize: 'var(--text-xs)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--text-primary)' }}>
           {value}/{max}
         </span>
       </div>

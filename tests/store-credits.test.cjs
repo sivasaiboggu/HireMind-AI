@@ -67,3 +67,19 @@ test('addToast honours its duration instead of always using 4000 ms', () => {
   assert.deepEqual(delays, [4000, 9000]);
   assert.equal(s.getState().toasts[1].duration, 9000);
 });
+
+test('out-of-credits error names the real refill route, not a PRO plan', async () => {
+  const guest = store(false);
+  guest.store.setState({ credits: 0 });
+  assert.equal(await guest.store.getState().useCredit(5), false);
+  const guestToast = guest.store.getState().toasts.at(-1).message;
+  assert.match(guestToast, /refresh button in the sidebar to refill to 100/);
+  assert.doesNotMatch(guestToast, /PRO/);
+
+  const signedIn = store();
+  signedIn.store.setState({ user: { id: 'one' }, profile: { id: 'one', credits: 0 }, credits: 0 });
+  assert.equal(await signedIn.store.getState().useCredit(5), false);
+  const signedInToast = signedIn.store.getState().toasts.at(-1).message;
+  assert.match(signedInToast, /sync your credits from your account/);
+  assert.doesNotMatch(signedInToast, /PRO/);
+});

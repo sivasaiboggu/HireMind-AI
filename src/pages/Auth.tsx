@@ -276,37 +276,11 @@ export const Auth: React.FC = () => {
     .bg-grid-light {
       position: absolute;
       inset: 0;
-      background-image: 
-        radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      background-image:
         linear-gradient(rgba(198, 242, 78, 0.008) 1px, transparent 1px),
         linear-gradient(90deg, rgba(198, 242, 78, 0.008) 1px, transparent 1px);
-      background-size: 32px 32px, 64px 64px, 64px 64px;
+      background-size: 64px 64px, 64px 64px;
       z-index: 0;
-    }
-
-    .mesh-glow-1 {
-      position: absolute;
-      width: 650px;
-      height: 650px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(198, 242, 78, 0.04) 0%, transparent 70%);
-      filter: blur(80px);
-      top: -150px;
-      left: -200px;
-      z-index: 0;
-      animation: pulseSoft 8s infinite ease-in-out alternate;
-    }
-    .mesh-glow-2 {
-      position: absolute;
-      width: 700px;
-      height: 700px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(94, 234, 200, 0.03) 0%, transparent 70%);
-      filter: blur(90px);
-      bottom: -200px;
-      right: -150px;
-      z-index: 0;
-      animation: pulseSoft 10s infinite ease-in-out alternate-reverse;
     }
 
     .auth-showcase-panel {
@@ -317,7 +291,7 @@ export const Auth: React.FC = () => {
       padding: 40px 60px;
       border-right: 1px solid rgba(255,255,255,0.08);
       position: relative;
-      background: linear-gradient(180deg, #171E1C 0%, #101514 100%);
+      background-color: #141A18;
       z-index: 1;
     }
 
@@ -332,22 +306,6 @@ export const Auth: React.FC = () => {
       background-color: transparent;
     }
 
-    .showcase-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(198, 242, 78, 0.06);
-      border: 1px solid rgba(198, 242, 78, 0.15);
-      color: #C6F24E;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 6px 12px;
-      border-radius: 100px;
-      margin-bottom: 18px;
-    }
-
     .showcase-title {
       font-family: 'Clash Display', 'Syne', sans-serif;
       font-size: 38px;
@@ -359,9 +317,7 @@ export const Auth: React.FC = () => {
     }
 
     .showcase-title span {
-      background: linear-gradient(90deg, #C6F24E 0%, #5EEAC8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #C6F24E;
     }
 
     .showcase-desc {
@@ -468,7 +424,7 @@ export const Auth: React.FC = () => {
       gap: 8px;
     }
 
-    .premium-auth-card {
+    .auth-card {
       width: 100%;
       max-width: 460px;
       background: var(--bg-surface);
@@ -479,7 +435,7 @@ export const Auth: React.FC = () => {
       transition: all 300ms ease;
     }
 
-    .premium-auth-card:hover {
+    .auth-card:hover {
       box-shadow: 0 25px 35px -5px rgba(255, 255, 255, 0.08);
       border-color: #2A3531;
     }
@@ -547,7 +503,7 @@ export const Auth: React.FC = () => {
     }
 
     .btn-primary-teal {
-      background: linear-gradient(135deg, #C6F24E 0%, #C6F24E 100%);
+      background: #C6F24E;
       color: #0D1110;
       border: none;
       border-radius: 14px;
@@ -564,7 +520,8 @@ export const Auth: React.FC = () => {
     }
 
     .btn-primary-teal:hover {
-      background: linear-gradient(135deg, #C6F24E 0%, #115e59 100%);
+      background: #C6F24E;
+      filter: brightness(0.9);
       transform: translateY(-2px);
       box-shadow: 0 6px 18px rgba(198, 242, 78, 0.25);
     }
@@ -694,7 +651,7 @@ export const Auth: React.FC = () => {
         flex: 1;
         padding: 24px;
       }
-      .premium-auth-card {
+      .auth-card {
         padding: 32px 24px;
       }
     }
@@ -706,8 +663,6 @@ export const Auth: React.FC = () => {
       
       {/* Background decoration grid */}
       <div className="bg-grid-light" />
-      <div className="mesh-glow-1" />
-      <div className="mesh-glow-2" />
 
       {/* LEFT COLUMN: Showcase panel in light theme */}
       <div className="auth-showcase-panel">
@@ -718,7 +673,7 @@ export const Auth: React.FC = () => {
               width: '38px',
               height: '38px',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #C6F24E 0%, #5EEAC8 100%)',
+              backgroundColor: '#C6F24E',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -736,16 +691,11 @@ export const Auth: React.FC = () => {
             </span>
           </div>
 
-          <div className="showcase-badge">
-            <Shield style={{ width: '12px', height: '12px' }} />
-            Secure Sandbox Ecosystem
-          </div>
-
           <h1 className="showcase-title">
-            The professional way to simulate <span>tech interviews</span>.
+            Practise interviews, <span>check your resume</span>, plan what to learn.
           </h1>
           <p className="showcase-desc">
-            An advanced sandbox combining interactive neural recruiters, multi-file code workspace sandbox execution, and live ATS resume structure grading.
+            Mock interviews with voice and code, ATS resume checks, and week-by-week study plans. Your work is saved to your account — or in this browser as a guest.
           </p>
 
           <div className="features-stack">
@@ -755,11 +705,11 @@ export const Auth: React.FC = () => {
                 <Brain style={{ width: '20px', height: '20px' }} />
               </div>
               <div className="feature-details">
-                <h4>Interactive Recruiter Characters</h4>
-                <p>Simulate recruiter interactions with real-time responsive head nodding, mouth shapes, and status tracking.</p>
+                <h4>Mock interviews</h4>
+                <p>Answer questions by voice or text. Each answer gets a score and notes on what to improve.</p>
                 <div className="avatar-pill">
                   <span className="avatar-dot" />
-                  Sophia, Marcus & Emily Online
+                  Three interviewers to practise with: Sophia, Marcus and Emily
                 </div>
               </div>
             </div>
@@ -770,8 +720,8 @@ export const Auth: React.FC = () => {
                 <Code2 style={{ width: '20px', height: '20px' }} />
               </div>
               <div className="feature-details">
-                <h4>Proctored Sandbox IDE</h4>
-                <p>Run TypeScript compiler methods instantly inside our customized split-pane code editor.</p>
+                <h4>Code practice</h4>
+                <p>Solve problems in JavaScript, Python, C++ or Java in the browser. Test cases run on your code.</p>
               </div>
             </div>
 
@@ -781,8 +731,8 @@ export const Auth: React.FC = () => {
                 <FileText style={{ width: '20px', height: '20px' }} />
               </div>
               <div className="feature-details">
-                <h4>ATS Intelligence Audit</h4>
-                <p>Align resume details against keyword densities for target roles to scale hiring matches.</p>
+                <h4>Resume checks</h4>
+                <p>See your ATS score, which keywords are missing, and what to fix first.</p>
               </div>
             </div>
           </div>
@@ -790,13 +740,13 @@ export const Auth: React.FC = () => {
 
         <div className="showcase-footer">
           <CheckCircle2 style={{ width: '14px', height: '14px', color: '#C6F24E' }} />
-          <span>Used by software engineering candidates worldwide.</span>
+          <span>Free to try as a guest — no account needed.</span>
         </div>
       </div>
 
-      {/* RIGHT COLUMN: Glassmorphic White Auth Card */}
+      {/* RIGHT COLUMN: Auth Card */}
       <div className="auth-form-panel">
-        <div className="premium-auth-card">
+        <div className="auth-card">
           
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
@@ -819,10 +769,10 @@ export const Auth: React.FC = () => {
             </h2>
             <p style={{ fontSize: '13px', color: '#A3AFA9', lineHeight: 1.4 }}>
               {isSignUp 
-                ? 'Register to initialize credit limits and cloud sync history.'
+                ? 'Create an account to save your work and sync it across devices.'
                 : otpSent 
                   ? `Enter the 6-digit code sent to ${email}`
-                  : 'Access your saved proctored sessions and learning roadmaps.'
+                  : 'Access your saved interviews, resumes and roadmaps.'
               }
             </p>
           </div>
@@ -842,7 +792,7 @@ export const Auth: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#d97706' }}>Supabase Config Offline</span>
                 <span style={{ fontSize: '10px', color: '#A3AFA9', lineHeight: 1.4 }}>
-                  Database variables are not active. Tap "Use Offline Guest Mode" below to try all app features instantly.
+                  Database variables are not active. Use Offline Guest Mode below to try the app — your work is saved in this browser.
                 </span>
               </div>
             </div>
@@ -994,7 +944,7 @@ export const Auth: React.FC = () => {
                     <input
                       type="text"
                       required
-                      placeholder="Sarah Jenkins"
+                      placeholder="Your full name"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       className="auth-input-field"
@@ -1152,7 +1102,7 @@ export const Auth: React.FC = () => {
           <div className="security-badge-card">
             <LockKeyhole style={{ width: '16px', height: '16px', color: '#5EEAC8', flexShrink: 0 }} />
             <span style={{ fontSize: '10.5px', color: '#A3AFA9', lineHeight: 1.4 }}>
-              <strong>Secure Encryption</strong>: All data is protected via SSL in transit. Passwords are Bcrypt hashed, and OTP transactions expire automatically.
+              <strong>Where your work lives</strong>: it is saved to your account when you sign in, or only in this browser as a guest.
             </span>
           </div>
 

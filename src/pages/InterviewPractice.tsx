@@ -944,7 +944,7 @@ export const InterviewPractice: React.FC = () => {
           {type === 'marcus' && (
             <>
               <rect x="0" y="0" width="100" height="100" fill="url(#office-bg-marcus)" />
-              <circle cx="15" cy="30" r="16" fill="rgba(245,158,11,0.04)" filter="blur(4px)" />
+              <circle cx="15" cy="30" r="16" fill="rgba(245,158,11,0.04)" />
               <circle cx="15" cy="30" r="4" fill="rgba(255,255,255,0.1)" />
               <line x1="55" y1="15" x2="95" y2="15" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
               <line x1="55" y1="40" x2="95" y2="40" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
@@ -1105,28 +1105,14 @@ export const InterviewPractice: React.FC = () => {
     }
     .neuform-card {
       background: var(--bg-surface) !important;
-      backdrop-filter: blur(12px) !important;
       border: 1px solid var(--border-subtle) !important;
       border-radius: var(--radius-lg) !important;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
       position: relative !important;
       overflow: hidden !important;
     }
-    .neuform-card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      border: 1px solid transparent;
-      border-radius: inherit;
-      background: linear-gradient(135deg, rgba(198, 242, 78, 0.2), transparent, rgba(94, 234, 200, 0.2)) border-box;
-      mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-      mask-composite: exclude;
-      opacity: 0.4;
-      transition: opacity 0.3s ease;
-    }
-    .neuform-card:hover::after {
-      opacity: 1;
+    .neuform-card:hover {
+      border-color: var(--border-active) !important;
     }
     @keyframes rotateCw {
       from { transform: rotate(0deg); }
@@ -1262,7 +1248,6 @@ export const InterviewPractice: React.FC = () => {
             position: 'fixed',
             inset: 0,
             backgroundColor: 'rgba(5, 10, 15, 0.9)',
-            backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1387,13 +1372,13 @@ export const InterviewPractice: React.FC = () => {
           <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px', padding: '40px', textAlign: 'center', width: '100%' }}>
             <ProgressiveLoader
               messages={[
-                "ESTABLISHING SECURE HANDSHAKE SIGNAL...",
-                "CALIBRATING AI INTERVIEWER MODEL CRITERIA...",
-                "BENCHMARKING QUESTIONS TO CANDIDATE RESUME PROFILE...",
-                "GENERATING ALGORITHMIC CODING CHALLENGES...",
-                "INITIALIZING SECURE MEETING ROOM GRAPHICS PANEL..."
+                "Setting up the call...",
+                "Picking questions for the role...",
+                "Matching questions to the resume...",
+                "Preparing the coding challenge...",
+                "Opening the meeting room..."
               ]}
-              subtitle={`Connecting secure call feed for the ${activeConfig?.jobRole} profile. Please ensure camera/microphone permissions are allowed.`}
+              subtitle={`Setting up the call for the ${activeConfig?.jobRole} profile. Please allow camera and microphone access if asked.`}
               iconColor="var(--accent-primary)"
             />
             <div style={{ width: '100%', maxWidth: '400px', height: '4px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '2px', overflow: 'hidden', marginTop: '-20px', zIndex: 10 }}>
@@ -1478,14 +1463,13 @@ export const InterviewPractice: React.FC = () => {
                     width: '44px',
                     height: '44px',
                     borderRadius: '50%',
-                    backgroundColor: micMuted ? '#ea4335' : 'rgba(255,255,255,0.08)',
+                    backgroundColor: micMuted ? '#ea4335' : 'var(--bg-elevated)',
                     color: micMuted ? '#fff' : 'var(--text-primary)',
-                    border: 'none',
+                    border: '1px solid var(--border-subtle)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    backdropFilter: 'blur(8px)',
                     transition: 'all 200ms ease'
                   }}
                   className="btn-press"
@@ -1498,14 +1482,13 @@ export const InterviewPractice: React.FC = () => {
                     width: '44px',
                     height: '44px',
                     borderRadius: '50%',
-                    backgroundColor: !cameraEnabled ? '#ea4335' : 'rgba(255,255,255,0.08)',
+                    backgroundColor: !cameraEnabled ? '#ea4335' : 'var(--bg-elevated)',
                     color: !cameraEnabled ? '#fff' : 'var(--text-primary)',
-                    border: 'none',
+                    border: '1px solid var(--border-subtle)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    backdropFilter: 'blur(8px)',
                     transition: 'all 200ms ease'
                   }}
                   className="btn-press"
@@ -1822,7 +1805,6 @@ export const InterviewPractice: React.FC = () => {
                       textAlign: 'center',
                       fontSize: '13px',
                       fontWeight: 500,
-                      backdropFilter: 'blur(8px)',
                       zIndex: 100,
                       boxShadow: 'var(--shadow-depth-2)'
                     }}>
@@ -1846,7 +1828,6 @@ export const InterviewPractice: React.FC = () => {
                       textAlign: 'center',
                       fontSize: '13px',
                       fontWeight: 600,
-                      backdropFilter: 'blur(8px)',
                       zIndex: 100,
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
                     }}>
@@ -2216,7 +2197,7 @@ export const InterviewPractice: React.FC = () => {
       {sessionState === 'setup' && (
         <div>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-            Simulate realistic mock interviews with live video, voice synthesis, real-time feedback, and coding IDE integration.
+            Mock interviews with video, voice and code. Each answer gets feedback.
           </p>
         </div>
       )}

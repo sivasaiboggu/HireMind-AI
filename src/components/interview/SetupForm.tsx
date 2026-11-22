@@ -105,7 +105,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({
               {mode === 'full' && <CheckCircle style={{ width: '16px', height: '16px', color: 'var(--accent-primary)', marginLeft: 'auto' }} />}
             </div>
             <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-              Simulates a comprehensive career interview. Questions progress through <strong>Technical ➔ Coding ➔ Behavioral ➔ HR</strong>, escalating in difficulty level from Easy to Hard.
+              Simulates a full career interview. Questions move through Technical, Coding, Behavioral and HR, getting harder from Easy to Hard.
             </p>
           </div>
 
@@ -128,7 +128,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({
               {mode === 'specific' && <CheckCircle style={{ width: '16px', height: '16px', color: 'var(--accent-primary)', marginLeft: 'auto' }} />}
             </div>
             <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-              Select a single focused round type (e.g. only coding challenges or behavioral STAR questions) to drill down and perfect specific concepts.
+              Select a single focused round type (e.g. only coding challenges or behavioral STAR questions) to work on specific concepts.
             </p>
           </div>
         </div>

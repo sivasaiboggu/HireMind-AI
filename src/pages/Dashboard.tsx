@@ -151,7 +151,6 @@ export const Dashboard: React.FC = () => {
           position: 'fixed',
           inset: 0,
           backgroundColor: 'rgba(4, 6, 5, 0.66)',
-          backdropFilter: 'blur(16px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -198,7 +197,7 @@ export const Dashboard: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="Boggu Sivasai"
+                  placeholder="Your full name"
                   value={onboardingName}
                   onChange={(e) => setOnboardingName(e.target.value)}
                   style={{
@@ -264,7 +263,7 @@ export const Dashboard: React.FC = () => {
                 disabled={submitting}
                 style={{
                   width: '100%',
-                  background: 'linear-gradient(135deg, var(--accent-primary) 0%, #00b38f 100%)',
+                  backgroundColor: 'var(--accent-primary)',
                   color: '#0D1110',
                   border: 'none',
                   borderRadius: '12px',
@@ -295,7 +294,7 @@ export const Dashboard: React.FC = () => {
           {getGreeting()}, {getDisplayName()}
         </h2>
         <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
-          Your career intelligence hub is ready. Optimize your profile and practice key roles.
+          Your resume, interviews and study plan, in one place.
         </p>
       </div>
 

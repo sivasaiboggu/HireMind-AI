@@ -61,8 +61,6 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <div style={{
         minHeight: '100vh',
         backgroundColor: 'var(--bg-base)',
-        backgroundImage: 'radial-gradient(rgba(0,0,0,0.018) 1px, transparent 1px)',
-        backgroundSize: '28px 28px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -76,43 +74,14 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           @keyframes hmSpin {
             to { transform: rotate(360deg); }
           }
-          @keyframes hmPulseRing {
-            0%, 100% { opacity: 0.15; transform: scale(1); }
-            50% { opacity: 0.35; transform: scale(1.08); }
-          }
           @keyframes hmDotBounce {
             0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
             40% { transform: translateY(-7px); opacity: 1; }
           }
-          @keyframes hmFadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
         `}</style>
 
-        {/* Ambient glow blobs — Atlas lime/mint, matching the rest of the app */}
-        <div style={{
-          position: 'absolute', width: '500px', height: '500px',
-          borderRadius: '50%', top: '-180px', left: '-180px',
-          background: 'radial-gradient(circle, rgba(198,242,78,0.07) 0%, transparent 70%)',
-          filter: 'blur(60px)', pointerEvents: 'none'
-        }} />
-        <div style={{
-          position: 'absolute', width: '500px', height: '500px',
-          borderRadius: '50%', bottom: '-180px', right: '-180px',
-          background: 'radial-gradient(circle, rgba(94,234,200,0.07) 0%, transparent 70%)',
-          filter: 'blur(60px)', pointerEvents: 'none'
-        }} />
-
         {/* Logo + spinner */}
-        <div style={{ position: 'relative', marginBottom: '32px', animation: 'hmFadeUp 0.5s ease forwards' }}>
-          {/* Outer pulsing ring */}
-          <div style={{
-            position: 'absolute', inset: '-16px',
-            borderRadius: '50%',
-            border: '1.5px solid rgba(198,242,78,0.3)',
-            animation: 'hmPulseRing 2s ease-in-out infinite',
-          }} />
+        <div style={{ position: 'relative', marginBottom: '32px' }}>
           {/* Spinning arc */}
           <div style={{
             position: 'absolute', inset: '-8px',
@@ -126,7 +95,7 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div style={{
             width: '64px', height: '64px',
             borderRadius: '18px',
-            background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)',
+            backgroundColor: 'var(--accent-primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 12px 32px rgba(198,242,78,0.25), 0 4px 10px rgba(0,0,0,0.06)',
             color: '#050A0F',
@@ -143,7 +112,6 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)',
           fontFamily: "'Syne', 'Inter', sans-serif",
           letterSpacing: '-0.02em', marginBottom: '6px',
-          animation: 'hmFadeUp 0.55s ease forwards',
         }}>
           HireMind
         </div>
@@ -151,7 +119,6 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* Subtitle */}
         <div style={{
           fontSize: '12.5px', color: 'var(--text-secondary)', marginBottom: '28px',
-          animation: 'hmFadeUp 0.6s ease forwards',
         }}>
           Securing your session…
         </div>
@@ -159,12 +126,11 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* Bouncing dots */}
         <div style={{
           display: 'flex', gap: '7px', alignItems: 'center',
-          animation: 'hmFadeUp 0.65s ease forwards',
         }}>
           {[0, 150, 300].map((delay) => (
             <div key={delay} style={{
               width: '7px', height: '7px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+              backgroundColor: 'var(--accent-primary)',
               animation: `hmDotBounce 1.1s ease-in-out ${delay}ms infinite`,
             }} />
           ))}

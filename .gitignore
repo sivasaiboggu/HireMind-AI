@@ -19,6 +19,9 @@ dist-ssr
 .env.test.local
 .env.production.local
 
+# Scratch renders and one-off scripts from review rounds (not source)
+scratch/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

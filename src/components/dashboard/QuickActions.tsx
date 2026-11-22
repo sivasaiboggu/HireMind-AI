@@ -19,7 +19,7 @@ export const QuickActions: React.FC = () => {
     },
     {
       title: 'Practice Interview',
-      desc: 'Simulate high-stakes role assessments with real-time feedback.',
+      desc: 'Answer role questions and get feedback on each answer.',
       view: 'interview' as AppView,
       icon: Mic,
       color: 'var(--accent-primary)'

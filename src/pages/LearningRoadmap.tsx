@@ -83,13 +83,13 @@ export const LearningRoadmap: React.FC = () => {
         <div style={{ width: '100%' }}>
           <ProgressiveLoader 
             messages={[
-              "MAPPING OUT CAREER PATHWAYS & TARGET MILESTONES...",
-              "IDENTIFYING HIGH-DEMAND TECHNICAL SKILL GAPS...",
-              "SOURCING PREMIUM LEARNING ARTICLES & CHALLENGES...",
-              "ASSEMBLING CUSTOM WEEK-BY-WEEK TIMELINES...",
-              "FINALIZING DYNAMIC STRATEGIC ROADMAP GUIDE..."
+              "Mapping the path to the target role...",
+              "Finding the skill gaps...",
+              "Looking up learning resources...",
+              "Building the week-by-week plan...",
+              "Finishing the roadmap..."
             ]}
-            subtitle="Structuring technical dependencies, prerequisites, and resource links mapped to your experience level."
+            subtitle="This usually takes a few seconds."
             iconColor="var(--accent-purple)"
           />
           <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '20px' }}>
@@ -129,11 +129,14 @@ export const LearningRoadmap: React.FC = () => {
                 padding: '8px 16px',
                 backgroundColor: 'var(--bg-elevated)',
                 border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)'
+                borderRadius: 'var(--radius-md)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
               }}
               className="btn-press"
             >
-              ← Back to Strategy setup
+              <ArrowLeft style={{ width: '14px', height: '14px' }} /> Back to Strategy setup
             </button>
           </div>
 

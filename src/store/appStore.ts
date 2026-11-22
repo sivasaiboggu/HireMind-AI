@@ -545,7 +545,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   useCredit: async (amount = 5) => {
     const current = get().credits;
     if (current < amount) {
-      get().addToast('error', 'Insufficient AI credits. Upgrade to PRO or wait for credit refresh!');
+      // There is no paid upgrade: guests refill from the sidebar, signed-in
+      // users sync from their account. Say that instead of naming a plan
+      // that does not exist.
+      get().addToast('error', get().user
+        ? 'Insufficient AI credits. Use the refresh button in the sidebar to sync your credits from your account.'
+        : 'Insufficient AI credits. Use the refresh button in the sidebar to refill to 100.');
       return false;
     }
     const nextCredits = current - amount;

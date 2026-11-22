@@ -12,7 +12,7 @@ interface ProgressiveLoaderProps {
 
 export const ProgressiveLoader: React.FC<ProgressiveLoaderProps> = ({
   messages,
-  subtitle = 'Evaluating structural parameters, keyword compliance benchmarks, and strategic alignment goals.',
+  subtitle = 'Working through it step by step. This usually takes a few seconds.',
   intervalMs = 2200,
   iconColor = 'var(--accent-primary)'
 }) => {

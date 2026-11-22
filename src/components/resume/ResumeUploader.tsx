@@ -230,13 +230,12 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
               }}
             />
             <span style={{ fontSize: 'var(--text-sm)', color: 'var(--accent-primary)', fontWeight: 600 }}>
-              DECONSTRUCTING RESUME DOCUMENT...
+              Reading the PDF text…
             </span>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-            <UploadCloud 
-              className="floating-icon"
+            <UploadCloud
               style={{ 
                 width: '48px', 
                 height: '48px', 

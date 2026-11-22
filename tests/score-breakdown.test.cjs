@@ -122,3 +122,15 @@ test('an AI score that disagrees with its drivers still breaks down honestly', (
   assert.equal(parts.find((p) => p.label === 'Job keywords').points, 0);
   assert.ok(nextFix, 'a weakest driver still produces a next fix');
 });
+
+test('no job description says keywords were counted as covered, not unscored', () => {
+  // Without a JD the audit awards full keyword points rather than
+  // penalising the resume; the breakdown must say that honestly instead
+  // of claiming keywords "were not scored".
+  const analysis = analyzeResumeLocally(STRONG_RESUME);
+  const { parts } = buildScoreBreakdown(analysis);
+  const keywords = parts.find((p) => p.label === 'Job keywords');
+  assert.equal(keywords.rate, 1);
+  assert.match(keywords.detail, /counted as fully covered/);
+  assert.match(keywords.detail, /stricter score/);
+});

@@ -7,7 +7,7 @@ import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { ResumeAnalysis as IResumeAnalysis } from '../../types';
-import { Check, X, Award, Info, FileEdit, CheckSquare, Copy, CheckCheck, ArrowRight } from 'lucide-react';
+import { Check, X, Award, Info, FileEdit, CheckSquare, Copy, CheckCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
@@ -99,11 +99,14 @@ export const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
             padding: '8px 16px',
             backgroundColor: 'var(--bg-elevated)',
             border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)'
+            borderRadius: 'var(--radius-md)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
           className="btn-press"
         >
-          ← Run Another Resume Audit
+          <ArrowLeft style={{ width: '14px', height: '14px' }} /> Run Another Resume Audit
         </button>
       </div>
 

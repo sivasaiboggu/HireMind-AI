@@ -56,7 +56,7 @@ export function buildScoreBreakdown(analysis: ResumeAnalysis): ScoreBreakdown {
       points: Math.round(40 * keywordRate),
       detail: keywordTotal
         ? `${analysis.matchedKeywords.length} of ${keywordTotal} job keywords found`
-        : 'No job description given, so keywords were not scored',
+        : 'No job description given — keywords counted as fully covered, so add one for a stricter score',
     },
     {
       label: 'Sections',

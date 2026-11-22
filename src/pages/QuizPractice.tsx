@@ -143,18 +143,18 @@ export const QuizPractice: React.FC = () => {
         const py = await window.loadPyodide();
         setPyodide(py);
         setPyodideLoaded(true);
-        setConsoleOutput(prev => prev + '✓ Python 3 environment loaded successfully!\n');
+        setConsoleOutput(prev => prev + '[ok] Python 3 environment loaded.\n');
         addToast('success', 'Browser-local Python runtime loaded.');
       } catch (err) {
         console.error("Failed to load Pyodide:", err);
-        setConsoleOutput(prev => prev + '✗ Failed to load Pyodide compiler. AI review only is available; no Python execution.\n');
+        setConsoleOutput(prev => prev + '[error] Could not load the Python compiler. AI review only is available; no Python execution.\n');
         addToast('error', 'Failed to load Python compiler environment.');
       } finally {
         setLoadingPyodide(false);
       }
     };
     script.onerror = () => {
-      setConsoleOutput(prev => prev + '✗ Failed to load compiler script. AI review only is available; no Python execution.\n');
+      setConsoleOutput(prev => prev + '[error] Could not load the compiler script. AI review only is available; no Python execution.\n');
       setLoadingPyodide(false);
     };
     document.body.appendChild(script);
@@ -555,7 +555,7 @@ export const QuizPractice: React.FC = () => {
         <div className="page-enter" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-              Prepare for elite software engineering and corporate interviews with browser-local JavaScript/Python practice and advisory AI reviews.
+              Practice coding interviews with browser-local JavaScript and Python, plus AI reviews of your answers.
             </p>
           </div>
           
@@ -624,7 +624,7 @@ export const QuizPractice: React.FC = () => {
               </div>
               <div>
                 <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-                  Active Focus: {practiceMode === 'dsa' ? 'Data Structures & Algorithms Laboratory' : 'Technical, Behavioral, & Cultural HR Queries'}
+                  Active Focus: {practiceMode === 'dsa' ? 'Data Structures & Algorithms' : 'Technical, Behavioral, & Cultural HR Queries'}
                 </h4>
                 <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                   {practiceMode === 'dsa' 

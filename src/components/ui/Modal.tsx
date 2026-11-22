@@ -36,9 +36,9 @@ export const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Render at document.body: a backdrop-filtered or transformed ancestor
-  // (such as the sticky top bar) would become the containing block for
-  // position:fixed and clip or misplace the overlay.
+  // Render at document.body: a transformed ancestor (such as the sticky
+  // top bar) would become the containing block for position:fixed and
+  // clip or misplace the overlay.
   return createPortal(
     <div
       onClick={onClose}
@@ -46,7 +46,6 @@ export const Modal: React.FC<ModalProps> = ({
         position: 'fixed',
         inset: 0,
         backgroundColor: 'rgba(5, 10, 15, 0.85)',
-        backdropFilter: 'blur(12px)',
         zIndex: 1000,
         display: 'flex',
         alignItems: 'center',

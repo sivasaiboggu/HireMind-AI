@@ -3,6 +3,7 @@ import { FileText, Mic, Map, Compass } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { ProgressRing } from '../ui/ProgressRing';
 import { useAppStore } from '../../store/appStore';
+import { careerReadiness } from '../../services/readiness';
 import '../../styles/globals.css';
 import '../../styles/animations.css';
 
@@ -18,23 +19,16 @@ export const StatsGrid: React.FC = () => {
   // 3. Skills Mapped
   const skillsCount = activeRoadmap ? activeRoadmap.skillGaps.length : 0;
 
-  // 4. Readiness Calculation: (ATS score + Interview score * 10) / 2; zero when no history yet
+  // 4. Readiness Calculation: the two real signals averaged; one signal
+  // alone counts as-is (see src/services/readiness.ts).
   const avgInterviewScore = interviewHistory.length > 0 
-    ? (interviewHistory.reduce((acc, curr) => acc + curr.overallScore, 0) / interviewHistory.length) * 10 
+    ? (interviewHistory.reduce((acc, curr) => acc + curr.overallScore, 0) / interviewHistory.length) 
     : 0;
   
-  let readinessPercentage = 0;
-  if (lastAtsScore > 0 && avgInterviewScore > 0) {
-    readinessPercentage = Math.round((lastAtsScore + avgInterviewScore) / 2);
-  } else if (lastAtsScore > 0) {
-    readinessPercentage = Math.round(lastAtsScore * 0.95);
-  } else if (avgInterviewScore > 0) {
-    readinessPercentage = Math.round(avgInterviewScore * 0.95);
-  }
+  const readinessPercentage = careerReadiness(lastAtsScore, avgInterviewScore);
 
   return (
     <div
-      className="stagger"
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -50,7 +44,7 @@ export const StatsGrid: React.FC = () => {
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: lastAtsScore > 0 ? 'var(--accent-secondary)' : 'var(--text-muted)', lineHeight: 1, marginTop: '16px' }}>
+          <div className="numeric" style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: lastAtsScore > 0 ? 'var(--accent-secondary)' : 'var(--text-muted)', lineHeight: 1, marginTop: '16px' }}>
             {lastAtsScore > 0 ? lastAtsScore : '—'}
           </div>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginTop: '6px', letterSpacing: '0.05em' }}>
@@ -67,7 +61,7 @@ export const StatsGrid: React.FC = () => {
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--accent-primary)', lineHeight: 1, marginTop: '16px' }}>
+          <div className="numeric" style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--accent-primary)', lineHeight: 1, marginTop: '16px' }}>
             {interviewsCount}
           </div>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginTop: '6px', letterSpacing: '0.05em' }}>
@@ -84,7 +78,7 @@ export const StatsGrid: React.FC = () => {
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--accent-purple)', lineHeight: 1, marginTop: '16px' }}>
+          <div className="numeric" style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, fontFamily: 'var(--font-numeric)', color: 'var(--accent-purple)', lineHeight: 1, marginTop: '16px' }}>
             {skillsCount}
           </div>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginTop: '6px', letterSpacing: '0.05em' }}>
