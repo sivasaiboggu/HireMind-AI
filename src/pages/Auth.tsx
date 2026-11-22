@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store/appStore';
 import { supabase, hasSupabaseConfig } from '../services/supabase';
 import { ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { z } from 'zod';
+import { z } from 'zod/mini';
 import { Brand } from '../components/layout/Brand';
 import { ThemeControl } from '../components/layout/TopBar';
 import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 
-const credentials = z.object({ email: z.email('Enter a valid email address.'), password: z.string().min(1, 'Enter your password.') });
+const credentials = z.object({ email: z.email('Enter a valid email address.'), password: z.string().check(z.minLength(1, 'Enter your password.')) });
 const emailAddress = credentials.shape.email;
 
 export const Auth: React.FC = () => {

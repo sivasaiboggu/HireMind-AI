@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { ArrowRight, ArrowUpRight, FileText, Mic, Map, Search, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { z } from 'zod';
+import { z } from 'zod/mini';
 import { Button } from '../components/ui/Button';
 import { safeLocalGet, safeLocalSet, useAppStore } from '../store/appStore';
 import { supabaseService } from '../services/supabase';
@@ -9,8 +9,8 @@ import { careerReadiness } from '../services/readiness';
 import type { ActivityEvent } from '../types';
 
 const roleSchema = z.object({
-  name: z.string().trim().min(1, 'Enter your name.'),
-  role: z.string().trim().min(1, 'Enter the role you’re preparing for.'),
+  name: z.string().check(z.trim(), z.minLength(1, 'Enter your name.')),
+  role: z.string().check(z.trim(), z.minLength(1, 'Enter the role you’re preparing for.')),
 });
 
 const historyTypes = [

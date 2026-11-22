@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { ArrowRight, Plus, X } from 'lucide-react';
-import { z } from 'zod';
+import { z } from 'zod/mini';
 import { Button } from '../ui/Button';
 import type { InterviewConfig } from '../../types';
 import { safeLocalGet, useAppStore } from '../../store/appStore';
@@ -19,7 +19,7 @@ const rounds = {
   hr: 'HR',
   dsa: 'Coding',
 } as const;
-const roleInput = z.string().trim().min(1);
+const roleInput = z.string().check(z.trim(), z.minLength(1));
 
 export function SetupForm({ onGenerate, loading }: SetupFormProps) {
   const profile = useAppStore((state) => state.profile);

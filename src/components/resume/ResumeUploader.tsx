@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { Upload, AlertCircle, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { z } from 'zod';
+import { z } from 'zod/mini';
 
-const roleInput = z.string().trim().min(1);
+const roleInput = z.string().check(z.trim(), z.minLength(1));
 
 interface ResumeUploaderProps {
   onAnalyze: (resumeText: string, jobRole: string, experienceLevel: string, jobDescription?: string) => Promise<void>;

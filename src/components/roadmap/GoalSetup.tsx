@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { ArrowRight, Import, Plus, X } from 'lucide-react';
-import { z } from 'zod';
+import { z } from 'zod/mini';
 import { Button } from '../ui/Button';
 import { useAppStore } from '../../store/appStore';
 
@@ -9,7 +9,7 @@ interface GoalSetupProps {
   loading: boolean;
 }
 
-const roleInput = z.string().trim().min(1);
+const roleInput = z.string().check(z.trim(), z.minLength(1));
 const levels = [['student', 'Student or entry level'], ['1-2yr', 'Junior (1–2 years)'], ['3-5yr', 'Mid-level (3–5 years)'], ['Senior', 'Senior and above']];
 const timelines = ['3 months', '6 months', '1 year'];
 
