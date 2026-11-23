@@ -16,12 +16,12 @@ export function prefersReducedMotion(
   return false;
 }
 
-export function useCountUp(end: number, duration: number = 1200): number {
-  const [count, setCount] = useState(0);
+export function useCountUp(end: number, duration = 360, animate = true): number {
+  const [count, setCount] = useState(() => animate && !prefersReducedMotion() ? 0 : end);
 
   useEffect(() => {
     // Reduced motion: show the final score immediately instead of animating.
-    if (prefersReducedMotion()) {
+    if (!animate || prefersReducedMotion()) {
       setCount(end);
       return;
     }
@@ -29,7 +29,7 @@ export function useCountUp(end: number, duration: number = 1200): number {
     let animationFrameId: number;
 
     const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
+      if (startTimestamp === null) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
       
       // Easing function: easeOutQuad
@@ -49,7 +49,7 @@ export function useCountUp(end: number, duration: number = 1200): number {
         window.cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [end, duration]);
+  }, [end, duration, animate]);
 
   return count;
 }

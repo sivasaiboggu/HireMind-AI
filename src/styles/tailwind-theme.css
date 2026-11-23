@@ -13,6 +13,7 @@
   --color-warning: var(--accent-warning);
   --color-success: var(--accent-success);
   --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --spacing: 4px;
   --radius-sheet: var(--radius-md);

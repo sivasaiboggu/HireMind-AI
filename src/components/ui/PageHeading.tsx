@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 export function PageHeading({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
     <header className="page-heading">
-      <div className="margin-mark">
+      <div>
         <h1>{title}</h1>
         {children && <p>{children}</p>}
       </div>

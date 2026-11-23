@@ -51,7 +51,7 @@ export const ResourceLinks: React.FC<ResourceLinksProps> = ({ resources }) => {
               color: 'var(--text-secondary)',
               fontSize: '11px',
               fontWeight: 500,
-              transition: 'all 200ms ease'
+              transition: 'transform 180ms var(--spring)'
             }}
             className="resource-link"
           >

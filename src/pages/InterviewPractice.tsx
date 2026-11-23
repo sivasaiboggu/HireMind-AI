@@ -1111,7 +1111,7 @@ export const InterviewPractice: React.FC = () => {
               iconColor="var(--accent-primary)"
             />
             <div style={{ width: '100%', maxWidth: '400px', height: '4px', backgroundColor: 'var(--bg-elevated)', borderRadius: '2px', overflow: 'hidden', marginTop: '-20px', zIndex: 10 }}>
-              <div style={{ height: '100%', backgroundColor: 'var(--accent-primary)', width: '60%', animation: 'voicePulse 1.5s infinite ease-in-out' }} />
+              <div style={{ height: '100%', backgroundColor: 'var(--accent-primary)', width: '60%', animation: 'voicePulse 400ms var(--spring) infinite alternate' }} />
             </div>
           </div>
         ) : sessionState === 'lobby' ? (
@@ -1199,7 +1199,7 @@ export const InterviewPractice: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    transition: 'all 200ms ease'
+                    transition: 'transform 180ms var(--spring)'
                   }}
                   className="btn-press"
                 >
@@ -1218,7 +1218,7 @@ export const InterviewPractice: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    transition: 'all 200ms ease'
+                    transition: 'transform 180ms var(--spring)'
                   }}
                   className="btn-press"
                 >
@@ -1289,7 +1289,7 @@ export const InterviewPractice: React.FC = () => {
                   gap: '10px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  transition: 'all 200ms ease'
+                  transition: 'transform 180ms var(--spring)'
                 }}
                 className="btn-press"
               >
@@ -1353,15 +1353,15 @@ export const InterviewPractice: React.FC = () => {
               ) : evaluatingAnswer ? (
                 /* Analyzing/Thinking Screen inside the meeting */
                 <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '24px' }}>
-                  <Terminal className="rotating-brain" style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
-                  <div className="typing-cursor" style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-purple)', letterSpacing: '0.05em' }}>
+                  <Terminal style={{ width: '48px', height: '48px', color: 'var(--accent-purple)' }} />
+                  <div style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--accent-purple)', letterSpacing: '0.05em' }}>
                     Reviewing your answer…
                   </div>
                   <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', maxWidth: '400px', textAlign: 'center', lineHeight: 1.5 }}>
                     Checking the answer for accuracy, clarity, and examples.
                   </p>
                   <div style={{ width: '100%', maxWidth: '400px', height: '4px', backgroundColor: 'var(--bg-elevated)', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', backgroundColor: 'var(--accent-purple)', width: '40%', animation: 'voicePulse 1.2s infinite ease-in-out' }} />
+                    <div style={{ height: '100%', backgroundColor: 'var(--accent-purple)', width: '40%', animation: 'voicePulse 400ms var(--spring) infinite alternate' }} />
                   </div>
                 </div>
               ) : (

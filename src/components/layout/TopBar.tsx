@@ -1,11 +1,11 @@
-import { Bell, LogOut, Moon, Search, Sun, UserRound } from 'lucide-react';
+import { Bell, LogOut, Moon, RefreshCw, Search, Sun, UserRound } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { safeLocalGet, useAppStore } from '../../store/appStore';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Brand } from './Brand';
-import { Credits } from './Sidebar';
+import { navigation } from './navigation';
 import { GoogleAIKeyConnect } from './GoogleAIKeyConnect';
 
 export function ThemeControl() {
@@ -20,21 +20,27 @@ export function ThemeControl() {
 }
 
 export function TopBar() {
-  const { setSearchOpen, user, profile, signOutUser, getRecentActivity } = useAppStore();
+  const { setSearchOpen, user, profile, signOutUser, getRecentActivity, credits, resetCredits } = useAppStore();
   const [dialog, setDialog] = useState<'account' | 'activity' | null>(null);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const activity = getRecentActivity();
   const name = profile?.full_name || (user ? 'Your account' : safeLocalGet('hiremind_guest_name') || 'Guest workspace');
   const role = profile?.target_role || (!user && safeLocalGet('hiremind_guest_role'));
 
   return (
     <header className="workspace-topbar">
-      <div className="mobile-brand"><Brand /></div>
-      <span className="workspace-location">{user ? 'Personal workspace' : 'Guest workspace'}</span>
+      <Brand />
+      <nav className="masthead-nav" aria-label="Workspace">
+        {navigation.map(({ path, label, short }) => <NavLink key={path} to={path === '/hiring' && pathname === '/' ? '/' : path} aria-label={label}>{short}</NavLink>)}
+      </nav>
       <div className="topbar-controls">
-        <button type="button" className="search-control" onClick={() => setSearchOpen(true)} aria-label="Find a page">
-          <Search size={18} aria-hidden="true" /><span>Find a page</span><kbd>Ctrl K</kbd>
-        </button>
+        <div className="search-widget">
+          <button type="button" className="search-control" onClick={() => setSearchOpen(true)} aria-label="Find a page" aria-keyshortcuts="Control+k Meta+k">
+            <Search size={18} aria-hidden="true" /><span>Find a page</span>
+          </button>
+          <kbd aria-hidden="true">Ctrl K</kbd>
+        </div>
         <ThemeControl />
         <GoogleAIKeyConnect />
         <button type="button" className="icon-control" aria-label="Activity" title="Activity" onClick={() => setDialog('activity')}>
@@ -64,7 +70,16 @@ export function TopBar() {
             <p className="muted">{user?.email || 'Work is saved in this browser.'}</p>
             {role && <p className="muted">{role}</p>}
           </div>
-          <Credits />
+          <div className="credit-ledger">
+            <span className="meta-label">AI credits</span>
+            <div className="credit-total">
+              <strong className="numeric" aria-label={`${credits} AI credits`}>{credits}</strong>
+              <button type="button" className="icon-control" aria-label={user ? 'Sync AI credits' : 'Refill AI credits'} onClick={resetCredits}>
+                <RefreshCw size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <small>{user ? 'Account balance' : 'Available in this browser'}</small>
+          </div>
           <Button variant="ghost" icon={<LogOut size={16} aria-hidden="true" />} onClick={async () => {
             setDialog(null);
             await signOutUser();
