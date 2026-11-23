@@ -116,3 +116,45 @@ test('local time parser rejects invalid, rolled-over, and offset-bearing values'
     assert.ok(Number.isNaN(parseInterviewTime(value)), value);
   }
 });
+
+test('cancelling frees the slot for others, blocks a second cancel, and allows rescheduling', () => {
+  const r = register();
+  const first = r.add();
+  const second = r.add('Ellis Kent');
+  r.advance(first);
+  r.advance(second);
+  r.schedule(first);
+  assert.throws(() => r.change(second, { type: 'cancel' }), /no scheduled interview/);
+  r.change(first, { type: 'cancel' });
+  assert.equal(r.candidate(first).interview.status, 'Cancelled');
+  assert.equal(r.candidate(first).activity[0].description, 'Interview cancelled');
+  assert.equal(scheduledCandidates(r.rows()).length, 0);
+  assert.throws(() => r.change(first, { type: 'cancel' }), /no scheduled interview/);
+  // The freed slot no longer conflicts, and a fresh booking reads as scheduled, not rescheduled.
+  r.schedule(second);
+  assert.equal(r.candidate(second).interview.start, now + hour);
+  r.schedule(first, now + hour + 30 * 60_000);
+  assert.equal(r.candidate(first).activity[0].description, 'Interview scheduled');
+  assert.deepEqual(Array.from(scheduledCandidates(r.rows()), ({ id }) => id), [second, first]);
+});
+
+test('field length limits reject oversized names, roles, notes, and evidence', () => {
+  const r = register();
+  assert.throws(() => r.add('x'.repeat(101)), /100 characters or fewer/);
+  assert.throws(() => r.add('Dana Cho', 'x'.repeat(101)), /100 characters or fewer/);
+  assert.throws(
+    () => r.apply({ type: 'add', name: 'Dana Cho', role: 'Platform Engineer', evidence: 'x'.repeat(4001) }),
+    /4000 characters or fewer/,
+  );
+  const id = r.add();
+  r.change(id, { type: 'move', stage: 'Review' });
+  assert.throws(
+    () => r.change(id, { type: 'review', recommendation: 'Advance', notes: 'x'.repeat(2001) }),
+    /2000 characters or fewer/,
+  );
+  r.change(id, { type: 'review', recommendation: 'Advance', notes: 'Work sample received.' });
+  assert.throws(
+    () => r.apply({ id, revision: r.candidate(id).revision, type: 'schedule', start: now + hour, duration: 30, topic: 'x'.repeat(101) }),
+    /100 characters or fewer/,
+  );
+});
