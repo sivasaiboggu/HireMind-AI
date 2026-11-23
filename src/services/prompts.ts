@@ -175,6 +175,24 @@ Your response MUST be a JSON object with this EXACT structure:
 Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks.
 `;
 
+/**
+ * Second-pass prompt for the output-quality loop: fix exactly the gaps the
+ * deterministic roadmap check named, keeping the same JSON shape. The
+ * previous roadmap is supplied so the model refines it instead of starting
+ * over and losing good phases.
+ */
+export const ROADMAP_REFINEMENT_PROMPT = (roadmapJson: string, issues: string[]) => `
+You previously generated the learning roadmap below, and a quality check found these gaps in it:
+${issues.map((issue) => `- ${issue}`).join('\n')}
+
+Previous roadmap (JSON):
+${roadmapJson}
+
+Fix every gap listed above and return the complete corrected roadmap in the SAME JSON structure as the original (role, totalWeeks, phases with id/title/weeks/color/topics, skillGaps). Keep the good parts unchanged. Do not add phases or topics unrelated to the goal.
+
+Your response MUST be a JSON object in that exact structure. Ensure the output is valid JSON and only contains the JSON block. Do not wrap the JSON in markdown blocks.
+`;
+
 export const QUIZ_PROMPT = (role: string, stack: string[], count: number) => `
 Generate exactly ${count} practice questions for a candidate targeted at the role "${role}" with tech stack: ${stack.join(', ')}.
 The practice questions must include a mix of:

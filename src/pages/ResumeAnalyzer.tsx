@@ -10,11 +10,12 @@ import { Button } from '../components/ui/Button';
 import { useGemini } from '../hooks/useGemini';
 import { gemini } from '../services/gemini';
 import { analyzeResumeLocally } from '../services/ats';
+import { buildJobsIndex, searchJobsIndex, SAMPLE_JOBS, type JobsIndex, type JobSearchHit } from '../services/jobs-index';
 import { buildScoreBreakdown } from '../services/score-breakdown';
 import { localAuditReason, type LocalAuditReason } from '../services/local-audit';
 import { useAppStore, generateId } from '../store/appStore';
 import { SavedResumeAnalysis } from '../types';
-import { Activity, Terminal, ShieldCheck, Download, Info } from 'lucide-react';
+import { Activity, Terminal, ShieldCheck, Download, Info, Search } from 'lucide-react';
 import '../styles/globals.css';
 import '../styles/animations.css';
 
@@ -66,6 +67,38 @@ export const ResumeAnalyzer: React.FC = () => {
     activeResume?.isLocalAudit ? 'unavailable' : null,
   );
 
+  // Jobs-index search: the raw resume text of the last analysis, and the
+  // matching roles found in the index. The index is built once (the sample
+  // postings are embedded a single time) and reused for later searches.
+  // Embeddings are not charged credits — they run on the free Gemini tier.
+  const [lastResumeText, setLastResumeText] = useState('');
+  const [roleMatches, setRoleMatches] = useState<JobSearchHit[] | null>(null);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [rolesError, setRolesError] = useState<string | null>(null);
+  const jobsIndexRef = useRef<JobsIndex | null>(null);
+
+  const handleFindRoles = async () => {
+    if (rolesLoading || !lastResumeText.trim()) return;
+    setRolesLoading(true);
+    setRolesError(null);
+    try {
+      if (!jobsIndexRef.current) {
+        jobsIndexRef.current = await buildJobsIndex(SAMPLE_JOBS, (text) => gemini.embedText(text));
+        if (jobsIndexRef.current.skipped.length > 0) {
+          setRolesError('The jobs index could not be built — embeddings are unavailable. Connect a Google AI key and try again.');
+          return;
+        }
+      }
+      const hits = await searchJobsIndex(jobsIndexRef.current, lastResumeText, (text) => gemini.embedText(text), 5);
+      setRoleMatches(hits);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'The jobs index search failed.';
+      setRolesError(message);
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
   // Synchronous in-flight guard. The `loading` state above lags a tick, so
   // two submits in the same tick (double-click, Enter + click) both passed
   // the old check: the second hit useGemini's guard, returned null, and was
@@ -87,6 +120,11 @@ export const ResumeAnalyzer: React.FC = () => {
   const runAnalysis = async (resumeText: string, jobRole: string, experienceLevel: string, jobDescription?: string) => {
     setCurrentRole(jobRole);
     setCurrentExp(experienceLevel);
+    // Keep the resume text for the jobs-index search; a new analysis clears
+    // the previous matches so stale roles never show under a new resume.
+    setLastResumeText(resumeText);
+    setRoleMatches(null);
+    setRolesError(null);
 
     const creditsBefore = useAppStore.getState().credits;
     const result = await execute(resumeText, jobDescription);
@@ -243,6 +281,46 @@ export const ResumeAnalyzer: React.FC = () => {
             onReset={handleReset}
             analysisId={displayAnalysis.id}
           />
+          {/* Jobs-index semantic search: which roles in the index match this resume */}
+          <Card hoverable={false} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Search style={{ width: '20px', height: '20px', color: 'var(--accent-primary)', flexShrink: 0 }} />
+              <h3 style={{ fontSize: 'var(--text-md)', fontWeight: 600, margin: 0 }}>Matching roles</h3>
+            </div>
+            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+              Search the jobs index with this resume — embeddings rank the closest roles first.
+              The index holds sample postings, not live jobs, so treat the titles as directions, not openings.
+            </p>
+            {!roleMatches && (
+              <Button onClick={handleFindRoles} disabled={rolesLoading} style={{ width: 'fit-content' }}>
+                {rolesLoading ? 'Searching the index…' : 'Find matching roles'}
+              </Button>
+            )}
+            {rolesError && (
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--accent-danger)', lineHeight: 1.5, margin: 0 }}>
+                {rolesError}
+              </p>
+            )}
+            {roleMatches && roleMatches.length === 0 && (
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                No roles in the index matched this resume closely.
+              </p>
+            )}
+            {roleMatches && roleMatches.length > 0 && (
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {roleMatches.map((hit) => (
+                  <li key={hit.job.id} style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
+                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {hit.job.title} · {Math.round(hit.similarity * 100)}% match
+                    </span>
+                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+                      {hit.job.company} — {hit.job.location} · {hit.job.source} posting
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         </div>
       )}
       

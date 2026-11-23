@@ -14,12 +14,14 @@ import {
   INTERVIEW_QUESTIONS_PROMPT, 
   ANSWER_EVALUATION_PROMPT, 
   ROADMAP_PROMPT,
+  ROADMAP_REFINEMENT_PROMPT,
   SYSTEM_INSTRUCTION,
   QUIZ_PROMPT,
   DSA_QUESTIONS_PROMPT,
   THEMATIC_QUESTIONS_PROMPT,
   AI_COMPILER_PROMPT
 } from './prompts';
+import { improveOutput, scoreRoadmap, type QualityEvaluation } from './output-quality';
 import { ResumeAnalysis, Question, AnswerFeedback, Roadmap, InterviewConfig, QuizQuestion } from '../types';
 
 import { supabase } from './supabase';
@@ -152,25 +154,76 @@ export class GeminiService {
   };
 
   /**
-   * Generate a custom learning strategy roadmap with phases and topics
+   * Generate a custom learning strategy roadmap with phases and topics.
+   *
+   * The draft goes through the output-quality loop (output-quality.ts):
+   * a deterministic check scores the roadmap (phases, topics, timeline,
+   * skill gaps), and a low score triggers up to two refinements with the
+   * named gaps fed back to the model. The best-scoring roadmap is returned,
+   * so a refinement that makes things worse never replaces a better draft.
+   * One credit charge covers the whole loop — the caller pays for a
+   * quality-checked roadmap, not per model call.
    */
   generateRoadmap = async (goal: string, skills: string[], level: string, timeline: string): Promise<Roadmap> => {
     try {
       const requestOptions = await this.getRequestOptions();
-      const ai = this.getClient(!!requestOptions);
-      const model = ai.getGenerativeModel({
-        model: 'gemini-2.5-flash',
-        systemInstruction: SYSTEM_INSTRUCTION,
-        generationConfig: { responseMimeType: 'application/json' }
-      });
-      
-      const prompt = ROADMAP_PROMPT(goal, skills, level, timeline);
-      const response = await withRetry(() => model.generateContent(prompt, requestOptions));
-      const responseText = response.response.text();
-      const parsed = parseGeminiJson<any>(responseText);
-      return sanitizeRoadmap(parsed);
+      const generate = async (): Promise<Roadmap> => {
+        const ai = this.getClient(!!requestOptions);
+        const model = ai.getGenerativeModel({
+          model: 'gemini-2.5-flash',
+          systemInstruction: SYSTEM_INSTRUCTION,
+          generationConfig: { responseMimeType: 'application/json' }
+        });
+        const prompt = ROADMAP_PROMPT(goal, skills, level, timeline);
+        const response = await withRetry(() => model.generateContent(prompt, requestOptions));
+        const parsed = parseGeminiJson<any>(response.response.text());
+        return sanitizeRoadmap(parsed);
+      };
+      const refine = async (roadmap: Roadmap, evaluation: QualityEvaluation): Promise<Roadmap> => {
+        const ai = this.getClient(!!requestOptions);
+        const model = ai.getGenerativeModel({
+          model: 'gemini-2.5-flash',
+          systemInstruction: SYSTEM_INSTRUCTION,
+          generationConfig: { responseMimeType: 'application/json' }
+        });
+        const prompt = ROADMAP_REFINEMENT_PROMPT(JSON.stringify(roadmap), evaluation.issues);
+        const response = await withRetry(() => model.generateContent(prompt, requestOptions));
+        const parsed = parseGeminiJson<any>(response.response.text());
+        return sanitizeRoadmap(parsed);
+      };
+      const result = await improveOutput({ generate, evaluate: scoreRoadmap, refine, minScore: 70, maxAttempts: 3 });
+      return result.output;
     } catch (error: any) {
       return handleApiError(error, 'roadmap generation');
+    }
+  };
+
+  /**
+   * Embed one text with Gemini text-embedding-004 for semantic search
+   * (the jobs index in jobs-index.ts). Returns the 768-dimension vector,
+   * or throws when embeddings are unavailable — the caller must show the
+   * real error, and a fake zero vector is never substituted: similarity
+   * against a fabricated vector would rank real postings on nothing.
+   */
+  embedText = async (text: string): Promise<number[]> => {
+    if (typeof text !== 'string' || !text.trim()) {
+      throw new Error('Nothing to embed.');
+    }
+    try {
+      const ai = this.getClient(false);
+      const model = ai.getGenerativeModel({ model: 'text-embedding-004' });
+      const response = await withRetry(() => model.embedContent(text.slice(0, 8000)));
+      const values = (response as { embedding?: { values?: unknown } }).embedding?.values;
+      if (
+        !Array.isArray(values) || values.length !== 768 ||
+        !values.every((v) => typeof v === 'number' && Number.isFinite(v)) ||
+        !values.some((v) => v !== 0)
+      ) {
+        throw new Error('The embedding model returned an unusable vector.');
+      }
+      return values as number[];
+    } catch (error: any) {
+      return handleApiError(error, 'text embedding');
     }
   };
 

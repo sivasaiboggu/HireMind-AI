@@ -56,6 +56,9 @@ src/
 ├── services/
 │   ├── hiring.ts                # Candidate and interview business rules
 │   ├── hiring-storage.ts        # Local transactional register
+│   ├── ranking.ts               # Rank candidates against a job by ATS audit score
+│   ├── jobs-index.ts            # Semantic search over a jobs index (Gemini embeddings)
+│   ├── output-quality.ts        # Evaluate-then-refine loop for model output; roadmap scorer
 │   ├── gemini.ts                # central GenerativeModel connector (gemini-2.5-flash)
 │   ├── ats.ts                   # Deterministic on-device ATS audit (40/25/15/20)
 │   ├── score-breakdown.ts       # Score-driver breakdown + highest-impact fix
@@ -86,6 +89,33 @@ supabase/ holds the Postgres schema (`migrations/schema.sql`) and the
 `gemini-proxy` edge function (server-side AI endpoint; the client routes
 through it only when `VITE_GEMINI_PROXY_URL` is set and a user is signed
 in — guests and signed-out users use their own key instead).
+
+### Recruiter services (ranking, jobs index, output quality)
+
+Three services close the gaps between reviewing one resume and running a
+hiring round. All three are pure TypeScript with dependency injection, so
+their tests run offline with deterministic fakes and no API key.
+
+* **Candidate ranking** (`services/ranking.ts`, `tests/ranking.test.cjs`) —
+  audits every candidate against one job description with the same
+  deterministic ATS audit as `ats.ts`, then orders them by overall score,
+  ATS score, and name (the name tie-break keeps the order stable). An empty
+  resume scores 0 and ranks last; nothing invents a score.
+* **Jobs-index semantic search** (`services/jobs-index.ts`,
+  `tests/jobs-index.test.cjs`) — embeds each posting once with Gemini
+  `text-embedding-004` (`GeminiService.embedText`) and ranks roles for a
+  query resume by cosine similarity. The embedder is injected; a null
+  embedding means "unavailable" and the posting is reported in `skipped`,
+  never given a fake vector. The built-in seed (`SAMPLE_JOBS`) is clearly
+  marked sample data, not live roles. The Resume Analyzer page exposes it
+  as "Matching roles" after an analysis.
+* **Output-quality loop** (`services/output-quality.ts`,
+  `tests/output-quality.test.cjs`) — `improveOutput` generates, evaluates,
+  and refines while the score is below the bar (default 70, max 3 attempts),
+  returning the best-scoring output seen. Learning roadmaps go through it:
+  `generateRoadmap` scores each draft with the deterministic `scoreRoadmap`
+  check (phases, topics, timeline, skill gaps) and refines low scorers with
+  the named gaps fed back to the model. One credit charge covers the loop.
 
 ---
 
