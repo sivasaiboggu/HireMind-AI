@@ -1,0 +1,146 @@
+[
+  {
+    "atsScore": 70,
+    "contentScore": 61,
+    "formatScore": 70,
+    "overallScore": 67,
+    "sections": [
+      {
+        "name": "Contact Information",
+        "score": 100,
+        "status": "pass",
+        "feedback": [
+          "Contact Information section found."
+        ]
+      },
+      {
+        "name": "Professional Summary",
+        "score": 100,
+        "status": "pass",
+        "feedback": [
+          "Professional Summary section found."
+        ]
+      },
+      {
+        "name": "Work Experience",
+        "score": 100,
+        "status": "pass",
+        "feedback": [
+          "Work Experience section found."
+        ]
+      },
+      {
+        "name": "Education",
+        "score": 100,
+        "status": "pass",
+        "feedback": [
+          "Education section found."
+        ]
+      },
+      {
+        "name": "Skills",
+        "score": 100,
+        "status": "pass",
+        "feedback": [
+          "Skills section found."
+        ]
+      },
+      {
+        "name": "Projects",
+        "score": 100,
+        "status": "pass",
+        "feedback": [
+          "Projects section found."
+        ]
+      },
+      {
+        "name": "Certifications",
+        "score": 100,
+        "status": "pass",
+        "feedback": [
+          "Certifications section found."
+        ]
+      }
+    ],
+    "recommendations": [
+      {
+        "id": "rec-keywords",
+        "priority": "HIGH",
+        "title": "Add 5 missing keywords",
+        "description": "The job description emphasises apis, build, ci/cd, engineer, hiring — none appear in the resume. Add them only where you genuinely have the experience."
+      },
+      {
+        "id": "rec-length",
+        "priority": "LOW",
+        "title": "Resume looks too short",
+        "description": "Current length is 171 words. Aim for roughly 400–800 words for a 1-page resume so parsers and recruiters both get the full picture."
+      }
+    ],
+    "matchedKeywords": [
+      "aws",
+      "docker",
+      "features",
+      "full-stack",
+      "langchain",
+      "node.js",
+      "postgresql",
+      "products",
+      "rag",
+      "react",
+      "software",
+      "typescript"
+    ],
+    "missingKeywords": [
+      "apis",
+      "build",
+      "ci/cd",
+      "engineer",
+      "hiring",
+      "plus",
+      "rest",
+      "ship",
+      "small",
+      "testing"
+    ],
+    "atsChecklist": [
+      {
+        "label": "Contact email present",
+        "checked": true
+      },
+      {
+        "label": "Phone number present",
+        "checked": true
+      },
+      {
+        "label": "Work experience section",
+        "checked": true
+      },
+      {
+        "label": "Skills section",
+        "checked": true
+      },
+      {
+        "label": "Education section",
+        "checked": true
+      },
+      {
+        "label": "Quantified achievements (3+)",
+        "checked": true
+      },
+      {
+        "label": "Resume length 250–1200 words",
+        "checked": false
+      },
+      {
+        "label": "Job keywords covered (50%+)",
+        "checked": true
+      }
+    ],
+    "rewrites": [],
+    "id": "seed-resume-1",
+    "timestamp": 1795281782064,
+    "jobRole": "Software Engineer",
+    "experienceLevel": "Entry level",
+    "isLocalAudit": true
+  }
+]

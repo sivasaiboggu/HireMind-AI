@@ -57,6 +57,7 @@ src/
 │   ├── hiring.ts                # Candidate and interview business rules
 │   ├── hiring-storage.ts        # Local transactional register
 │   ├── ranking.ts               # Rank candidates against a job by ATS audit score
+│   ├── hiring-ranking.ts        # Rank the hiring register on application notes; stale-rank signature
 │   ├── jobs-index.ts            # Semantic search over a jobs index (Gemini embeddings)
 │   ├── output-quality.ts        # Evaluate-then-refine loop for model output; roadmap scorer
 │   ├── gemini.ts                # central GenerativeModel connector (gemini-2.5-flash)
@@ -100,7 +101,15 @@ their tests run offline with deterministic fakes and no API key.
   audits every candidate against one job description with the same
   deterministic ATS audit as `ats.ts`, then orders them by overall score,
   ATS score, and name (the name tie-break keeps the order stable). An empty
-  resume scores 0 and ranks last; nothing invents a score.
+  resume scores 0 and ranks last; nothing invents a score. The hiring page
+  exposes it as "Rank candidates" (`services/hiring-ranking.ts`,
+  `tests/hiring-ranking.test.cjs`): paste a job description and the register
+  is ordered on the application notes held for each candidate, with the rank,
+  ATS and overall scores, and matched/missing keywords per candidate. The
+  panel says plainly that notes are short, so scores run lower than a full
+  resume audit — the order picks who to review first, not a final mark. A
+  blank job description ranks nothing, and a register that changed after
+  the rank ran says so instead of showing old numbers as current.
 * **Jobs-index semantic search** (`services/jobs-index.ts`,
   `tests/jobs-index.test.cjs`) — embeds each posting once with Gemini
   `text-embedding-004` (`GeminiService.embedText`) and ranks roles for a
@@ -370,6 +379,24 @@ invalid counts and source preservation. These are practice themes, not verified
 company interview histories. AI-generated question quality remains unverified.
 
 ## Changelog
+
+### 0.0.8 (24 Nov 2026)
+- Candidate ranking is now a real surface, not a service without a UI:
+  the hiring page has a "Rank candidates" panel between the stage strip
+  and the register. Paste a job description and the register is ordered by
+  the same deterministic ATS audit, on the application notes held for each
+  candidate. Each row shows the rank, ATS and overall scores, matched and
+  missing keywords, and opens the candidate record. The panel says plainly
+  that notes are short, so scores run lower than a full resume audit. A
+  blank job description ranks nothing; a candidate with no notes scores 0
+  and ranks last; a register that changed after the rank ran says so
+  instead of showing old numbers as current (new
+  `src/services/hiring-ranking.ts`, `tests/hiring-ranking.test.cjs`).
+- Jobs-index search no longer discards a usable index: when some sample
+  postings fail to embed, the search runs on the postings that did embed
+  and says how many were left out. Only a fully unbuildable index still
+  reports the error.
+- Tests: 222 before, 228 after (new `hiring-ranking` suite).
 
 ### 0.0.7 (22 Nov 2026)
 - Master-prompt polish (round 10). Signature idea: the audit ledger — one

@@ -75,18 +75,26 @@ export const ResumeAnalyzer: React.FC = () => {
   const [roleMatches, setRoleMatches] = useState<JobSearchHit[] | null>(null);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [rolesError, setRolesError] = useState<string | null>(null);
+  // Note shown when some postings could not be embedded: the search still
+  // runs on the postings that did embed, and says which were left out.
+  const [rolesNote, setRolesNote] = useState<string | null>(null);
   const jobsIndexRef = useRef<JobsIndex | null>(null);
 
   const handleFindRoles = async () => {
     if (rolesLoading || !lastResumeText.trim()) return;
     setRolesLoading(true);
     setRolesError(null);
+    setRolesNote(null);
     try {
       if (!jobsIndexRef.current) {
         jobsIndexRef.current = await buildJobsIndex(SAMPLE_JOBS, (text) => gemini.embedText(text));
-        if (jobsIndexRef.current.skipped.length > 0) {
+        if (jobsIndexRef.current.jobs.length === 0) {
           setRolesError('The jobs index could not be built — embeddings are unavailable. Connect a Google AI key and try again.');
           return;
+        }
+        if (jobsIndexRef.current.skipped.length > 0) {
+          const count = jobsIndexRef.current.skipped.length;
+          setRolesNote(`${count} sample posting${count === 1 ? '' : 's'} could not be embedded and ${count === 1 ? 'was' : 'were'} left out of this search.`);
         }
       }
       const hits = await searchJobsIndex(jobsIndexRef.current, lastResumeText, (text) => gemini.embedText(text), 5);
@@ -125,6 +133,7 @@ export const ResumeAnalyzer: React.FC = () => {
     setLastResumeText(resumeText);
     setRoleMatches(null);
     setRolesError(null);
+    setRolesNote(null);
 
     const creditsBefore = useAppStore.getState().credits;
     const result = await execute(resumeText, jobDescription);
@@ -299,6 +308,11 @@ export const ResumeAnalyzer: React.FC = () => {
             {rolesError && (
               <p style={{ fontSize: 'var(--text-xs)', color: 'var(--accent-danger)', lineHeight: 1.5, margin: 0 }}>
                 {rolesError}
+              </p>
+            )}
+            {rolesNote && (
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                {rolesNote}
               </p>
             )}
             {roleMatches && roleMatches.length === 0 && (

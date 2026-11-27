@@ -4,7 +4,7 @@ HireMind helps a hiring lead review applications, record a decision, and set up 
 
 ## Design brief
 
-The hiring pipeline uses a tabbed register. The stage strip acts as an index, the candidate table is the working surface, and the interview agenda sits in the margin on wide screens. The agenda uses a dated list, and a candidate record opens in a dialog with its own review and scheduling forms. On small screens the agenda follows the register and the six page links sit in the bottom navigation. The serif masthead appears across the application.
+The hiring pipeline uses a tabbed register. The stage strip acts as an index, the candidate table is the working surface, and the interview agenda sits in the margin on wide screens. A rank panel sits between the stage strip and the register: paste a job description and the register is ordered by the same audit that scores a single resume, run on the application notes held for each candidate. The agenda uses a dated list, and a candidate record opens in a dialog with its own review and scheduling forms. On small screens the agenda follows the register and the six page links sit in the bottom navigation. The serif masthead appears across the application.
 
 | Accent option | Light theme | Dark theme | Use |
 | --- | --- | --- | --- |
@@ -51,7 +51,7 @@ Minimum WCAG relative-luminance ratios across base, surface, elevated, hover, an
 
 | Route | Main action and feedback |
 | --- | --- |
-| `/#/hiring` | Add a candidate, filter the register, review a record, move stages, and schedule or complete an interview. Empty, loading, storage, validation, and conflict states describe the next action. |
+| `/#/hiring` | Add a candidate, filter the register, rank the register against a pasted job description, review a record, move stages, and schedule or complete an interview. Empty, loading, storage, validation, and conflict states describe the next action. |
 | `/#/dashboard` | Set a target role, inspect preparation scores, search and reopen saved work. |
 | `/#/resume` | Paste text or import a PDF, run an audit, then review evidence and edits. |
 | `/#/interview` | Set up a mock interview, answer by voice or text, and review feedback. |

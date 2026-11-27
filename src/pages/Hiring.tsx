@@ -4,6 +4,8 @@ import { AddCandidate, CandidateRecord, interviewTime } from '../components/hiri
 import { Button } from '../components/ui/Button';
 import { useAppStore } from '../store/appStore';
 import { findCandidates, scheduledCandidates, stages, type Candidate, type HiringAction, type Stage } from '../services/hiring';
+import { rankRegisterCandidates, registerSignature } from '../services/hiring-ranking';
+import type { RankedCandidate } from '../services/ranking';
 import { hiringTransaction } from '../services/hiring-storage';
 import '../styles/hiring.css';
 
@@ -16,6 +18,25 @@ function HiringRegister({ workspace }: { workspace: string }) {
   const [error, setError] = useState('');
   const [loadError, setLoadError] = useState('');
   const [now, setNow] = useState(Date.now);
+  // Candidate ranking: the job description to rank against, the last
+  // ranking, and the register signature it was computed from.
+  const [jobDescription, setJobDescription] = useState('');
+  const [ranked, setRanked] = useState<RankedCandidate[] | null>(null);
+  const [rankedSignature, setRankedSignature] = useState('');
+  const currentSignature = registerSignature(candidates ?? []);
+  const rankingStale = ranked !== null && rankedSignature !== currentSignature;
+  const byId = new Map((candidates ?? []).map((candidate) => [candidate.id, candidate]));
+
+  function rank() {
+    if (!candidates?.length || !jobDescription.trim()) return;
+    setRanked(rankRegisterCandidates(candidates, jobDescription));
+    setRankedSignature(currentSignature);
+  }
+
+  function clearRanking() {
+    setRanked(null);
+    setRankedSignature('');
+  }
   const pages = useRef<BroadcastChannel | null>(null);
   const readGeneration = useRef(0);
   const saving = useRef(false);
@@ -119,6 +140,65 @@ function HiringRegister({ workspace }: { workspace: string }) {
           </button>;
         })}
       </nav>
+
+      <section className="rank-panel" aria-labelledby="rank-title">
+        <div className="rank-intro">
+          <h2 id="rank-title">Rank candidates</h2>
+          <p>Paste the job description. Candidates are ranked on the application notes held for each of them — the same audit as a resume check, applied to every candidate the same way. Notes are short, so scores run lower than a full resume audit; use the order to pick who to review first, not as a final mark.</p>
+        </div>
+        <label className="rank-label" htmlFor="rank-job-description">Job description</label>
+        <textarea id="rank-job-description" rows={4} maxLength={10000} value={jobDescription}
+          onChange={(event) => setJobDescription(event.target.value)}
+          placeholder="Paste the job description to rank against" />
+        <div className="hiring-actions">
+          <Button disabled={!candidates?.length || !jobDescription.trim()} onClick={rank}>Rank candidates</Button>
+          {ranked !== null && <Button variant="ghost" onClick={clearRanking}>Clear ranking</Button>}
+        </div>
+        {candidates !== null && candidates.length === 0 && (
+          <p className="rank-note" role="status">Add a candidate before ranking — the register is empty.</p>
+        )}
+        {rankingStale && (
+          <p className="rank-note" role="status">The register changed since this ranking — rank again for current numbers.</p>
+        )}
+        {ranked !== null && ranked.length > 0 && (
+          <ol className="rank-list">
+            {ranked.map((entry) => {
+              const record = byId.get(entry.id);
+              const matched = entry.matchedKeywords.slice(0, 6);
+              const missing = entry.missingKeywords.slice(0, 6);
+              return (
+                <li key={entry.id} className="rank-row">
+                  <span className="rank-position numeric" aria-label={`Rank ${entry.rank}`}>{entry.rank}</span>
+                  <span className="rank-main">
+                    <button type="button" className="record-link" onClick={() => open({ id: entry.id })}>
+                      <span><strong>{entry.name}</strong><small>{record?.role ?? ''}</small></span>
+                      <ArrowUpRight size={16} aria-hidden="true" />
+                    </button>
+                    {record && <span className="stage-label" data-stage={record.stage}>{record.stage}</span>}
+                    <span className="rank-keywords">
+                      {entry.matchedKeywords.length > 0 ? (
+                        <>Matched: {matched.join(', ')}{entry.matchedKeywords.length > 6 ? `, and ${entry.matchedKeywords.length - 6} more` : ''}</>
+                      ) : (
+                        <>No application notes — scored 0.</>
+                      )}
+                      {entry.missingKeywords.length > 0 && (
+                        <> · Missing: {missing.join(', ')}{entry.missingKeywords.length > 6 ? `, and ${entry.missingKeywords.length - 6} more` : ''}</>
+                      )}
+                    </span>
+                  </span>
+                  <span className="rank-scores">
+                    <span><strong className="numeric">{entry.overallScore}</strong><small>overall</small></span>
+                    <span><strong className="numeric">{entry.atsScore}</strong><small>ATS</small></span>
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+        {ranked !== null && ranked.length === 0 && (
+          <p className="rank-note" role="status">No candidates to rank.</p>
+        )}
+      </section>
 
       <div className="hiring-columns">
         <section className="candidate-register" aria-labelledby="register-title">

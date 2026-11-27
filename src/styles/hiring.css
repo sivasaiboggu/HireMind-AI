@@ -212,6 +212,55 @@
 .agenda-note { color: var(--accent-warning); font-size: var(--text-sm); }
 
 .hiring-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+/* Candidate ranking: one panel between the stage strip and the register.
+ * Same surface, hairlines and radii as the register — the ranked list is
+ * a working list, not a second design. */
+.rank-panel {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-depth-1);
+  padding: var(--folio-inset, 16px);
+}
+.rank-intro h2 { font-size: var(--text-2xl); font-weight: 550; }
+.rank-intro p { max-inline-size: 68ch; color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.6; }
+.rank-label { font-size: var(--text-sm); font-weight: 600; }
+.rank-panel textarea {
+  inline-size: 100%;
+  resize: vertical;
+  min-block-size: 96px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  padding: var(--space-3);
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+.rank-panel textarea:focus { outline: 2px solid var(--accent-primary); outline-offset: 1px; }
+.rank-note { color: var(--text-secondary); font-size: var(--text-sm); }
+.rank-list { list-style: none; margin: 0; padding: 0; }
+.rank-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: start;
+  padding-block: var(--space-3);
+  border-block-start: 1px solid var(--border-subtle);
+}
+.rank-position { font-size: var(--text-2xl); font-weight: 550; color: var(--accent-primary); min-inline-size: 2ch; text-align: end; }
+.rank-main { display: grid; gap: var(--space-1); min-inline-size: 0; }
+.rank-main .record-link { justify-content: flex-start; }
+.rank-main .stage-label { justify-self: start; }
+.rank-keywords { color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.6; overflow-wrap: anywhere; }
+.rank-scores { display: flex; gap: var(--space-4); }
+.rank-scores > span { display: grid; justify-items: end; }
+.rank-scores strong { font-size: var(--text-xl); font-weight: 600; }
+.rank-scores small { color: var(--text-muted); font-size: var(--text-xs); }
 .candidate-record { display: grid; gap: var(--space-4); overflow-wrap: anywhere; }
 .candidate-record:focus { outline: none; }
 .candidate-subtitle { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); color: var(--text-secondary); }
