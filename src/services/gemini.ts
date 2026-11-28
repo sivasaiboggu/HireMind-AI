@@ -30,6 +30,12 @@ import type { RequestOptions } from '@google/generative-ai';
 // Optional authenticated server-side proxy (Supabase edge function). When set
 // and the user is signed in, AI calls go through it and the provider key stays
 // on the server. Guests and signed-out users fall back to their own key.
+// Google deprecated gemini-2.5-flash on 2 Nov 2026; from 1 Dec 2026 requests
+// to it are auto-routed to gemini-3.5-flash-lite, a weaker model. gemini-3.8-flash
+// is the current Flash model and Google's documented migration target. One
+// constant here so the next migration is a one-line change, not ten.
+export const GEMINI_TEXT_MODEL = 'gemini-3.8-flash';
+
 const PROXY_URL = (import.meta.env.VITE_GEMINI_PROXY_URL || '').trim();
 
 const getApiKey = (): string => {
@@ -83,7 +89,7 @@ export class GeminiService {
       const requestOptions = await this.getRequestOptions();
       const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: GEMINI_TEXT_MODEL,
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -106,7 +112,7 @@ export class GeminiService {
       const requestOptions = await this.getRequestOptions();
       const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: GEMINI_TEXT_MODEL,
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -138,7 +144,7 @@ export class GeminiService {
       const requestOptions = await this.getRequestOptions();
       const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: GEMINI_TEXT_MODEL,
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -170,7 +176,7 @@ export class GeminiService {
       const generate = async (): Promise<Roadmap> => {
         const ai = this.getClient(!!requestOptions);
         const model = ai.getGenerativeModel({
-          model: 'gemini-2.5-flash',
+          model: GEMINI_TEXT_MODEL,
           systemInstruction: SYSTEM_INSTRUCTION,
           generationConfig: { responseMimeType: 'application/json' }
         });
@@ -182,7 +188,7 @@ export class GeminiService {
       const refine = async (roadmap: Roadmap, evaluation: QualityEvaluation): Promise<Roadmap> => {
         const ai = this.getClient(!!requestOptions);
         const model = ai.getGenerativeModel({
-          model: 'gemini-2.5-flash',
+          model: GEMINI_TEXT_MODEL,
           systemInstruction: SYSTEM_INSTRUCTION,
           generationConfig: { responseMimeType: 'application/json' }
         });
@@ -235,7 +241,7 @@ export class GeminiService {
       const requestOptions = await this.getRequestOptions();
       const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: GEMINI_TEXT_MODEL,
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -276,7 +282,7 @@ export class GeminiService {
       const requestOptions = await this.getRequestOptions();
       const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: GEMINI_TEXT_MODEL,
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -306,7 +312,7 @@ export class GeminiService {
       const requestOptions = await this.getRequestOptions();
       const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: GEMINI_TEXT_MODEL,
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -333,7 +339,7 @@ export class GeminiService {
       const requestOptions = await this.getRequestOptions();
       const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: GEMINI_TEXT_MODEL,
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: 'application/json' }
       });
@@ -361,7 +367,7 @@ export class GeminiService {
       const requestOptions = await this.getRequestOptions();
       const ai = this.getClient(!!requestOptions);
       const model = ai.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: GEMINI_TEXT_MODEL,
         systemInstruction: SYSTEM_INSTRUCTION
       });
 

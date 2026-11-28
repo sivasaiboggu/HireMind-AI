@@ -30,7 +30,7 @@ function makeDeps(overrides: Partial<{
   };
 }
 
-function post(body: string, token = 'tok', path = '/v1beta/models/gemini-2.5-flash:generateContent'): Request {
+function post(body: string, token = 'tok', path = '/v1beta/models/gemini-3.8-flash:generateContent'): Request {
   return new Request(`https://fn.example${path}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -52,7 +52,7 @@ Deno.test('GET is rejected', async () => {
 
 Deno.test('missing token is 401', async () => {
   const { deps } = makeDeps();
-  const req = new Request('https://fn.example/v1beta/models/gemini-2.5-flash:generateContent', { method: 'POST', body: '{}' });
+  const req = new Request('https://fn.example/v1beta/models/gemini-3.8-flash:generateContent', { method: 'POST', body: '{}' });
   assertEquals((await handler(req, deps)).status, 401);
 });
 
@@ -71,9 +71,15 @@ Deno.test('disallowed model is 400', async () => {
   assertEquals((await handler(post('{}', 'tok', '/v1beta/models/gemini-ultra:generateContent'), deps)).status, 400);
 });
 
+Deno.test('deprecated gemini-2.5-flash is 400 and never reaches upstream', async () => {
+  const { deps, captured } = makeDeps();
+  assertEquals((await handler(post('{}', 'tok', '/v1beta/models/gemini-2.5-flash:generateContent'), deps)).status, 400);
+  assertEquals(captured.length, 0);
+});
+
 Deno.test('streaming action is 400', async () => {
   const { deps } = makeDeps();
-  assertEquals((await handler(post('{}', 'tok', '/v1beta/models/gemini-2.5-flash:streamGenerateContent'), deps)).status, 400);
+  assertEquals((await handler(post('{}', 'tok', '/v1beta/models/gemini-3.8-flash:streamGenerateContent'), deps)).status, 400);
 });
 
 Deno.test('oversized body is 413', async () => {
@@ -89,7 +95,7 @@ Deno.test('chunked oversized body without Content-Length is 413 and never reache
       controller.close();
     }
   });
-  const req = new Request('https://fn.example/v1beta/models/gemini-2.5-flash:generateContent', {
+  const req = new Request('https://fn.example/v1beta/models/gemini-3.8-flash:generateContent', {
     method: 'POST',
     headers: { Authorization: 'Bearer tok', 'Content-Type': 'application/json' },
     body: big,
@@ -112,7 +118,7 @@ Deno.test('valid call forwards server key, not the user token, and clamps maxOut
   assertEquals(res.status, 200);
   assertEquals(captured.length, 1);
   assertStringIncludes(captured[0].url, 'key=server-secret-key');
-  assertStringIncludes(captured[0].url, 'gemini-2.5-flash');
+  assertStringIncludes(captured[0].url, 'gemini-3.8-flash');
   const headers = captured[0].init.headers as Record<string, string>;
   assertEquals(headers.Authorization, undefined);
   const sent = JSON.parse(captured[0].init.body as string);

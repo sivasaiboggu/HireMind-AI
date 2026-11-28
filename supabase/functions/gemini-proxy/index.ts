@@ -21,10 +21,13 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const GOOGLE_BASE = 'https://generativelanguage.googleapis.com';
+// Google deprecated gemini-2.5-flash, gemini-2.5-pro and gemini-2.0-flash in
+// Nov 2026 (2.5-flash requests auto-route to gemini-3.5-flash-lite from
+// 1 Dec 2026). Only the current Flash model and its Lite migration target
+// are allowlisted.
 const ALLOWED_MODELS = new Set([
-  'gemini-2.5-flash',
-  'gemini-2.5-pro',
-  'gemini-2.0-flash'
+  'gemini-3.8-flash',
+  'gemini-3.5-flash-lite'
 ]);
 const MAX_BODY_BYTES = 1_000_000;
 const MAX_OUTPUT_TOKENS = 8192;

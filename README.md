@@ -60,7 +60,7 @@ src/
 │   ├── hiring-ranking.ts        # Rank the hiring register on application notes; stale-rank signature
 │   ├── jobs-index.ts            # Semantic search over a jobs index (Gemini embeddings)
 │   ├── output-quality.ts        # Evaluate-then-refine loop for model output; roadmap scorer
-│   ├── gemini.ts                # central GenerativeModel connector (gemini-2.5-flash)
+│   ├── gemini.ts                # central GenerativeModel connector (gemini-3.8-flash)
 │   ├── ats.ts                   # Deterministic on-device ATS audit (40/25/15/20)
 │   ├── score-breakdown.ts       # Score-driver breakdown + highest-impact fix
 │   ├── prompts.ts               # Strict instruction prompts configurations
@@ -134,7 +134,7 @@ their tests run offline with deterministic fakes and no API key.
 *   **Asset Bundler**: Vite 6
 *   **Routing Shell**: React Router v7 (`HashRouter` for zero-server deployment)
 *   **State Container**: Zustand (localStorage bindings, toast overlays, credits monitoring)
-*   **AI Engine**: Google Gemini 2.5 Flash via `@google/generative-ai` SDK
+*   **AI Engine**: Google Gemini 3.8 Flash via `@google/generative-ai` SDK
 *   **Document Reader**: `pdfjs-dist` (Client-side raw text deconstruction)
 *   **Icon Library**: Lucide React
 

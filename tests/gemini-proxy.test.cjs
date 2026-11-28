@@ -65,7 +65,7 @@ function makeDeps(overrides = {}) {
 }
 
 function post(body, token = 'tok') {
-  return new Request('https://fn.example/v1beta/models/gemini-2.5-flash:generateContent', {
+  return new Request('https://fn.example/v1beta/models/gemini-3.8-flash:generateContent', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body,
@@ -80,7 +80,7 @@ test('chunked oversized body without Content-Length is 413 and never reaches ups
       controller.close();
     },
   });
-  const req = new Request('https://fn.example/v1beta/models/gemini-2.5-flash:generateContent', {
+  const req = new Request('https://fn.example/v1beta/models/gemini-3.8-flash:generateContent', {
     method: 'POST',
     headers: { Authorization: 'Bearer tok', 'Content-Type': 'application/json' },
     body: big,
@@ -108,7 +108,7 @@ test('small chunked body passes through and maxOutputTokens is clamped', async (
       controller.close();
     },
   });
-  const req = new Request('https://fn.example/v1beta/models/gemini-2.5-flash:generateContent', {
+  const req = new Request('https://fn.example/v1beta/models/gemini-3.8-flash:generateContent', {
     method: 'POST',
     headers: { Authorization: 'Bearer tok', 'Content-Type': 'application/json' },
     body: small,
@@ -119,4 +119,16 @@ test('small chunked body passes through and maxOutputTokens is clamped', async (
   assert.equal(captured.length, 1);
   assert.match(captured[0].url, /key=server-secret-key/);
   assert.equal(JSON.parse(captured[0].init.body).generationConfig.maxOutputTokens, 8192);
+});
+
+test('deprecated gemini-2.5-flash is rejected and never reaches upstream', async () => {
+  const { deps, captured } = makeDeps();
+  const req = new Request('https://fn.example/v1beta/models/gemini-2.5-flash:generateContent', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer tok', 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  const res = await handler(req, deps);
+  assert.equal(res.status, 400);
+  assert.equal(captured.length, 0);
 });
